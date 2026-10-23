@@ -1,0 +1,3305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Srimati Radharani ki Rasoi — ISKCON Kitchen Management</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .hindi-text {
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    /* Excel-like table borders for Recipe & Daily Kitchen views */
+    .sheet-table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .sheet-table th, .sheet-table td {
+      border: 1.5px solid #1e293b;
+      padding: 6px 10px;
+    }
+    /* Print A4 styling */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .a4-page-break {
+        page-break-after: always;
+        break-after: page;
+      }
+      .a4-avoid-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .sheet-table th, .sheet-table td {
+        border: 1.5px solid #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-extrabold text-xl shadow-sm">
+          🪷
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">Srimati Radharani ki Rasoi</h1>
+            <span class="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+              ISKCON Kitchen
+            </span>
+          </div>
+          <p class="text-xs text-slate-500">Serving 3 Maha-Prasadam Meals to 500+ Devotees Daily</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <button id="headerMultiplierBadge" onclick="switchTab('multiplier')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition" title="Click to adjust overhead cost multiplier">
+          <span>⚡ Overhead Multiplier:</span>
+          <span id="headerMultiplierVal" class="font-bold">1.20x active</span>
+        </button>
+        <button onclick="openResetModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition" title="Restore sample kitchen data">
+          ↺ Reset Demo Data
+        </button>
+      </div>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 border-t border-slate-100 bg-slate-50/60">
+      <nav class="flex items-center gap-1 overflow-x-auto py-1.5" aria-label="Main Navigation">
+        <button id="tabBtn-ingredients" onclick="switchTab('ingredients')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5">
+          <span>🥕</span> <span>1. Ingredients List</span>
+          <span id="navCount-ingredients" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200 text-slate-700">0</span>
+        </button>
+        <button id="tabBtn-recipes" onclick="switchTab('recipes')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5">
+          <span>🍲</span> <span>2. Recipes</span>
+          <span id="navCount-recipes" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200 text-slate-700">0</span>
+        </button>
+        <button id="tabBtn-multiplier" onclick="switchTab('multiplier')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5">
+          <span>⚙️</span> <span>3. Multiplier & Timings</span>
+        </button>
+        <button id="tabBtn-calendar" onclick="switchTab('calendar')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5">
+          <span>📅</span> <span>4. Monthly Menu Calendar</span>
+        </button>
+        <button id="tabBtn-departments" onclick="switchTab('departments')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5">
+          <span>🏛️</span> <span>5. Departments</span>
+          <span id="navCount-departments" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200 text-slate-700">0</span>
+        </button>
+        <button id="tabBtn-daily" onclick="switchTab('daily')" class="tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5">
+          <span>📋</span> <span>6. Daily Kitchen & Print</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: INGREDIENTS LIST                                           -->
+    <!-- ================================================================= -->
+    <section id="tab-ingredients" class="tab-panel space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Ingredients Master List & Purchase Rates</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Maintain raw ingredient purchase rates across 5 supported units (<span class="font-semibold text-slate-700">Kg, g, mg, ml, L</span>). Recipes automatically convert units when calculating cost.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <div class="relative">
+            <input id="ingSearchInput" type="text" oninput="renderIngredientsTab()" placeholder="Search ingredient..." class="pl-8 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 w-48 sm:w-60" />
+            <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs">🔍</span>
+          </div>
+          <select id="ingUnitFilter" onchange="renderIngredientsTab()" class="px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="ALL">All Units (5)</option>
+            <option value="Kg">Kg (Kilogram)</option>
+            <option value="g">g (Gram)</option>
+            <option value="mg">mg (Milligram)</option>
+            <option value="L">L (Liter)</option>
+            <option value="ml">ml (Milliliter)</option>
+          </select>
+          <button onclick="openIngredientModal()" class="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm shadow-sm transition flex items-center gap-1.5">
+            <span>+</span> <span>Add Ingredient</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Inline Add Bar -->
+      <div class="bg-orange-50/70 border border-orange-200/80 rounded-2xl p-4 flex flex-wrap items-end gap-3">
+        <div class="flex-1 min-w-[180px]">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Quick Add Item Name</label>
+          <input id="quickIngName" type="text" placeholder="e.g., Sendha Namak (Rock Salt)" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+        </div>
+        <div class="w-32">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Purchase Unit</label>
+          <select id="quickIngUnit" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="Kg">Kg</option>
+            <option value="g">g</option>
+            <option value="mg">mg</option>
+            <option value="L">L</option>
+            <option value="ml">ml</option>
+          </select>
+        </div>
+        <div class="w-36">
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Price / Unit (₹)</label>
+          <input id="quickIngPrice" type="number" step="0.01" min="0" placeholder="e.g., 20" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+        </div>
+        <button onclick="quickAddIngredient()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition">
+          + Quick Save
+        </button>
+      </div>
+
+      <!-- Ingredients Table (Matches Screenshot 1) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th class="py-3.5 px-5 w-16">#</th>
+                <th class="py-3.5 px-5">ITEM NAME</th>
+                <th class="py-3.5 px-5 text-center">UNIT</th>
+                <th class="py-3.5 px-5 text-right">PRICE / UNIT (₹)</th>
+                <th class="py-3.5 px-5 text-right w-40">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="ingredientsTableBody" class="divide-y divide-slate-100 text-sm">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: RECIPES                                                    -->
+    <!-- ================================================================= -->
+    <section id="tab-recipes" class="tab-panel hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Standard Recipes & Proportional Yield Calculator</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Set standard yield in <span class="font-semibold text-slate-700">Liters (L)</span> or <span class="font-semibold text-slate-700">Pieces (pcs)</span>, define <span class="font-semibold text-slate-700">Standard Serving Qty per person</span>, group ingredients by cooking step, and test live proportional scaling.
+          </p>
+        </div>
+        <div class="flex items-center gap-2.5">
+          <button onclick="openRecipeModal(null)" class="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm shadow-sm transition flex items-center gap-1.5">
+            <span>+</span> <span>Add New Recipe</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recipe Selector Pills + Active Recipe View -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Left Sidebar: Recipe List -->
+        <div class="lg:col-span-3 space-y-2.5">
+          <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">All Kitchen Recipes</div>
+            <div id="recipeSelectorList" class="space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Unit Conversion Reference Box -->
+          <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-3.5 text-xs text-amber-900 space-y-1.5">
+            <div class="font-bold flex items-center gap-1.5">
+              <span>⚖️</span> <span>Automatic Unit Conversion Active</span>
+            </div>
+            <p class="text-amber-800 leading-relaxed">
+              • <strong>1 Kg</strong> = 1,000 g (gm) = 1,000,000 mg<br/>
+              • <strong>1 L</strong> = 1,000 ml<br/>
+              <em>Example:</em> Salt @ ₹20/Kg × 200 g = <code>20 × (200/1000)</code> = <strong>₹4.00</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Right Main Area: Active Recipe Sheet (Matches Screenshot 2) -->
+        <div class="lg:col-span-9">
+          <div id="activeRecipeContainer" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: MULTIPLIER & STANDARD TIMINGS                              -->
+    <!-- ================================================================= -->
+    <section id="tab-multiplier" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Adjusted Cost Multiplier Card (Matches Screenshot 3) -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-6 border-b border-slate-100 flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Adjusted Cost Multiplier</h2>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">This value applies to every recipe and production plan.</p>
+            </div>
+            <span id="multiplierActivePill" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">
+              1.20x active
+            </span>
+          </div>
+          <div class="p-6 space-y-5">
+            <div>
+              <label for="multiplierInput" class="block text-xs font-bold text-slate-700 mb-2">Multiplier</label>
+              <div class="flex items-center gap-3">
+                <input id="multiplierInput" type="number" step="0.05" min="1" max="5" oninput="previewMultiplierChange()" class="w-44 px-4 py-2.5 text-lg font-extrabold text-slate-900 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" value="1.2" />
+                <span class="text-base font-bold text-slate-700">× ingredient cost</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-2">
+                Example: 1.2x adds 20% to ingredient cost for gas, water, electricity, and maintenance.
+              </p>
+            </div>
+
+            <!-- Live Cost Example Box -->
+            <div class="bg-orange-50/70 border border-orange-200/90 rounded-2xl p-5">
+              <div class="text-xs font-semibold text-slate-500 mb-2">Cost example</div>
+              <div class="flex flex-wrap items-baseline gap-3">
+                <span class="text-2xl sm:text-3xl font-extrabold text-slate-900">₹100</span>
+                <span class="text-sm text-slate-600">ingredient cost</span>
+                <span class="text-slate-400 font-bold">→</span>
+                <span id="multiplierExampleOut" class="text-2xl sm:text-3xl font-extrabold text-orange-600">₹120</span>
+                <span class="text-sm text-slate-600">adjusted cost</span>
+              </div>
+            </div>
+
+            <div class="pt-1">
+              <button onclick="saveMultiplierSetting()" class="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow-sm transition">
+                Save Multiplier
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standard Meal Timings Card (Applies to All Days by Default) -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-6 border-b border-slate-100">
+            <h2 class="text-lg font-bold text-slate-900">Standard Meal Timings (Global Default)</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              Set standard <strong>Bhoga Ready Time</strong> and <strong>Serving Time</strong> once for Breakfast, Lunch, and Dinner. You can still override any specific day manually in the Calendar or Daily Kitchen tab.
+            </p>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Breakfast -->
+            <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">Breakfast (Standard)</span>
+                <span class="text-xs text-slate-500">Applies to all days unless overridden</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">1) Bhoga Ready Time</label>
+                  <input id="stdTime-breakfast-bhoga" type="time" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg" value="07:15" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">2) Devotee Serving Time</label>
+                  <input id="stdTime-breakfast-serving" type="time" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg" value="08:00" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Lunch -->
+            <div class="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Lunch (Standard)</span>
+                <span class="text-xs text-slate-500">Applies to all days unless overridden</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">1) Bhoga Ready Time</label>
+                  <input id="stdTime-lunch-bhoga" type="time" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg" value="12:00" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">2) Devotee Serving Time</label>
+                  <input id="stdTime-lunch-serving" type="time" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg" value="13:00" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Dinner -->
+            <div class="p-4 rounded-xl bg-purple-50/60 border border-purple-200/80 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-purple-100 text-purple-800 border border-purple-300">Dinner (Standard)</span>
+                <span class="text-xs text-slate-500">Applies to all days unless overridden</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">1) Bhoga Ready Time</label>
+                  <input id="stdTime-dinner-bhoga" type="time" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg" value="19:30" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">2) Devotee Serving Time</label>
+                  <input id="stdTime-dinner-serving" type="time" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg" value="20:15" />
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+              <strong>Note on Special Meals ("Order" & "Journey Prasad"):</strong> As requested, Order and Journey Prasad meals are only added on specific dates when needed, and their Bhoga Ready Time & Serving Time are entered manually each time.
+            </div>
+
+            <div class="pt-1">
+              <button onclick="saveStandardTimings()" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-sm transition">
+                Save Standard Meal Timings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: MONTHLY MENU CALENDAR                                      -->
+    <!-- ================================================================= -->
+    <section id="tab-calendar" class="tab-panel hidden space-y-5">
+      <!-- Top Bar (Matches Screenshot 4) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4">
+        <button onclick="changeCalendarMonth(-1)" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700 transition">
+          ← Prev
+        </button>
+
+        <div class="text-center">
+          <h2 id="calendarMonthLabel" class="text-lg sm:text-xl font-extrabold text-slate-900">October 2026</h2>
+          <div class="flex flex-wrap items-center justify-center gap-3 mt-1 text-[11px] font-semibold">
+            <span class="inline-flex items-center gap-1 text-amber-800"><span class="w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-400"></span> Breakfast</span>
+            <span class="inline-flex items-center gap-1 text-emerald-800"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-100 border border-emerald-400"></span> Lunch</span>
+            <span class="inline-flex items-center gap-1 text-purple-800"><span class="w-2.5 h-2.5 rounded-sm bg-purple-100 border border-purple-400"></span> Dinner</span>
+            <span class="inline-flex items-center gap-1 text-blue-800"><span class="w-2.5 h-2.5 rounded-sm bg-blue-100 border border-blue-400"></span> Order</span>
+            <span class="inline-flex items-center gap-1 text-rose-800"><span class="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-400"></span> Journey Prasad</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="copyMonthMenuToNext()" class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700 transition">
+            Copy Month
+          </button>
+          <button onclick="changeCalendarMonth(1)" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700 transition">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Calendar + Selected Day Editor Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Calendar Grid (8 cols on lg) -->
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="grid grid-cols-7 bg-slate-100/90 border-b border-slate-200 text-center text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <div class="py-3">SUN</div>
+            <div class="py-3">MON</div>
+            <div class="py-3">TUE</div>
+            <div class="py-3">WED</div>
+            <div class="py-3">THU</div>
+            <div class="py-3">FRI</div>
+            <div class="py-3">SAT</div>
+          </div>
+          <div id="calendarGridCells" class="grid grid-cols-7 divide-x divide-y divide-slate-200">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Day Menu Editor Panel (Matches Screenshot 5) -->
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sticky top-28 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-orange-600">Selected Date Menu</span>
+              <h3 id="calEditorDateTitle" class="text-base font-extrabold text-slate-900">Sunday, Oct 4, 2026</h3>
+            </div>
+            <button onclick="openSelectedCalendarDateInDaily()" class="px-3 py-1.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition shadow-sm">
+              Plan in Daily Kitchen →
+            </button>
+          </div>
+
+          <div id="calDayEditorBody" class="space-y-4 max-h-[620px] overflow-y-auto pr-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: DEPARTMENTS                                                -->
+    <!-- ================================================================= -->
+    <section id="tab-departments" class="tab-panel hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Departments & Devotee Headcounts</h2>
+          <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Manage different groups served by the kitchen (<span class="font-semibold text-slate-700">Temple Devotees, KH Devotees, Abhay Hostel, BIT Voice, Congregation</span>, etc.), their default headcounts, and Chargeable / Non-Chargeable status.
+          </p>
+        </div>
+        <button onclick="openDepartmentModal(null)" class="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm shadow-sm transition flex items-center gap-1.5">
+          <span>+</span> <span>Add Department</span>
+        </button>
+      </div>
+
+      <!-- Summary Strip -->
+      <div id="departmentsSummaryBar" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Cards Grid (Matches Screenshot 6) -->
+      <div id="departmentsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 6: DAILY KITCHEN PLANNING & A4 RECIPE GENERATOR               -->
+    <!-- ================================================================= -->
+    <section id="tab-daily" class="tab-panel hidden space-y-6">
+      <!-- Top Control Bar (Hidden when printing) -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 no-print space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800">Core Kitchen Planner</span>
+              <h2 class="text-lg font-extrabold text-slate-900">Daily Kitchen Production & Recipe Scaling</h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Select a date to fetch its menu. Every field in the table below—<strong>Standard Serving Qty, Department Headcount, Individual Dept Dish Quantity, Timings, Calculated Qty, and Adjusted Qty</strong>—is 100% editable!
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+              <label for="dailyDatePicker" class="text-xs font-bold text-slate-700">Planning Date:</label>
+              <input id="dailyDatePicker" type="date" onchange="onDailyDateChange(this.value)" class="px-2.5 py-1 text-sm font-bold bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" value="2026-10-04" />
+            </div>
+            <button onclick="onDailyDateChange('2026-10-04')" class="px-3 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold transition" title="Load Sunday Oct 4, 2026 sample sheet from screenshot">
+              ★ Oct 4 Sample
+            </button>
+            <button onclick="syncDailyFromCalendar(true)" class="px-3 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition" title="Re-fetch menu dishes from Monthly Calendar">
+              🔄 Sync Menu from Calendar
+            </button>
+            <button onclick="generateDailyRecipesSection(true)" class="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+              <span>⚡</span> <span>Generate Recipes</span>
+            </button>
+            <button onclick="triggerA4Print()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+              <span>🖨️</span> <span>Print Recipes (A4)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Meal Filter / Extra Meal Toggles -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-slate-500 mr-1">View Meal:</span>
+            <button id="dailyMealFilter-ALL" onclick="setDailyMealFilter('ALL')" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white">All Meals</button>
+            <button id="dailyMealFilter-breakfast" onclick="setDailyMealFilter('breakfast')" class="px-3 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-900">Breakfast (BF)</button>
+            <button id="dailyMealFilter-lunch" onclick="setDailyMealFilter('lunch')" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-900">Lunch</button>
+            <button id="dailyMealFilter-dinner" onclick="setDailyMealFilter('dinner')" class="px-3 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-900">Dinner</button>
+            <button id="dailyMealFilter-order" onclick="setDailyMealFilter('order')" class="px-3 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-900">Order</button>
+            <button id="dailyMealFilter-journey" onclick="setDailyMealFilter('journey')" class="px-3 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-900">Journey Prasad</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="enableExtraMealInDaily('order')" class="px-2.5 py-1 rounded-lg border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-semibold transition">
+              + Add "Order" Meal
+            </button>
+            <button onclick="enableExtraMealInDaily('journey')" class="px-2.5 py-1 rounded-lg border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold transition">
+              + Add "Journey Prasad" Meal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Meal Planning Tables Container (Hidden when printing if user only prints recipes, or toggled) -->
+      <div id="dailyPlanningTablesContainer" class="space-y-6 no-print">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Generated Daily Recipes & A4 Print Preview Container -->
+      <div id="dailyGeneratedRecipesWrapper" class="space-y-6">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODALS (No alert/confirm/prompt used anywhere)                    -->
+  <!-- ================================================================= -->
+
+  <!-- 1. Ingredient Add/Edit Modal -->
+  <div id="ingredientModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="ingModalTitle" class="text-base font-bold text-slate-900">Add Ingredient</h3>
+        <button onclick="closeIngredientModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input id="ingModalId" type="hidden" />
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Ingredient Name</label>
+          <input id="ingModalName" type="text" placeholder="e.g., Alu (Potato)" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Purchase Unit (5 Units)</label>
+            <select id="ingModalUnit" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <option value="Kg">Kg (Kilogram)</option>
+              <option value="g">g (Gram)</option>
+              <option value="mg">mg (Milligram)</option>
+              <option value="L">L (Liter)</option>
+              <option value="ml">ml (Milliliter)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Price per Unit (₹)</label>
+            <input id="ingModalPrice" type="number" step="0.01" min="0" placeholder="e.g., 30" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button onclick="closeIngredientModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+        <button onclick="saveIngredientModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white transition">Save Ingredient</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Department Add/Edit Modal -->
+  <div id="departmentModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="deptModalTitle" class="text-base font-bold text-slate-900">Add Department</h3>
+        <button onclick="closeDepartmentModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input id="deptModalId" type="hidden" />
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Department Name</label>
+          <input id="deptModalName" type="text" placeholder="e.g., Temple Devotees" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ideal Headcount (People)</label>
+            <input id="deptModalCount" type="number" step="1" min="0" placeholder="e.g., 60" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Billing Status</label>
+            <select id="deptModalChargeable" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <option value="false">Non-Chargeable</option>
+              <option value="true">Chargeable</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button onclick="closeDepartmentModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+        <button onclick="saveDepartmentModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white transition">Save Department</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Recipe Add/Edit Modal (Supports Multi-Ingredient Cooking Process Steps) -->
+  <div id="recipeModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-5 no-print">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 id="recipeModalTitle" class="text-base sm:text-lg font-extrabold text-slate-900">Create / Edit Recipe</h3>
+          <p class="text-xs text-slate-500">Group one or multiple ingredients under each Cooking Process step (just like your Excel sheet).</p>
+        </div>
+        <button onclick="closeRecipeModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1">
+        <input id="recipeModalId" type="hidden" />
+
+        <!-- Top Metadata Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 bg-orange-50/50 p-4 rounded-xl border border-orange-200/80">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Dish / Recipe Name *</label>
+            <input id="recipeModalName" type="text" placeholder="e.g., Alu Bagan Badi" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Standard Yield & Unit *</label>
+            <div class="flex items-center gap-1.5">
+              <input id="recipeModalStdYield" type="number" step="0.1" min="0.1" placeholder="30" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl font-bold" />
+              <select id="recipeModalYieldUnit" onchange="onRecipeYieldUnitChange()" class="px-2.5 py-2 text-sm bg-white border border-slate-300 rounded-xl font-bold">
+                <option value="L">L (Liters)</option>
+                <option value="pcs">pcs (Pieces)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Std Serving / Person *</label>
+            <div class="flex items-center gap-1.5">
+              <input id="recipeModalServingQty" type="number" step="1" min="0.1" placeholder="200" class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl font-bold" />
+              <span id="recipeModalServingUnitBadge" class="px-2.5 py-2 text-xs font-bold bg-slate-200 text-slate-800 rounded-xl whitespace-nowrap">ml</span>
+            </div>
+            <span class="text-[10px] text-slate-500">Per devotee serving</span>
+          </div>
+        </div>
+
+        <!-- Cooking Process Steps & Linked Ingredients -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-sm font-bold text-slate-900">Cooking Process Steps & Ingredients</h4>
+              <p class="text-xs text-slate-500">Add one or more ingredients to each step. In the recipe table, the cooking process text will span across all ingredients in that step.</p>
+            </div>
+            <button type="button" onclick="addRecipeModalStep()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+              + Add Cooking Step Group
+            </button>
+          </div>
+
+          <div id="recipeModalStepsContainer" class="space-y-4">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+        <span class="text-xs text-slate-500">Rates are automatically fetched from the Ingredients List tab with live unit conversion.</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeRecipeModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+          <button type="button" onclick="saveRecipeFromModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white shadow-sm transition">Save Recipe</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Reset Demo Data Confirmation Modal -->
+  <div id="resetModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-sm w-full p-6 space-y-4">
+      <h3 class="text-base font-bold text-slate-900">Reset to Default Kitchen Data?</h3>
+      <p class="text-xs sm:text-sm text-slate-600">
+        This will restore the default Srimati Radharani ki Rasoi ingredients, recipes (Alu Bagan Badi, Dal Fry, Jeera Rice, Idli, Sambhar, etc.), October 2026 calendar, departments, and Oct 4 daily planning table.
+      </p>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+        <button onclick="confirmResetDemoData()" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white">Yes, Reset Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 no-print pointer-events-none"></div>
+
+  <!-- ================================================================= -->
+  <!-- APPLICATION JAVASCRIPT                                            -->
+  <!-- ================================================================= -->
+  <script>
+    const STORAGE_KEY = 'iskcon_radharani_rasoi_v1';
+
+    // Default initial state matching all 7 user screenshots
+    function getDefaultState() {
+      return {
+        activeTab: 'ingredients',
+        selectedRecipeId: 'rec_alu_bagan_badi',
+        multiplier: 1.2,
+        standardTimings: {
+          breakfast: { bhoga: '07:15', serving: '08:00' },
+          lunch:     { bhoga: '12:00', serving: '13:00' },
+          dinner:    { bhoga: '19:30', serving: '20:15' }
+        },
+        calendarYear: 2026,
+        calendarMonth: 9, // 0-indexed: 9 = October 2026
+        selectedCalendarDate: '2026-10-04',
+        selectedDailyDate: '2026-10-04',
+        dailyMealFilter: 'ALL',
+        printShowCosts: true,
+
+        // 1. INGREDIENTS LIST (5 units: Kg, g, mg, ml, L)
+        ingredients: [
+          { id: 'ing_alu', name: 'Alu (Potato)', unit: 'L', price: 30 },
+          { id: 'ing_bagan', name: 'Bagan (Eggplant)', unit: 'L', price: 40 },
+          { id: 'ing_badi', name: 'Badi', unit: 'Kg', price: 120 },
+          { id: 'ing_tomato', name: 'Tomato Chopped', unit: 'L', price: 35 },
+          { id: 'ing_sarso_tel', name: 'Sarso Tel', unit: 'L', price: 160 },
+          { id: 'ing_tejpatta', name: 'Tejpatta', unit: 'Kg', price: 200 },
+          { id: 'ing_sukha_mircha', name: 'Sukha Mircha', unit: 'Kg', price: 260 },
+          { id: 'ing_panchforan', name: 'Panchforan', unit: 'Kg', price: 300 },
+          { id: 'ing_hing', name: 'Hing', unit: 'Kg', price: 1200 },
+          { id: 'ing_g_chilli', name: 'G Chilli', unit: 'Kg', price: 80 },
+          { id: 'ing_ginger', name: 'Ginger', unit: 'Kg', price: 120 },
+          { id: 'ing_gota_jeera', name: 'Gota Jeera', unit: 'Kg', price: 400 },
+          { id: 'ing_golki', name: 'Golki', unit: 'Kg', price: 700 },
+          { id: 'ing_haldi', name: 'Haldi', unit: 'Kg', price: 220 },
+          { id: 'ing_k_red_chilli', name: 'K Red Chilli', unit: 'Kg', price: 450 },
+          { id: 'ing_gota_sarso', name: 'Gota Sarso', unit: 'Kg', price: 150 },
+          { id: 'ing_garam_masala', name: 'Everest Garam Masala', unit: 'Kg', price: 800 },
+          { id: 'ing_dhaniya_patta', name: 'Dhaniya Patta', unit: 'L', price: 25 },
+          { id: 'ing_salt', name: 'Salt (Sendha)', unit: 'Kg', price: 20 },
+          { id: 'ing_toor_dal', name: 'Toor / Arhar Dal', unit: 'Kg', price: 140 },
+          { id: 'ing_rice', name: 'Basmati / Govindobhog Rice', unit: 'Kg', price: 65 },
+          { id: 'ing_ghee', name: 'Pure Cow Ghee', unit: 'L', price: 600 },
+          { id: 'ing_idli_rava', name: 'Idli Rava & Urad Batter', unit: 'L', price: 55 },
+          { id: 'ing_coconut', name: 'Fresh Grated Coconut', unit: 'Kg', price: 90 },
+          { id: 'ing_tamarind', name: 'Imli (Tamarind Pulp)', unit: 'Kg', price: 130 },
+          { id: 'ing_sambhar_masala', name: 'Sambhar Masala', unit: 'Kg', price: 500 },
+          { id: 'ing_pav_bread', name: 'Soft Butter Pav (Fresh)', unit: 'Kg', price: 80 },
+          { id: 'ing_mixed_veg', name: 'Mixed Chopped Vegetables', unit: 'L', price: 38 },
+          { id: 'ing_pasta_raw', name: 'Durum Wheat Pasta', unit: 'Kg', price: 110 },
+          { id: 'ing_lemon', name: 'Fresh Lemon Juice & Sugar Mix', unit: 'L', price: 45 }
+        ],
+
+        // 2. RECIPES (With multi-ingredient Cooking Process steps matching Screenshot 2)
+        recipes: [
+          {
+            id: 'rec_alu_bagan_badi',
+            name: 'Alu Bagan Badi',
+            stdYield: 30,
+            targetYield: 20,
+            yieldUnit: 'L',
+            servingQty: 200,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'सबसे पहले हम आलू को तेल में रोस्ट करेंगे। ab बचे हुए तेल में बड़ी को रोस्ट करके निकाल लेंगे।',
+                items: [
+                  { ingId: 'ing_alu', stdQty: 15, unit: 'L' },
+                  { ingId: 'ing_bagan', stdQty: 45, unit: 'L' },
+                  { ingId: 'ing_badi', stdQty: 1, unit: 'Kg' }
+                ]
+              },
+              {
+                process: 'टमाटर को धोकर बारीक काटकर अलग रख लेंगे।',
+                items: [
+                  { ingId: 'ing_tomato', stdQty: 2, unit: 'L' }
+                ]
+              },
+              {
+                process: 'बचे हुए तेल में तेल और डालेंगे। इसके बाद तेजपत्ता, सूखी मिर्च, फोड़न और हींग डालेंगे।',
+                items: [
+                  { ingId: 'ing_sarso_tel', stdQty: 0.8, unit: 'L' },
+                  { ingId: 'ing_tejpatta', stdQty: 6, unit: 'g' },
+                  { ingId: 'ing_sukha_mircha', stdQty: 10, unit: 'g' },
+                  { ingId: 'ing_panchforan', stdQty: 40, unit: 'g' },
+                  { ingId: 'ing_hing', stdQty: 20, unit: 'g' }
+                ]
+              },
+              {
+                process: 'इन सभी मसालों को मिक्सी जार में डालकर पीसकर पेस्ट बना लेंगे। ऊपर दिए गए छौंक में इस पेस्ट को डालकर 10 मिनट तक धीमी आँच पर पकाएँगे। जब मसाला तेल छोड़ देगा, तब इसमें कटे हुए बैंगन और टमाटर डाल देंगे।',
+                items: [
+                  { ingId: 'ing_g_chilli', stdQty: 90, unit: 'g' },
+                  { ingId: 'ing_ginger', stdQty: 150, unit: 'g' },
+                  { ingId: 'ing_gota_jeera', stdQty: 30, unit: 'g' },
+                  { ingId: 'ing_golki', stdQty: 20, unit: 'g' },
+                  { ingId: 'ing_haldi', stdQty: 40, unit: 'g' },
+                  { ingId: 'ing_k_red_chilli', stdQty: 30, unit: 'g' },
+                  { ingId: 'ing_gota_sarso', stdQty: 15, unit: 'g' },
+                  { ingId: 'ing_salt', stdQty: 200, unit: 'g' }
+                ]
+              },
+              {
+                process: 'अंत में रोस्ट किए हुए आलू और क्रश की हुई बड़ी डालेंगे। इसके बाद गरम मसाला और धनिया पत्ता डालकर अच्छी तरह मिलाएँगे और 5 मिनट तक पकाएँगे।',
+                items: [
+                  { ingId: 'ing_garam_masala', stdQty: 40, unit: 'g' },
+                  { ingId: 'ing_dhaniya_patta', stdQty: 2, unit: 'L' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_dal_fry',
+            name: 'Dal Fry',
+            stdYield: 30,
+            targetYield: 30,
+            yieldUnit: 'L',
+            servingQty: 200,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'तूर दाल को अच्छी तरह धोकर हल्दी और नमक के साथ प्रेशर कुकर या स्टीम केटल में नरम होने तक उबालें।',
+                items: [
+                  { ingId: 'ing_toor_dal', stdQty: 6, unit: 'Kg' },
+                  { ingId: 'ing_haldi', stdQty: 50, unit: 'g' },
+                  { ingId: 'ing_salt', stdQty: 250, unit: 'g' }
+                ]
+              },
+              {
+                process: 'कड़ाही में शुद्ध घी गरम करें, जीरा, तेजपत्ता, सूखी मिर्च, हींग और अदरक-हरी मिर्च डालकर भूनें, फिर कटे टमाटर और धनिया पत्ता मिलाकर दाल में तड़का लगाएँ।',
+                items: [
+                  { ingId: 'ing_ghee', stdQty: 500, unit: 'ml' },
+                  { ingId: 'ing_gota_jeera', stdQty: 40, unit: 'g' },
+                  { ingId: 'ing_hing', stdQty: 15, unit: 'g' },
+                  { ingId: 'ing_ginger', stdQty: 100, unit: 'g' },
+                  { ingId: 'ing_tomato', stdQty: 2.5, unit: 'L' },
+                  { ingId: 'ing_dhaniya_patta', stdQty: 1, unit: 'L' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_jeera_rice',
+            name: 'Jeera Rice',
+            stdYield: 25,
+            targetYield: 25,
+            yieldUnit: 'L',
+            servingQty: 250,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'चावल को 20 मिनट भिगोकर रखें। घी में जीरा और तेजपत्ता चटकाएँ और चावल व नमक डालकर पकाएँ।',
+                items: [
+                  { ingId: 'ing_rice', stdQty: 8, unit: 'Kg' },
+                  { ingId: 'ing_ghee', stdQty: 400, unit: 'ml' },
+                  { ingId: 'ing_gota_jeera', stdQty: 60, unit: 'g' },
+                  { ingId: 'ing_tejpatta', stdQty: 10, unit: 'g' },
+                  { ingId: 'ing_salt', stdQty: 150, unit: 'g' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_sambhar',
+            name: 'Sambhar',
+            stdYield: 45,
+            targetYield: 45,
+            yieldUnit: 'L',
+            servingQty: 250,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'तूर दाल और कटी सब्जियों को हल्दी व नमक के साथ उबालें।',
+                items: [
+                  { ingId: 'ing_toor_dal', stdQty: 5, unit: 'Kg' },
+                  { ingId: 'ing_mixed_veg', stdQty: 8, unit: 'L' },
+                  { ingId: 'ing_haldi', stdQty: 60, unit: 'g' },
+                  { ingId: 'ing_salt', stdQty: 350, unit: 'g' }
+                ]
+              },
+              {
+                process: 'इमली का पल्प और सांभर मसाला डालें, फिर सरसों, सूखी मिर्च और हींग का छौंक लगाएँ।',
+                items: [
+                  { ingId: 'ing_tamarind', stdQty: 800, unit: 'g' },
+                  { ingId: 'ing_sambhar_masala', stdQty: 400, unit: 'g' },
+                  { ingId: 'ing_sarso_tel', stdQty: 600, unit: 'ml' },
+                  { ingId: 'ing_gota_sarso', stdQty: 50, unit: 'g' },
+                  { ingId: 'ing_hing', stdQty: 20, unit: 'g' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_idli',
+            name: 'Idli',
+            stdYield: 600,
+            targetYield: 600,
+            yieldUnit: 'pcs',
+            servingQty: 3,
+            servingUnit: 'pcs',
+            steps: [
+              {
+                process: 'इडली बैटर में स्वादानुसार सेंधा नमक मिलाएँ, साँचों में हल्का तेल लगाकर 12-15 मिनट भाप (स्टीम) में पकाएँ।',
+                items: [
+                  { ingId: 'ing_idli_rava', stdQty: 32, unit: 'L' },
+                  { ingId: 'ing_salt', stdQty: 300, unit: 'g' },
+                  { ingId: 'ing_sarso_tel', stdQty: 250, unit: 'ml' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_coconut_catani',
+            name: 'Coconut Catani',
+            stdYield: 20,
+            targetYield: 20,
+            yieldUnit: 'L',
+            servingQty: 100,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'ताजा नारियल, हरी मिर्च, अदरक और नमक पीसकर राई व सूखी लाल मिर्च का तड़का लगाएँ।',
+                items: [
+                  { ingId: 'ing_coconut', stdQty: 8, unit: 'Kg' },
+                  { ingId: 'ing_g_chilli', stdQty: 150, unit: 'g' },
+                  { ingId: 'ing_ginger', stdQty: 100, unit: 'g' },
+                  { ingId: 'ing_salt', stdQty: 180, unit: 'g' },
+                  { ingId: 'ing_sarso_tel', stdQty: 250, unit: 'ml' },
+                  { ingId: 'ing_gota_sarso', stdQty: 40, unit: 'g' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_pav',
+            name: 'Pav',
+            stdYield: 220,
+            targetYield: 220,
+            yieldUnit: 'pcs',
+            servingQty: 2,
+            servingUnit: 'pcs',
+            steps: [
+              {
+                process: 'पाव को तवे पर शुद्ध घी लगाकर दोनों तरफ से हल्का सुनहरा सेकें।',
+                items: [
+                  { ingId: 'ing_pav_bread', stdQty: 11, unit: 'Kg' },
+                  { ingId: 'ing_ghee', stdQty: 400, unit: 'ml' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_bhaji',
+            name: 'Bhaji',
+            stdYield: 20,
+            targetYield: 20,
+            yieldUnit: 'L',
+            servingQty: 150,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'आलू और मिक्स सब्जियों को उबालकर मैश करें, टमाटर व मसालों के साथ मक्खन/घी में पकाएँ।',
+                items: [
+                  { ingId: 'ing_alu', stdQty: 8, unit: 'L' },
+                  { ingId: 'ing_mixed_veg', stdQty: 8, unit: 'L' },
+                  { ingId: 'ing_tomato', stdQty: 4, unit: 'L' },
+                  { ingId: 'ing_ghee', stdQty: 500, unit: 'ml' },
+                  { ingId: 'ing_garam_masala', stdQty: 80, unit: 'g' },
+                  { ingId: 'ing_salt', stdQty: 200, unit: 'g' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_pasta',
+            name: 'Pasta',
+            stdYield: 35,
+            targetYield: 35,
+            yieldUnit: 'L',
+            servingQty: 300,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'पास्ता उबालकर टमाटर सॉस, सब्जियों और मसालों के साथ टॉस करें।',
+                items: [
+                  { ingId: 'ing_pasta_raw', stdQty: 9, unit: 'Kg' },
+                  { ingId: 'ing_tomato', stdQty: 6, unit: 'L' },
+                  { ingId: 'ing_mixed_veg', stdQty: 5, unit: 'L' },
+                  { ingId: 'ing_salt', stdQty: 200, unit: 'g' }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'rec_lemon_juice',
+            name: 'Lemon Juice',
+            stdYield: 25,
+            targetYield: 25,
+            yieldUnit: 'L',
+            servingQty: 200,
+            servingUnit: 'ml',
+            steps: [
+              {
+                process: 'ताजा नींबू रस, ठंडा जल और सेंधा नमक मिलाकर तैयार करें।',
+                items: [
+                  { ingId: 'ing_lemon', stdQty: 4, unit: 'L' },
+                  { ingId: 'ing_salt', stdQty: 100, unit: 'g' }
+                ]
+              }
+            ]
+          }
+        ],
+
+        // 4. MONTHLY MENU CALENDAR (Pre-populated for October 2026 matching Screenshot 4 & 7)
+        calendarDays: buildDefaultOctoberCalendar(),
+
+        // 5. DEPARTMENTS (Matching Screenshot 6 + KH Devotees)
+        departments: [
+          { id: 'dept_temple', name: 'Temple', count: 60, chargeable: false, icon: '🏛️' },
+          { id: 'dept_abhay', name: 'Abhay Hostel', count: 35, chargeable: true, icon: '🏢' },
+          { id: 'dept_bit', name: 'BIT Voice', count: 7, chargeable: true, icon: '🎓' },
+          { id: 'dept_cong', name: 'Congregation', count: 45, chargeable: true, icon: '🙏' },
+          { id: 'dept_kh', name: 'KH Devotees', count: 10, chargeable: false, icon: '🏠' },
+          { id: 'dept_annadan', name: 'Daily Annadan Hall', count: 350, chargeable: false, icon: '🍛' }
+        ],
+
+        // 6. DAILY KITCHEN PLANS (Pre-populated for 2026-10-04 matching Screenshot 7!)
+        dailyPlans: {
+          '2026-10-04': buildOct4SamplePlan()
+        }
+      };
+    }
+
+    function buildDefaultOctoberCalendar() {
+      const days = {};
+      for (let d = 1; d <= 31; d++) {
+        const dateStr = `2026-10-${String(d).padStart(2, '0')}`;
+        const isEven = d % 2 === 0;
+        days[dateStr] = {
+          breakfast: {
+            enabled: true,
+            bhogaTime: '07:15',
+            servingTime: '08:00',
+            dishes: ['rec_dal_fry']
+          },
+          lunch: {
+            enabled: true,
+            bhogaTime: '12:00',
+            servingTime: '13:00',
+            dishes: isEven
+              ? ['rec_sambhar', 'rec_jeera_rice', 'rec_alu_bagan_badi']
+              : ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry']
+          },
+          dinner: {
+            enabled: true,
+            bhogaTime: '19:30',
+            servingTime: '20:15',
+            dishes: d === 5
+              ? ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry']
+              : ['rec_alu_bagan_badi', 'rec_jeera_rice']
+          },
+          order: {
+            enabled: false,
+            bhogaTime: '11:00',
+            servingTime: '11:30',
+            dishes: []
+          },
+          journey: {
+            enabled: false,
+            bhogaTime: '06:00',
+            servingTime: '06:30',
+            dishes: []
+          }
+        };
+      }
+      // Make Sunday Oct 4, 2026 match Screenshot 7 (idli, sambhar, coconut catani, pav, bhaji, pasta, lemon juice, jeera rice)
+      days['2026-10-04'].breakfast.dishes = [
+        'rec_idli',
+        'rec_sambhar',
+        'rec_coconut_catani',
+        'rec_pav',
+        'rec_bhaji',
+        'rec_pasta',
+        'rec_lemon_juice',
+        'rec_jeera_rice'
+      ];
+      return days;
+    }
+
+    function buildOct4SamplePlan() {
+      return {
+        meals: {
+          breakfast: {
+            enabled: true,
+            bhogaTime: '07:15',
+            servingTime: '08:00',
+            deptCols: [
+              { colId: 'col_1', deptId: 'dept_temple', customLabel: 'Temple+KH(10)', count: 60 },
+              { colId: 'col_2', deptId: 'dept_abhay', customLabel: 'Abhay hostel', count: 35 }
+            ],
+            rows: [
+              { recipeId: 'rec_idli', servingQty: 3, overrides: {}, calcOverride: null, adjustedQty: 600 },
+              { recipeId: 'rec_sambhar', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 45 },
+              { recipeId: 'rec_coconut_catani', servingQty: 100, overrides: {}, calcOverride: null, adjustedQty: 20 },
+              { recipeId: 'rec_pav', servingQty: 2, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 220 },
+              { recipeId: 'rec_bhaji', servingQty: 150, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 20 },
+              { recipeId: 'rec_pasta', servingQty: 300, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 35 },
+              { recipeId: 'rec_lemon_juice', servingQty: 200, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 25 },
+              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: { 'col_1': 15, 'col_2': 10 }, calcOverride: null, adjustedQty: 25 }
+            ]
+          },
+          lunch: {
+            enabled: true,
+            bhogaTime: '12:00',
+            servingTime: '13:00',
+            deptCols: [
+              { colId: 'col_l1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
+              { colId: 'col_l2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 },
+              { colId: 'col_l3', deptId: 'dept_cong', customLabel: 'Congregation', count: 45 }
+            ],
+            rows: [
+              { recipeId: 'rec_sambhar', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 35 },
+              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 35 },
+              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 30 }
+            ]
+          },
+          dinner: {
+            enabled: true,
+            bhogaTime: '19:30',
+            servingTime: '20:15',
+            deptCols: [
+              { colId: 'col_d1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 }
+            ],
+            rows: [
+              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 15 },
+              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 15 }
+            ]
+          },
+          order: {
+            enabled: false,
+            bhogaTime: '11:00',
+            servingTime: '11:30',
+            deptCols: [
+              { colId: 'col_o1', deptId: 'dept_cong', customLabel: 'Congregation', count: 45 }
+            ],
+            rows: []
+          },
+          journey: {
+            enabled: false,
+            bhogaTime: '06:00',
+            servingTime: '06:30',
+            deptCols: [
+              { colId: 'col_j1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 }
+            ],
+            rows: []
+          }
+        }
+      };
+    }
+
+    let state = loadState();
+    let modalRecipeDraft = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.ingredients && parsed.recipes) {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        // Fallback to in-memory default state
+      }
+      return getDefaultState();
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        // Ignore storage errors in sandboxed iframes
+      }
+      updateNavCounts();
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-red-600' : 'bg-slate-900';
+      el.className = `${bg} text-white px-4 py-2.5 rounded-xl shadow-lg text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all duration-200`;
+      el.innerHTML = `<span>${type === 'error' ? '⚠️' : '✅'}</span><span>${escapeHtml(msg)}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 2800);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatNum(n, maxDec = 2) {
+      const val = Number(n);
+      if (!isFinite(val)) return '0';
+      if (Math.abs(val - Math.round(val)) < 0.0001) return String(Math.round(val));
+      return Number(val.toFixed(maxDec)).toString();
+    }
+
+    function formatCurrency(n) {
+      const val = Number(n) || 0;
+      return '₹' + val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // =========================================================================
+    // UNIT CONVERSION ENGINE (Kg, g, mg, ml, L)
+    // =========================================================================
+    // Converts recipe quantity in `recUnit` into `ingUnit` so we can multiply by `ingPricePerUnit`
+    function getUnitConversionFactor(recUnit, ingUnit) {
+      const normalize = (u) => {
+        if (!u) return 'Kg';
+        const s = u.trim().toLowerCase();
+        if (s === 'kg' || s === 'kgs') return 'Kg';
+        if (s === 'g' || s === 'gm' || s === 'gms' || s === 'gram') return 'g';
+        if (s === 'mg') return 'mg';
+        if (s === 'l' || s === 'ltr' || s === 'liter') return 'L';
+        if (s === 'ml') return 'ml';
+        return u;
+      };
+      const rU = normalize(recUnit);
+      const iU = normalize(ingUnit);
+      if (rU === iU) return 1;
+
+      // Base units in grams (for weight) or milliliters (for volume)
+      // In kitchen practice, if someone converts between weight and volume (e.g. 1 Kg ~ 1 L = 1000 g/ml),
+      // we map Kg/L -> 1000 base units, g/ml -> 1 base unit, mg -> 0.001 base unit.
+      const toBaseGramsOrMl = {
+        'Kg': 1000,
+        'L':  1000,
+        'g':  1,
+        'ml': 1,
+        'mg': 0.001
+      };
+      const rFactor = toBaseGramsOrMl[rU] ?? 1;
+      const iFactor = toBaseGramsOrMl[iU] ?? 1;
+      return rFactor / iFactor;
+    }
+
+    function calculateIngredientCost(qty, recUnit, ingredient) {
+      if (!ingredient) return 0;
+      const factor = getUnitConversionFactor(recUnit, ingredient.unit);
+      return (Number(qty) || 0) * factor * (Number(ingredient.price) || 0);
+    }
+
+    function getIngredientById(ingId) {
+      return state.ingredients.find(i => i.id === ingId) || null;
+    }
+
+    function getRecipeById(recId) {
+      return state.recipes.find(r => r.id === recId) || null;
+    }
+
+    function getDepartmentById(deptId) {
+      return state.departments.find(d => d.id === deptId) || null;
+    }
+
+    // =========================================================================
+    // TAB NAVIGATION
+    // =========================================================================
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      const tabs = ['ingredients', 'recipes', 'multiplier', 'calendar', 'departments', 'daily'];
+      tabs.forEach(t => {
+        const panel = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (panel) {
+          panel.classList.toggle('hidden', t !== tabId);
+        }
+        if (btn) {
+          if (t === tabId) {
+            btn.className = 'tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold whitespace-nowrap transition flex items-center gap-1.5 bg-orange-600 text-white shadow-xs';
+          } else {
+            btn.className = 'tab-btn px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition flex items-center gap-1.5 text-slate-600 hover:bg-slate-200/70';
+          }
+        }
+      });
+
+      if (tabId === 'ingredients') renderIngredientsTab();
+      if (tabId === 'recipes') renderRecipesTab();
+      if (tabId === 'multiplier') renderMultiplierTab();
+      if (tabId === 'calendar') renderCalendarTab();
+      if (tabId === 'departments') renderDepartmentsTab();
+      if (tabId === 'daily') renderDailyKitchenTab();
+      saveState();
+    }
+
+    function updateNavCounts() {
+      const ingEl = document.getElementById('navCount-ingredients');
+      const recEl = document.getElementById('navCount-recipes');
+      const depEl = document.getElementById('navCount-departments');
+      if (ingEl) ingEl.textContent = state.ingredients.length;
+      if (recEl) recEl.textContent = state.recipes.length;
+      if (depEl) depEl.textContent = state.departments.length;
+
+      const multText = `${Number(state.multiplier).toFixed(2)}x active`;
+      const headerBadge = document.getElementById('headerMultiplierVal');
+      const pill = document.getElementById('multiplierActivePill');
+      if (headerBadge) headerBadge.textContent = multText;
+      if (pill) pill.textContent = multText;
+    }
+
+    // =========================================================================
+    // TAB 1: INGREDIENTS LIST FUNCTIONS
+    // =========================================================================
+    function renderIngredientsTab() {
+      const tbody = document.getElementById('ingredientsTableBody');
+      if (!tbody) return;
+      const q = (document.getElementById('ingSearchInput')?.value || '').trim().toLowerCase();
+      const unitFilter = document.getElementById('ingUnitFilter')?.value || 'ALL';
+
+      const filtered = state.ingredients.filter(item => {
+        const matchesQ = !q || item.name.toLowerCase().includes(q);
+        const matchesU = unitFilter === 'ALL' || item.unit === unitFilter;
+        return matchesQ && matchesU;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-10 text-center text-slate-400 text-sm">
+              No ingredients found matching your filter. Click "+ Add Ingredient" to add one.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item, idx) => `
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="py-3.5 px-5 text-slate-400 font-medium">${idx + 1}</td>
+          <td class="py-3.5 px-5 font-bold text-slate-800">${escapeHtml(item.name)}</td>
+          <td class="py-3.5 px-5 text-center">
+            <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 min-w-[40px]">
+              ${escapeHtml(item.unit)}
+            </span>
+          </td>
+          <td class="py-3.5 px-5 text-right font-extrabold text-orange-600 text-base">
+            ₹${formatNum(item.price, 2)}
+          </td>
+          <td class="py-3.5 px-5 text-right">
+            <div class="inline-flex items-center gap-2">
+              <button onclick="openIngredientModal('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+                Edit
+              </button>
+              <button onclick="deleteIngredient('${item.id}')" class="px-3 py-1 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition">
+                Del
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function quickAddIngredient() {
+      const nameEl = document.getElementById('quickIngName');
+      const unitEl = document.getElementById('quickIngUnit');
+      const priceEl = document.getElementById('quickIngPrice');
+      const name = (nameEl?.value || '').trim();
+      const unit = unitEl?.value || 'Kg';
+      const price = parseFloat(priceEl?.value);
+
+      if (!name) {
+        showToast('Please enter an ingredient name', 'error');
+        return;
+      }
+      if (isNaN(price) || price < 0) {
+        showToast('Please enter a valid price per unit', 'error');
+        return;
+      }
+
+      state.ingredients.push({
+        id: 'ing_' + Date.now(),
+        name,
+        unit,
+        price
+      });
+      nameEl.value = '';
+      priceEl.value = '';
+      saveState();
+      renderIngredientsTab();
+      showToast(`Added "${name}" (₹${price}/${unit})`);
+    }
+
+    function openIngredientModal(ingId = null) {
+      const modal = document.getElementById('ingredientModal');
+      const title = document.getElementById('ingModalTitle');
+      const idInput = document.getElementById('ingModalId');
+      const nameInput = document.getElementById('ingModalName');
+      const unitInput = document.getElementById('ingModalUnit');
+      const priceInput = document.getElementById('ingModalPrice');
+
+      if (ingId) {
+        const ing = getIngredientById(ingId);
+        if (!ing) return;
+        title.textContent = 'Edit Ingredient';
+        idInput.value = ing.id;
+        nameInput.value = ing.name;
+        unitInput.value = ing.unit;
+        priceInput.value = ing.price;
+      } else {
+        title.textContent = 'Add New Ingredient';
+        idInput.value = '';
+        nameInput.value = '';
+        unitInput.value = 'Kg';
+        priceInput.value = '';
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeIngredientModal() {
+      const modal = document.getElementById('ingredientModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveIngredientModal() {
+      const id = document.getElementById('ingModalId').value;
+      const name = document.getElementById('ingModalName').value.trim();
+      const unit = document.getElementById('ingModalUnit').value;
+      const price = parseFloat(document.getElementById('ingModalPrice').value);
+
+      if (!name) {
+        showToast('Please enter an ingredient name', 'error');
+        return;
+      }
+      if (isNaN(price) || price < 0) {
+        showToast('Please enter a valid price', 'error');
+        return;
+      }
+
+      if (id) {
+        const ing = getIngredientById(id);
+        if (ing) {
+          ing.name = name;
+          ing.unit = unit;
+          ing.price = price;
+          showToast(`Updated "${name}"`);
+        }
+      } else {
+        state.ingredients.push({
+          id: 'ing_' + Date.now(),
+          name,
+          unit,
+          price
+        });
+        showToast(`Added "${name}"`);
+      }
+      closeIngredientModal();
+      saveState();
+      renderIngredientsTab();
+    }
+
+    function deleteIngredient(ingId) {
+      const idx = state.ingredients.findIndex(i => i.id === ingId);
+      if (idx === -1) return;
+      const removed = state.ingredients[idx];
+      state.ingredients.splice(idx, 1);
+      saveState();
+      renderIngredientsTab();
+      showToast(`Deleted "${removed.name}"`);
+    }
+
+    // =========================================================================
+    // TAB 2: RECIPES FUNCTIONS (Matches Screenshot 2 with 6 Columns & Rowspan)
+    // =========================================================================
+    function renderRecipesTab() {
+      const listEl = document.getElementById('recipeSelectorList');
+      const container = document.getElementById('activeRecipeContainer');
+      if (!listEl || !container) return;
+
+      if (!state.selectedRecipeId && state.recipes.length > 0) {
+        state.selectedRecipeId = state.recipes[0].id;
+      }
+
+      listEl.innerHTML = state.recipes.map(r => {
+        const isSelected = r.id === state.selectedRecipeId;
+        return `
+          <button onclick="selectRecipe('${r.id}')" class="w-full text-left px-3.5 py-2.5 rounded-xl transition flex items-center justify-between gap-2 ${
+            isSelected
+              ? 'bg-orange-600 text-white font-bold shadow-xs'
+              : 'hover:bg-slate-100 text-slate-700 font-medium'
+          }">
+            <div class="truncate">
+              <div class="text-sm truncate">${escapeHtml(r.name)}</div>
+              <div class="text-[11px] ${isSelected ? 'text-orange-100' : 'text-slate-400'}">
+                Std Yield: ${formatNum(r.stdYield)} ${escapeHtml(r.yieldUnit)} • Serving: ${formatNum(r.servingQty)} ${escapeHtml(r.servingUnit)}
+              </div>
+            </div>
+            <span class="text-xs">→</span>
+          </button>
+        `;
+      }).join('');
+
+      const recipe = getRecipeById(state.selectedRecipeId);
+      if (!recipe) {
+        container.innerHTML = `<div class="py-12 text-center text-slate-400">Select or create a recipe to view its details.</div>`;
+        return;
+      }
+
+      const stdYield = Number(recipe.stdYield) || 1;
+      const targetYield = Number(recipe.targetYield) || stdYield;
+      const scaleRatio = targetYield / stdYield;
+
+      // Calculate total costs for both Standard Yield and Target Cook Yield
+      let stdCalculatedCost = 0;
+      let targetCalculatedCost = 0;
+
+      // Build table rows with rowspan for Cooking Process (Col 4)
+      let bodyRowsHtml = '';
+      recipe.steps.forEach((step, stepIdx) => {
+        const items = step.items || [];
+        const rowSpanCount = Math.max(items.length, 1);
+
+        items.forEach((item, itemIdx) => {
+          const ing = getIngredientById(item.ingId);
+          const ingName = ing ? ing.name : 'Unknown Ingredient';
+          const ingRateText = ing ? `₹${formatNum(ing.price)} / ${ing.unit}` : 'N/A';
+
+          const stdQty = Number(item.stdQty) || 0;
+          const scaledQty = stdQty * scaleRatio;
+
+          const stdRowCost = calculateIngredientCost(stdQty, item.unit, ing);
+          const targetRowCost = calculateIngredientCost(scaledQty, item.unit, ing);
+
+          stdCalculatedCost += stdRowCost;
+          targetCalculatedCost += targetRowCost;
+
+          const unitDisplay = item.unit === 'g' ? 'gm' : item.unit;
+          const convFactor = ing ? getUnitConversionFactor(item.unit, ing.unit) : 1;
+          const convHint = (ing && item.unit !== ing.unit)
+            ? `<div class="text-[10px] text-slate-400">(${formatNum(scaledQty, 2)} ${unitDisplay} = ${formatNum(scaledQty * convFactor, 4)} ${ing.unit})</div>`
+            : '';
+
+          bodyRowsHtml += `
+            <tr class="hover:bg-amber-50/30 transition">
+              <td class="font-semibold text-slate-900 bg-white">${escapeHtml(ingName)}</td>
+              <td class="text-right font-medium text-slate-700 bg-white whitespace-nowrap">
+                ${formatNum(stdQty, 3)} <span class="text-xs text-slate-500">${escapeHtml(unitDisplay)}</span>
+              </td>
+              <td class="text-right font-bold text-orange-700 bg-orange-50/40 whitespace-nowrap">
+                ${formatNum(scaledQty, 4)} <span class="text-xs text-orange-900 font-semibold">${escapeHtml(unitDisplay)}</span>
+              </td>
+              ${itemIdx === 0 ? `
+                <td rowspan="${rowSpanCount}" class="align-middle text-center hindi-text text-sm text-slate-800 bg-white px-3 py-2 max-w-xs">
+                  ${escapeHtml(step.process || '—')}
+                </td>
+              ` : ''}
+              <td class="text-right text-slate-700 font-medium bg-white whitespace-nowrap">
+                ${ingRateText}
+              </td>
+              <td class="text-right font-bold text-slate-900 bg-white whitespace-nowrap">
+                <div>₹${formatNum(targetRowCost, 2)}</div>
+                ${convHint}
+              </td>
+            </tr>
+          `;
+        });
+      });
+
+      const stdAdjustedCost = stdCalculatedCost * (Number(state.multiplier) || 1);
+      const targetAdjustedCost = targetCalculatedCost * (Number(state.multiplier) || 1);
+
+      container.innerHTML = `
+        <!-- Recipe Header Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-200">
+          <div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <h3 class="text-xl font-extrabold text-slate-900">${escapeHtml(recipe.name)}</h3>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 border border-orange-300">
+                Yield Type: ${recipe.yieldUnit === 'L' ? 'Liters (L)' : 'Piecewise (pcs)'}
+              </span>
+              <span class="px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                🍽️ Standard Serving Qty: ${formatNum(recipe.servingQty)} ${escapeHtml(recipe.servingUnit)} / person
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              Change the yellow <strong>"Cook Right Now"</strong> quantity in Column 3 to automatically scale all ingredients and costs in proportion.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openRecipeModal('${recipe.id}')" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+              ✏️ Edit Recipe
+            </button>
+            <button onclick="deleteRecipe('${recipe.id}')" class="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Quick Edit for Standard Serving Quantity & Standard Yield -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Standard Recipe Yield</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" step="0.5" min="0.1" value="${recipe.stdYield}" onchange="updateRecipeQuickField('${recipe.id}', 'stdYield', this.value)" class="w-28 px-2.5 py-1 text-sm font-bold bg-white border border-slate-300 rounded-lg" />
+              <span class="text-xs font-bold text-slate-700">${escapeHtml(recipe.yieldUnit)}</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-slate-500 mb-1">Standard Serving Qty / Devotee</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" step="1" min="0.5" value="${recipe.servingQty}" onchange="updateRecipeQuickField('${recipe.id}', 'servingQty', this.value)" class="w-28 px-2.5 py-1 text-sm font-bold bg-white border border-slate-300 rounded-lg" />
+              <span class="text-xs font-bold text-slate-700">${escapeHtml(recipe.servingUnit)} / person</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold uppercase text-orange-700 mb-1">Cook Right Now (Target Yield)</label>
+            <div class="flex items-center gap-1.5">
+              <input type="number" step="0.5" min="0.1" value="${targetYield}" oninput="updateRecipeTargetYield('${recipe.id}', this.value)" class="w-28 px-2.5 py-1 text-sm font-extrabold bg-yellow-100 border-2 border-orange-500 rounded-lg text-slate-900" />
+              <span class="text-xs font-bold text-orange-800">${escapeHtml(recipe.yieldUnit)} (${formatNum(scaleRatio * 100, 0)}% of Std)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6-Column Excel-Style Recipe Sheet (Matches Screenshot 2) -->
+        <div class="overflow-x-auto">
+          <table class="sheet-table text-sm">
+            <thead>
+              <tr class="bg-slate-100">
+                <th colspan="3" class="text-center text-base font-extrabold text-slate-900 py-2">
+                  ${escapeHtml(recipe.name)}
+                </th>
+                <th class="text-center text-base font-extrabold text-slate-900 underline py-2">
+                  Cooking Process
+                </th>
+                <th class="bg-yellow-300 text-center text-xs font-bold text-slate-800">
+                  Live Rate
+                </th>
+                <th class="bg-yellow-300 text-center text-xs font-bold text-slate-800">
+                  Cost (${formatNum(targetYield)} ${escapeHtml(recipe.yieldUnit)})
+                </th>
+              </tr>
+              <tr class="bg-slate-50 font-bold text-slate-800">
+                <th class="text-left w-44">Yield</th>
+                <th class="text-right w-28" title="Standard Recipe Yield">
+                  ${formatNum(stdYield)} <span class="text-xs font-normal">${escapeHtml(recipe.yieldUnit)} (Std)</span>
+                </th>
+                <th class="text-right w-36 bg-yellow-100/90" title="Enter how much quantity you want to cook right now">
+                  <div class="flex items-center justify-end gap-1">
+                    <input type="number" step="0.5" min="0.1" value="${targetYield}" onchange="updateRecipeTargetYield('${recipe.id}', this.value)" class="w-20 px-1.5 py-0.5 text-right font-extrabold bg-white border border-orange-500 rounded text-slate-900" />
+                    <span class="text-xs font-extrabold text-slate-900">${escapeHtml(recipe.yieldUnit)}</span>
+                  </div>
+                </th>
+                <th class="text-center text-xs text-slate-500 font-semibold">
+                  Step-by-Step Instructions (Merged per Ingredient Group)
+                </th>
+                <th class="text-center w-28">Rate</th>
+                <th class="text-center w-32">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bodyRowsHtml}
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-100 font-bold">
+                <td colspan="4" class="text-right py-2.5 px-4 text-slate-700">
+                  1) Calculated Cost (Sum Total of Ingredients):
+                </td>
+                <td class="text-right text-xs text-slate-500" title="Cost for Standard Yield (${formatNum(stdYield)} ${recipe.yieldUnit})">
+                  Std: ${formatCurrency(stdCalculatedCost)}
+                </td>
+                <td class="text-right text-base font-extrabold text-slate-900 bg-yellow-100">
+                  ${formatCurrency(targetCalculatedCost)}
+                </td>
+              </tr>
+              <tr class="bg-orange-50 font-bold">
+                <td colspan="4" class="text-right py-2.5 px-4 text-orange-900">
+                  2) Adjusted Cost (with <span class="underline cursor-pointer" onclick="switchTab('multiplier')">${Number(state.multiplier).toFixed(2)}x Multiplier</span> for Gas, Water & Maintenance):
+                </td>
+                <td class="text-right text-xs text-orange-700" title="Adjusted Cost for Standard Yield">
+                  Std: ${formatCurrency(stdAdjustedCost)}
+                </td>
+                <td class="text-right text-lg font-extrabold text-orange-600 bg-orange-100/80">
+                  ${formatCurrency(targetAdjustedCost)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `;
+    }
+
+    function selectRecipe(recId) {
+      state.selectedRecipeId = recId;
+      saveState();
+      renderRecipesTab();
+    }
+
+    function updateRecipeTargetYield(recId, newVal) {
+      const rec = getRecipeById(recId);
+      if (!rec) return;
+      const val = parseFloat(newVal);
+      if (isNaN(val) || val <= 0) return;
+      rec.targetYield = val;
+      saveState();
+      renderRecipesTab();
+    }
+
+    function updateRecipeQuickField(recId, field, newVal) {
+      const rec = getRecipeById(recId);
+      if (!rec) return;
+      const val = parseFloat(newVal);
+      if (isNaN(val) || val <= 0) return;
+      rec[field] = val;
+      saveState();
+      renderRecipesTab();
+      showToast(`Updated ${rec.name}`);
+    }
+
+    function deleteRecipe(recId) {
+      if (state.recipes.length <= 1) {
+        showToast('At least one recipe must remain in the kitchen.', 'error');
+        return;
+      }
+      const idx = state.recipes.findIndex(r => r.id === recId);
+      if (idx === -1) return;
+      const name = state.recipes[idx].name;
+      state.recipes.splice(idx, 1);
+      state.selectedRecipeId = state.recipes[0]?.id || null;
+      saveState();
+      renderRecipesTab();
+      showToast(`Deleted recipe "${name}"`);
+    }
+
+    // Recipe Modal Functions
+    function openRecipeModal(recId = null) {
+      const modal = document.getElementById('recipeModal');
+      const title = document.getElementById('recipeModalTitle');
+      const idEl = document.getElementById('recipeModalId');
+      const nameEl = document.getElementById('recipeModalName');
+      const stdYieldEl = document.getElementById('recipeModalStdYield');
+      const yieldUnitEl = document.getElementById('recipeModalYieldUnit');
+      const servingQtyEl = document.getElementById('recipeModalServingQty');
+
+      if (recId) {
+        const rec = getRecipeById(recId);
+        if (!rec) return;
+        title.textContent = `Edit Recipe — ${rec.name}`;
+        idEl.value = rec.id;
+        nameEl.value = rec.name;
+        stdYieldEl.value = rec.stdYield;
+        yieldUnitEl.value = rec.yieldUnit;
+        servingQtyEl.value = rec.servingQty;
+        modalRecipeDraft = JSON.parse(JSON.stringify(rec.steps));
+      } else {
+        title.textContent = 'Create New Kitchen Recipe';
+        idEl.value = '';
+        nameEl.value = '';
+        stdYieldEl.value = 30;
+        yieldUnitEl.value = 'L';
+        servingQtyEl.value = 200;
+        modalRecipeDraft = [
+          {
+            process: 'Step 1: Enter cooking process instructions here...',
+            items: [
+              { ingId: state.ingredients[0]?.id || '', stdQty: 5, unit: 'Kg' }
+            ]
+          }
+        ];
+      }
+      onRecipeYieldUnitChange();
+      renderRecipeModalSteps();
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeRecipeModal() {
+      const modal = document.getElementById('recipeModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      modalRecipeDraft = null;
+    }
+
+    function onRecipeYieldUnitChange() {
+      const yieldUnit = document.getElementById('recipeModalYieldUnit')?.value || 'L';
+      const badge = document.getElementById('recipeModalServingUnitBadge');
+      if (badge) {
+        badge.textContent = yieldUnit === 'L' ? 'ml' : 'pcs';
+      }
+    }
+
+    function renderRecipeModalSteps() {
+      const container = document.getElementById('recipeModalStepsContainer');
+      if (!container || !modalRecipeDraft) return;
+
+      const ingOptions = state.ingredients.map(i =>
+        `<option value="${i.id}">${escapeHtml(i.name)} (₹${i.price}/${i.unit})</option>`
+      ).join('');
+
+      container.innerHTML = modalRecipeDraft.map((step, sIdx) => `
+        <div class="p-4 rounded-xl border border-slate-300 bg-slate-50/70 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-800 text-white">
+              Cooking Process Step ${sIdx + 1} (Spans ${step.items.length} ingredient${step.items.length > 1 ? 's' : ''})
+            </span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="addIngredientToModalStep(${sIdx})" class="px-2.5 py-1 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-900 text-xs font-bold transition">
+                + Add Ingredient to Step ${sIdx + 1}
+              </button>
+              ${modalRecipeDraft.length > 1 ? `
+                <button type="button" onclick="removeRecipeModalStep(${sIdx})" class="px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold">
+                  Remove Step
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Cooking Process Instructions for Step ${sIdx + 1} (Hindi or English)</label>
+            <textarea rows="2" oninput="updateModalStepProcess(${sIdx}, this.value)" placeholder="Write the cooking instruction corresponding to these ingredients..." class="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl hindi-text">${escapeHtml(step.process)}</textarea>
+          </div>
+
+          <div class="space-y-2">
+            ${step.items.map((it, iIdx) => `
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-2.5 rounded-lg border border-slate-200">
+                <div class="sm:col-span-6">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400">Ingredient</label>
+                  <select onchange="updateModalStepItem(${sIdx}, ${iIdx}, 'ingId', this.value)" class="w-full px-2.5 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg bg-white font-medium">
+                    ${state.ingredients.map(ing => `
+                      <option value="${ing.id}" ${ing.id === it.ingId ? 'selected' : ''}>
+                        ${escapeHtml(ing.name)} — Rate: ₹${ing.price}/${ing.unit}
+                      </option>
+                    `).join('')}
+                  </select>
+                </div>
+                <div class="sm:col-span-3">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400">Standard Qty</label>
+                  <input type="number" step="0.01" min="0" value="${it.stdQty}" oninput="updateModalStepItem(${sIdx}, ${iIdx}, 'stdQty', this.value)" class="w-full px-2.5 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg font-bold" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-[10px] font-bold uppercase text-slate-400">Unit</label>
+                  <select onchange="updateModalStepItem(${sIdx}, ${iIdx}, 'unit', this.value)" class="w-full px-2 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg bg-white font-bold">
+                    ${['Kg', 'g', 'mg', 'L', 'ml'].map(u => `<option value="${u}" ${it.unit === u ? 'selected' : ''}>${u === 'g' ? 'g (gm)' : u}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="sm:col-span-1 text-right pt-3">
+                  ${step.items.length > 1 ? `
+                    <button type="button" onclick="removeIngredientFromModalStep(${sIdx}, ${iIdx})" class="text-red-500 hover:text-red-700 font-bold text-sm px-2" title="Remove ingredient">✕</button>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateModalStepProcess(sIdx, val) {
+      if (modalRecipeDraft && modalRecipeDraft[sIdx]) {
+        modalRecipeDraft[sIdx].process = val;
+      }
+    }
+
+    function updateModalStepItem(sIdx, iIdx, field, val) {
+      if (!modalRecipeDraft || !modalRecipeDraft[sIdx] || !modalRecipeDraft[sIdx].items[iIdx]) return;
+      if (field === 'stdQty') {
+        modalRecipeDraft[sIdx].items[iIdx].stdQty = parseFloat(val) || 0;
+      } else {
+        modalRecipeDraft[sIdx].items[iIdx][field] = val;
+      }
+    }
+
+    function addRecipeModalStep() {
+      if (!modalRecipeDraft) return;
+      modalRecipeDraft.push({
+        process: '',
+        items: [
+          { ingId: state.ingredients[0]?.id || '', stdQty: 1, unit: 'Kg' }
+        ]
+      });
+      renderRecipeModalSteps();
+    }
+
+    function removeRecipeModalStep(sIdx) {
+      if (!modalRecipeDraft || modalRecipeDraft.length <= 1) return;
+      modalRecipeDraft.splice(sIdx, 1);
+      renderRecipeModalSteps();
+    }
+
+    function addIngredientToModalStep(sIdx) {
+      if (!modalRecipeDraft || !modalRecipeDraft[sIdx]) return;
+      modalRecipeDraft[sIdx].items.push({
+        ingId: state.ingredients[0]?.id || '',
+        stdQty: 1,
+        unit: 'Kg'
+      });
+      renderRecipeModalSteps();
+    }
+
+    function removeIngredientFromModalStep(sIdx, iIdx) {
+      if (!modalRecipeDraft || !modalRecipeDraft[sIdx] || modalRecipeDraft[sIdx].items.length <= 1) return;
+      modalRecipeDraft[sIdx].items.splice(iIdx, 1);
+      renderRecipeModalSteps();
+    }
+
+    function saveRecipeFromModal() {
+      const id = document.getElementById('recipeModalId').value;
+      const name = document.getElementById('recipeModalName').value.trim();
+      const stdYield = parseFloat(document.getElementById('recipeModalStdYield').value);
+      const yieldUnit = document.getElementById('recipeModalYieldUnit').value;
+      const servingQty = parseFloat(document.getElementById('recipeModalServingQty').value);
+      const servingUnit = yieldUnit === 'L' ? 'ml' : 'pcs';
+
+      if (!name) {
+        showToast('Please enter a recipe name', 'error');
+        return;
+      }
+      if (isNaN(stdYield) || stdYield <= 0) {
+        showToast('Please enter a valid Standard Yield', 'error');
+        return;
+      }
+      if (isNaN(servingQty) || servingQty <= 0) {
+        showToast('Please enter a valid Standard Serving Quantity', 'error');
+        return;
+      }
+
+      if (id) {
+        const existing = getRecipeById(id);
+        if (existing) {
+          existing.name = name;
+          existing.stdYield = stdYield;
+          existing.yieldUnit = yieldUnit;
+          existing.servingQty = servingQty;
+          existing.servingUnit = servingUnit;
+          existing.steps = JSON.parse(JSON.stringify(modalRecipeDraft));
+          showToast(`Updated recipe "${name}"`);
+        }
+      } else {
+        const newId = 'rec_' + Date.now();
+        state.recipes.push({
+          id: newId,
+          name,
+          stdYield,
+          targetYield: stdYield,
+          yieldUnit,
+          servingQty,
+          servingUnit,
+          steps: JSON.parse(JSON.stringify(modalRecipeDraft))
+        });
+        state.selectedRecipeId = newId;
+        showToast(`Created recipe "${name}"`);
+      }
+
+      closeRecipeModal();
+      saveState();
+      renderRecipesTab();
+    }
+
+    // =========================================================================
+    // TAB 3: MULTIPLIER & STANDARD TIMINGS
+    // =========================================================================
+    function renderMultiplierTab() {
+      const input = document.getElementById('multiplierInput');
+      if (input) input.value = state.multiplier;
+      previewMultiplierChange();
+
+      const st = state.standardTimings;
+      if (st) {
+        const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        setVal('stdTime-breakfast-bhoga', st.breakfast.bhoga);
+        setVal('stdTime-breakfast-serving', st.breakfast.serving);
+        setVal('stdTime-lunch-bhoga', st.lunch.bhoga);
+        setVal('stdTime-lunch-serving', st.lunch.serving);
+        setVal('stdTime-dinner-bhoga', st.dinner.bhoga);
+        setVal('stdTime-dinner-serving', st.dinner.serving);
+      }
+    }
+
+    function previewMultiplierChange() {
+      const val = parseFloat(document.getElementById('multiplierInput')?.value) || 1;
+      const outEl = document.getElementById('multiplierExampleOut');
+      if (outEl) {
+        outEl.textContent = '₹' + formatNum(100 * val, 2);
+      }
+    }
+
+    function saveMultiplierSetting() {
+      const val = parseFloat(document.getElementById('multiplierInput')?.value);
+      if (isNaN(val) || val <= 0) {
+        showToast('Please enter a valid positive multiplier (e.g. 1.2)', 'error');
+        return;
+      }
+      state.multiplier = val;
+      saveState();
+      renderMultiplierTab();
+      showToast(`Saved Adjusted Cost Multiplier (${val.toFixed(2)}x)`);
+    }
+
+    function saveStandardTimings() {
+      const getVal = (id, def) => document.getElementById(id)?.value || def;
+      state.standardTimings = {
+        breakfast: {
+          bhoga: getVal('stdTime-breakfast-bhoga', '07:15'),
+          serving: getVal('stdTime-breakfast-serving', '08:00')
+        },
+        lunch: {
+          bhoga: getVal('stdTime-lunch-bhoga', '12:00'),
+          serving: getVal('stdTime-lunch-serving', '13:00')
+        },
+        dinner: {
+          bhoga: getVal('stdTime-dinner-bhoga', '19:30'),
+          serving: getVal('stdTime-dinner-serving', '20:15')
+        }
+      };
+
+      // Apply standard timings to all calendar days that haven't been manually locked
+      Object.keys(state.calendarDays).forEach(dateStr => {
+        const d = state.calendarDays[dateStr];
+        if (!d.breakfast.customTime) {
+          d.breakfast.bhogaTime = state.standardTimings.breakfast.bhoga;
+          d.breakfast.servingTime = state.standardTimings.breakfast.serving;
+        }
+        if (!d.lunch.customTime) {
+          d.lunch.bhogaTime = state.standardTimings.lunch.bhoga;
+          d.lunch.servingTime = state.standardTimings.lunch.serving;
+        }
+        if (!d.dinner.customTime) {
+          d.dinner.bhogaTime = state.standardTimings.dinner.bhoga;
+          d.dinner.servingTime = state.standardTimings.dinner.serving;
+        }
+      });
+
+      saveState();
+      showToast('Standard Meal Timings applied across the calendar!');
+    }
+
+    // =========================================================================
+    // TAB 4: MONTHLY MENU CALENDAR (Matches Screenshots 4 & 5)
+    // =========================================================================
+    const MONTH_NAMES = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    function ensureCalendarDay(dateStr) {
+      if (!state.calendarDays[dateStr]) {
+        const st = state.standardTimings;
+        state.calendarDays[dateStr] = {
+          breakfast: { enabled: true, bhogaTime: st.breakfast.bhoga, servingTime: st.breakfast.serving, dishes: ['rec_dal_fry'] },
+          lunch:     { enabled: true, bhogaTime: st.lunch.bhoga, servingTime: st.lunch.serving, dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry'] },
+          dinner:    { enabled: true, bhogaTime: st.dinner.bhoga, servingTime: st.dinner.serving, dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice'] },
+          order:     { enabled: false, bhogaTime: '11:00', servingTime: '11:30', dishes: [] },
+          journey:   { enabled: false, bhogaTime: '06:00', servingTime: '06:30', dishes: [] }
+        };
+      }
+      return state.calendarDays[dateStr];
+    }
+
+    function renderCalendarTab() {
+      const labelEl = document.getElementById('calendarMonthLabel');
+      const gridEl = document.getElementById('calendarGridCells');
+      if (!labelEl || !gridEl) return;
+
+      const year = state.calendarYear;
+      const month = state.calendarMonth;
+      labelEl.textContent = `${MONTH_NAMES[month]} ${year}`;
+
+      const firstDayOfWeek = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const prevMonthDays = new Date(year, month, 0).getDate();
+
+      let cellsHtml = '';
+
+      // Leading muted cells from previous month
+      for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+        const dayNum = prevMonthDays - i;
+        cellsHtml += `
+          <div class="min-h-[135px] bg-slate-100/70 p-2 text-xs text-slate-400 font-semibold">
+            ${dayNum}
+          </div>
+        `;
+      }
+
+      // Current month cells
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayMenu = ensureCalendarDay(dateStr);
+        const isSelected = dateStr === state.selectedCalendarDate;
+
+        const renderPills = (recIds, cls) => (recIds || []).map(rid => {
+          const rec = getRecipeById(rid);
+          if (!rec) return '';
+          return `<div class="px-2 py-0.5 rounded border text-[11px] font-semibold truncate ${cls}">${escapeHtml(rec.name)}</div>`;
+        }).join('');
+
+        const bfPills = renderPills(dayMenu.breakfast?.dishes, 'bg-amber-50 text-amber-900 border-amber-300');
+        const lnPills = renderPills(dayMenu.lunch?.dishes, 'bg-emerald-50 text-emerald-900 border-emerald-300');
+        const dnPills = renderPills(dayMenu.dinner?.dishes, 'bg-purple-50 text-purple-900 border-purple-300');
+        const orPills = dayMenu.order?.enabled ? renderPills(dayMenu.order.dishes, 'bg-blue-50 text-blue-900 border-blue-300') : '';
+        const jnPills = dayMenu.journey?.enabled ? renderPills(dayMenu.journey.dishes, 'bg-rose-50 text-rose-900 border-rose-300') : '';
+
+        cellsHtml += `
+          <div onclick="selectCalendarDate('${dateStr}')" class="min-h-[145px] p-2 cursor-pointer transition flex flex-col gap-1 ${
+            isSelected ? 'bg-orange-50/70 ring-2 ring-inset ring-orange-500' : 'bg-white hover:bg-slate-50'
+          }">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="text-xs font-extrabold ${isSelected ? 'text-orange-600' : 'text-slate-700'}">${d}</span>
+              ${(dayMenu.order?.enabled || dayMenu.journey?.enabled) ? `<span class="text-[10px] px-1.5 rounded bg-blue-100 text-blue-800 font-bold">+Extra</span>` : ''}
+            </div>
+            <div class="space-y-1">
+              ${bfPills}
+              ${lnPills}
+              ${dnPills}
+              ${orPills}
+              ${jnPills}
+            </div>
+          </div>
+        `;
+      }
+
+      // Trailing cells to complete 7-col grid
+      const totalCells = firstDayOfWeek + daysInMonth;
+      const rem = (7 - (totalCells % 7)) % 7;
+      for (let i = 1; i <= rem; i++) {
+        cellsHtml += `<div class="min-h-[135px] bg-slate-100/70 p-2 text-xs text-slate-400 font-semibold">${i}</div>`;
+      }
+
+      gridEl.innerHTML = cellsHtml;
+      renderCalendarDayEditor();
+    }
+
+    function selectCalendarDate(dateStr) {
+      state.selectedCalendarDate = dateStr;
+      saveState();
+      renderCalendarTab();
+    }
+
+    function changeCalendarMonth(delta) {
+      let m = state.calendarMonth + delta;
+      let y = state.calendarYear;
+      if (m < 0) { m = 11; y--; }
+      if (m > 11) { m = 0; y++; }
+      state.calendarMonth = m;
+      state.calendarYear = y;
+      state.selectedCalendarDate = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+      saveState();
+      renderCalendarTab();
+    }
+
+    function copyMonthMenuToNext() {
+      let nextM = state.calendarMonth + 1;
+      let nextY = state.calendarYear;
+      if (nextM > 11) { nextM = 0; nextY++; }
+      const daysInNext = new Date(nextY, nextM + 1, 0).getDate();
+
+      for (let d = 1; d <= daysInNext; d++) {
+        const srcDate = `${state.calendarYear}-${String(state.calendarMonth + 1).padStart(2, '0')}-${String(Math.min(d, 28)).padStart(2, '0')}`;
+        const dstDate = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const srcMenu = ensureCalendarDay(srcDate);
+        state.calendarDays[dstDate] = JSON.parse(JSON.stringify(srcMenu));
+      }
+      saveState();
+      showToast(`Copied ${MONTH_NAMES[state.calendarMonth]} menu template to ${MONTH_NAMES[nextM]} ${nextY}!`);
+    }
+
+    function renderCalendarDayEditor() {
+      const titleEl = document.getElementById('calEditorDateTitle');
+      const bodyEl = document.getElementById('calDayEditorBody');
+      if (!titleEl || !bodyEl) return;
+
+      const dateStr = state.selectedCalendarDate;
+      const dayMenu = ensureCalendarDay(dateStr);
+
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      titleEl.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+
+      const mealConfigs = [
+        { key: 'breakfast', label: 'Breakfast', badgeCls: 'bg-amber-100 text-amber-900 border-amber-300', alwaysOn: true },
+        { key: 'lunch',     label: 'Lunch',     badgeCls: 'bg-emerald-100 text-emerald-900 border-emerald-300', alwaysOn: true },
+        { key: 'dinner',    label: 'Dinner',    badgeCls: 'bg-purple-100 text-purple-900 border-purple-300', alwaysOn: true },
+        { key: 'order',     label: 'Order (Special)', badgeCls: 'bg-blue-100 text-blue-900 border-blue-300', alwaysOn: false },
+        { key: 'journey',   label: 'Journey Prasad', badgeCls: 'bg-rose-100 text-rose-900 border-rose-300', alwaysOn: false }
+      ];
+
+      let html = '';
+
+      mealConfigs.forEach(cfg => {
+        const mObj = dayMenu[cfg.key];
+        if (!cfg.alwaysOn && !mObj?.enabled) return;
+
+        const dishes = mObj.dishes || [];
+        const selectsHtml = dishes.map((recId, idx) => `
+          <div class="flex items-center gap-1.5">
+            <select onchange="updateCalDayDish('${dateStr}', '${cfg.key}', ${idx}, this.value)" class="flex-1 px-3 py-2 text-sm bg-white border border-slate-300 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-orange-500">
+              ${state.recipes.map(r => `<option value="${r.id}" ${r.id === recId ? 'selected' : ''}>${escapeHtml(r.name)}</option>`).join('')}
+            </select>
+            <button onclick="removeCalDayDish('${dateStr}', '${cfg.key}', ${idx})" class="px-2.5 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg" title="Remove dish">✕</button>
+          </div>
+        `).join('');
+
+        html += `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold border ${cfg.badgeCls}">
+                ${cfg.label}
+              </span>
+              <div class="flex items-center gap-1.5">
+                <button onclick="addCalDayDish('${dateStr}', '${cfg.key}')" class="text-xs font-bold text-orange-600 hover:text-orange-800 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">
+                  + Add Dish
+                </button>
+                ${!cfg.alwaysOn ? `
+                  <button onclick="toggleCalExtraMeal('${dateStr}', '${cfg.key}', false)" class="text-xs font-bold text-red-600 hover:text-red-800 px-1.5 py-0.5">
+                    Remove Meal
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- Bhoga Ready Time & Serving Time -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-500">Bhoga Ready Time</label>
+                <input type="time" value="${mObj.bhogaTime || '07:15'}" onchange="updateCalMealTime('${dateStr}', '${cfg.key}', 'bhogaTime', this.value)" class="w-full px-2 py-1 text-xs font-semibold bg-white border border-slate-300 rounded-lg" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-500">Serving Time</label>
+                <input type="time" value="${mObj.servingTime || '08:00'}" onchange="updateCalMealTime('${dateStr}', '${cfg.key}', 'servingTime', this.value)" class="w-full px-2 py-1 text-xs font-semibold bg-white border border-slate-300 rounded-lg" />
+              </div>
+            </div>
+
+            <!-- Dish Dropdowns (Matches Screenshot 5) -->
+            <div class="space-y-2 pt-1">
+              ${selectsHtml || `<div class="text-xs text-slate-400 italic">No dishes added yet. Click "+ Add Dish".</div>`}
+            </div>
+          </div>
+        `;
+      });
+
+      // Buttons to enable optional "Order" and "Journey Prasad" meals when not active
+      const showOrderBtn = !dayMenu.order?.enabled;
+      const showJourneyBtn = !dayMenu.journey?.enabled;
+      if (showOrderBtn || showJourneyBtn) {
+        html += `
+          <div class="pt-2 border-t border-slate-200 space-y-2">
+            <div class="text-[11px] font-bold uppercase text-slate-400">Optional Extra Meals for This Date</div>
+            <div class="flex flex-wrap gap-2">
+              ${showOrderBtn ? `
+                <button onclick="toggleCalExtraMeal('${dateStr}', 'order', true)" class="px-3 py-1.5 rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold transition">
+                  + Add "Order" Meal
+                </button>
+              ` : ''}
+              ${showJourneyBtn ? `
+                <button onclick="toggleCalExtraMeal('${dateStr}', 'journey', true)" class="px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold transition">
+                  + Add "Journey Prasad"
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      bodyEl.innerHTML = html;
+    }
+
+    function updateCalDayDish(dateStr, mealKey, dishIdx, newRecId) {
+      const dayMenu = ensureCalendarDay(dateStr);
+      dayMenu[mealKey].dishes[dishIdx] = newRecId;
+      saveState();
+      renderCalendarTab();
+    }
+
+    function addCalDayDish(dateStr, mealKey) {
+      const dayMenu = ensureCalendarDay(dateStr);
+      const firstRecId = state.recipes[0]?.id || 'rec_dal_fry';
+      dayMenu[mealKey].dishes.push(firstRecId);
+      saveState();
+      renderCalendarTab();
+    }
+
+    function removeCalDayDish(dateStr, mealKey, dishIdx) {
+      const dayMenu = ensureCalendarDay(dateStr);
+      dayMenu[mealKey].dishes.splice(dishIdx, 1);
+      saveState();
+      renderCalendarTab();
+    }
+
+    function updateCalMealTime(dateStr, mealKey, field, val) {
+      const dayMenu = ensureCalendarDay(dateStr);
+      dayMenu[mealKey][field] = val;
+      dayMenu[mealKey].customTime = true;
+      saveState();
+      showToast(`Updated ${mealKey} time for ${dateStr}`);
+    }
+
+    function toggleCalExtraMeal(dateStr, mealKey, enabled) {
+      const dayMenu = ensureCalendarDay(dateStr);
+      dayMenu[mealKey].enabled = enabled;
+      if (enabled && (!dayMenu[mealKey].dishes || dayMenu[mealKey].dishes.length === 0)) {
+        dayMenu[mealKey].dishes = [state.recipes[0]?.id || 'rec_dal_fry'];
+      }
+      saveState();
+      renderCalendarTab();
+      showToast(`${enabled ? 'Added' : 'Removed'} ${mealKey === 'order' ? 'Order' : 'Journey Prasad'} meal on ${dateStr}`);
+    }
+
+    function openSelectedCalendarDateInDaily() {
+      state.selectedDailyDate = state.selectedCalendarDate;
+      const picker = document.getElementById('dailyDatePicker');
+      if (picker) picker.value = state.selectedDailyDate;
+      switchTab('daily');
+    }
+
+    // =========================================================================
+    // TAB 5: DEPARTMENTS (Matches Screenshot 6)
+    // =========================================================================
+    function renderDepartmentsTab() {
+      const grid = document.getElementById('departmentsGrid');
+      const summary = document.getElementById('departmentsSummaryBar');
+      if (!grid || !summary) return;
+
+      const totalDepts = state.departments.length;
+      const totalPeople = state.departments.reduce((acc, d) => acc + (Number(d.count) || 0), 0);
+      const chargeableCount = state.departments.filter(d => d.chargeable).length;
+
+      summary.innerHTML = `
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-slate-500">Total Departments</div>
+            <div class="text-2xl font-extrabold text-slate-900">${totalDepts}</div>
+          </div>
+          <span class="text-2xl">🏛️</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-slate-500">Combined Ideal Headcount</div>
+            <div class="text-2xl font-extrabold text-orange-600">${totalPeople} <span class="text-sm font-semibold text-slate-500">devotees</span></div>
+          </div>
+          <span class="text-2xl">👥</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <div class="text-xs font-semibold text-slate-500">Billing Split</div>
+            <div class="text-sm font-bold text-slate-800 mt-1">
+              <span class="text-emerald-700">${chargeableCount} Chargeable</span> • <span class="text-slate-600">${totalDepts - chargeableCount} Non-Chargeable</span>
+            </div>
+          </div>
+          <span class="text-2xl">💼</span>
+        </div>
+      `;
+
+      const cardsHtml = state.departments.map(dept => `
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-4">
+              <div class="w-11 h-11 rounded-xl ${dept.chargeable ? 'bg-orange-50 text-orange-600' : 'bg-slate-100 text-slate-700'} flex items-center justify-center text-xl">
+                ${dept.icon || '🏛️'}
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openDepartmentModal('${dept.id}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                  Edit
+                </button>
+                <button onclick="deleteDepartment('${dept.id}')" class="px-3 py-1 rounded-lg text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 transition">
+                  Del
+                </button>
+              </div>
+            </div>
+
+            <h3 class="text-base font-extrabold text-slate-900">${escapeHtml(dept.name)}</h3>
+            <div class="mt-1 flex items-baseline gap-1.5">
+              <span class="text-3xl font-extrabold text-orange-600">${formatNum(dept.count, 0)}</span>
+              <span class="text-xs font-medium text-slate-500">people</span>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-xs font-medium text-slate-500">Billing Status:</span>
+            <button onclick="toggleDepartmentChargeable('${dept.id}')" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition ${
+              dept.chargeable
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'
+            }" title="Click to toggle Chargeable / Non-Chargeable">
+              <span>${dept.chargeable ? '💼 Chargeable' : '🌾 Non-Chargeable'}</span>
+              <span class="text-[10px]">⇄</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // Dashed "+ Add Department" card matching Screenshot 6
+      const addCardHtml = `
+        <button onclick="openDepartmentModal(null)" class="rounded-2xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50/30 p-6 transition flex flex-col items-center justify-center min-h-[200px] text-slate-500 hover:text-orange-600">
+          <span class="text-2xl font-bold mb-1">+</span>
+          <span class="text-xs sm:text-sm font-bold">Add Department</span>
+        </button>
+      `;
+
+      grid.innerHTML = cardsHtml + addCardHtml;
+    }
+
+    function toggleDepartmentChargeable(deptId) {
+      const dept = getDepartmentById(deptId);
+      if (!dept) return;
+      dept.chargeable = !dept.chargeable;
+      saveState();
+      renderDepartmentsTab();
+      showToast(`${dept.name} set to ${dept.chargeable ? 'Chargeable' : 'Non-Chargeable'}`);
+    }
+
+    function openDepartmentModal(deptId = null) {
+      const modal = document.getElementById('departmentModal');
+      const title = document.getElementById('deptModalTitle');
+      const idEl = document.getElementById('deptModalId');
+      const nameEl = document.getElementById('deptModalName');
+      const countEl = document.getElementById('deptModalCount');
+      const chgEl = document.getElementById('deptModalChargeable');
+
+      if (deptId) {
+        const d = getDepartmentById(deptId);
+        if (!d) return;
+        title.textContent = 'Edit Department';
+        idEl.value = d.id;
+        nameEl.value = d.name;
+        countEl.value = d.count;
+        chgEl.value = d.chargeable ? 'true' : 'false';
+      } else {
+        title.textContent = 'Add New Department';
+        idEl.value = '';
+        nameEl.value = '';
+        countEl.value = 50;
+        chgEl.value = 'false';
+      }
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeDepartmentModal() {
+      const modal = document.getElementById('departmentModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveDepartmentModal() {
+      const id = document.getElementById('deptModalId').value;
+      const name = document.getElementById('deptModalName').value.trim();
+      const count = parseInt(document.getElementById('deptModalCount').value, 10);
+      const chargeable = document.getElementById('deptModalChargeable').value === 'true';
+
+      if (!name) {
+        showToast('Please enter a department name', 'error');
+        return;
+      }
+      if (isNaN(count) || count < 0) {
+        showToast('Please enter a valid headcount', 'error');
+        return;
+      }
+
+      if (id) {
+        const d = getDepartmentById(id);
+        if (d) {
+          d.name = name;
+          d.count = count;
+          d.chargeable = chargeable;
+          showToast(`Updated "${name}"`);
+        }
+      } else {
+        state.departments.push({
+          id: 'dept_' + Date.now(),
+          name,
+          count,
+          chargeable,
+          icon: chargeable ? '🏢' : '🏛️'
+        });
+        showToast(`Added department "${name}"`);
+      }
+      closeDepartmentModal();
+      saveState();
+      renderDepartmentsTab();
+    }
+
+    function deleteDepartment(deptId) {
+      const idx = state.departments.findIndex(d => d.id === deptId);
+      if (idx === -1) return;
+      const name = state.departments[idx].name;
+      state.departments.splice(idx, 1);
+      saveState();
+      renderDepartmentsTab();
+      showToast(`Deleted department "${name}"`);
+    }
+
+    // =========================================================================
+    // TAB 6: DAILY KITCHEN PLANNING & A4 RECIPE GENERATOR (Matches Screenshot 7)
+    // =========================================================================
+    function ensureDailyPlanForDate(dateStr, forceResync = false) {
+      const calDay = ensureCalendarDay(dateStr);
+      if (!state.dailyPlans[dateStr] || forceResync) {
+        const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
+        const mealsObj = {};
+        mealKeys.forEach(mKey => {
+          const calMeal = calDay[mKey];
+          const defaultDepts = mKey === 'dinner'
+            ? [{ colId: 'c_' + mKey + '_1', deptId: state.departments[0]?.id || '', customLabel: state.departments[0]?.name || 'Temple', count: state.departments[0]?.count || 60 }]
+            : [
+                { colId: 'c_' + mKey + '_1', deptId: state.departments[0]?.id || '', customLabel: state.departments[0]?.name || 'Temple', count: state.departments[0]?.count || 60 },
+                { colId: 'c_' + mKey + '_2', deptId: state.departments[1]?.id || '', customLabel: state.departments[1]?.name || 'Abhay Hostel', count: state.departments[1]?.count || 35 }
+              ];
+
+          const rows = (calMeal?.dishes || []).map(recId => {
+            const rec = getRecipeById(recId);
+            const sQty = rec ? Number(rec.servingQty) : 200;
+            // Calculate initial sum to prefill Adjusted Quantity nicely
+            const totalHeadcount = defaultDepts.reduce((s, c) => s + (Number(c.count) || 0), 0);
+            const autoTotal = computeDeptDishQty(rec, sQty, totalHeadcount);
+            return {
+              recipeId: recId,
+              servingQty: sQty,
+              overrides: {},
+              calcOverride: null,
+              adjustedQty: Math.ceil(autoTotal)
+            };
+          });
+
+          mealsObj[mKey] = {
+            enabled: mKey === 'breakfast' || mKey === 'lunch' || mKey === 'dinner' ? true : Boolean(calMeal?.enabled),
+            bhogaTime: calMeal?.bhogaTime || '07:15',
+            servingTime: calMeal?.servingTime || '08:00',
+            deptCols: defaultDepts,
+            rows
+          };
+        });
+        state.dailyPlans[dateStr] = { meals: mealsObj };
+      }
+      return state.dailyPlans[dateStr];
+    }
+
+    // Core calculation matching Screenshot 7:
+    // If recipe yieldUnit is 'L' (and servingQty is in ml), (servingQty * headcount) / 1000 => Liters (L)!
+    // If recipe yieldUnit is 'pcs' (and servingQty is in pcs), servingQty * headcount => Pieces (pcs)!
+    function computeDeptDishQty(recipe, servingQty, headcount) {
+      const s = Number(servingQty) || 0;
+      const h = Number(headcount) || 0;
+      if (recipe && recipe.yieldUnit === 'L') {
+        return (s * h) / 1000;
+      }
+      return s * h;
+    }
+
+    function computeRowCalculatedTotal(mealPlan, row) {
+      if (row.calcOverride !== null && row.calcOverride !== undefined && row.calcOverride !== '') {
+        return Number(row.calcOverride) || 0;
+      }
+      const rec = getRecipeById(row.recipeId);
+      let sum = 0;
+      (mealPlan.deptCols || []).forEach(col => {
+        const ov = row.overrides && row.overrides[col.colId];
+        const val = (ov !== undefined && ov !== null && ov !== '')
+          ? Number(ov)
+          : computeDeptDishQty(rec, row.servingQty, col.count);
+        sum += (Number(val) || 0);
+      });
+      return sum;
+    }
+
+    function onDailyDateChange(newDateStr) {
+      if (!newDateStr) return;
+      state.selectedDailyDate = newDateStr;
+      const picker = document.getElementById('dailyDatePicker');
+      if (picker && picker.value !== newDateStr) picker.value = newDateStr;
+      ensureDailyPlanForDate(newDateStr, false);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function syncDailyFromCalendar(notify = false) {
+      ensureDailyPlanForDate(state.selectedDailyDate, true);
+      saveState();
+      renderDailyKitchenTab();
+      if (notify) showToast(`Synced ${state.selectedDailyDate} menu from Monthly Calendar!`);
+    }
+
+    function setDailyMealFilter(filterKey) {
+      state.dailyMealFilter = filterKey;
+      ['ALL', 'breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(k => {
+        const btn = document.getElementById(`dailyMealFilter-${k}`);
+        if (btn) {
+          btn.classList.toggle('ring-2', k === filterKey);
+          btn.classList.toggle('ring-offset-1', k === filterKey);
+          btn.classList.toggle('ring-orange-500', k === filterKey);
+        }
+      });
+      renderDailyKitchenTab();
+    }
+
+    function enableExtraMealInDaily(mealKey) {
+      const plan = ensureDailyPlanForDate(state.selectedDailyDate);
+      plan.meals[mealKey].enabled = true;
+      if (plan.meals[mealKey].rows.length === 0) {
+        const firstRec = state.recipes[0];
+        plan.meals[mealKey].rows.push({
+          recipeId: firstRec.id,
+          servingQty: firstRec.servingQty,
+          overrides: {},
+          calcOverride: null,
+          adjustedQty: firstRec.stdYield
+        });
+      }
+      saveState();
+      renderDailyKitchenTab();
+      showToast(`Enabled "${mealKey === 'order' ? 'Order' : 'Journey Prasad'}" meal for ${state.selectedDailyDate}`);
+    }
+
+    function renderDailyKitchenTab() {
+      const container = document.getElementById('dailyPlanningTablesContainer');
+      if (!container) return;
+
+      const dateStr = state.selectedDailyDate || '2026-10-04';
+      const picker = document.getElementById('dailyDatePicker');
+      if (picker && picker.value !== dateStr) picker.value = dateStr;
+
+      const plan = ensureDailyPlanForDate(dateStr, false);
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+      const mealMeta = [
+        { key: 'breakfast', shortCode: 'BF', title: 'Breakfast (BF)', headerBg: 'bg-amber-100/90' },
+        { key: 'lunch',     shortCode: 'LUNCH', title: 'Lunch', headerBg: 'bg-emerald-100/90' },
+        { key: 'dinner',    shortCode: 'DINNER', title: 'Dinner', headerBg: 'bg-purple-100/90' },
+        { key: 'order',     shortCode: 'ORDER', title: 'Order Meal (Special)', headerBg: 'bg-blue-100/90' },
+        { key: 'journey',   shortCode: 'JOURNEY', title: 'Journey Prasad', headerBg: 'bg-rose-100/90' }
+      ];
+
+      let tablesHtml = '';
+
+      mealMeta.forEach(meta => {
+        const mPlan = plan.meals[meta.key];
+        if (!mPlan || !mPlan.enabled) return;
+        if (state.dailyMealFilter !== 'ALL' && state.dailyMealFilter !== meta.key) return;
+
+        const deptCols = mPlan.deptCols || [];
+        const totalHeadcount = deptCols.reduce((acc, c) => acc + (Number(c.count) || 0), 0);
+
+        // Department column headers (Row 1)
+        const deptHeaderCells = deptCols.map((col, cIdx) => `
+          <th class="bg-cyan-300 text-slate-900 min-w-[155px] p-1.5">
+            <div class="flex items-center justify-between gap-1 mb-1">
+              <select onchange="onDailyDeptSelect('${dateStr}', '${meta.key}', ${cIdx}, this.value)" class="w-full px-1.5 py-1 text-xs font-bold bg-white border border-slate-700 rounded text-slate-900">
+                <option value="">-- Select Dept --</option>
+                ${state.departments.map(d => `
+                  <option value="${d.id}" ${d.id === col.deptId ? 'selected' : ''}>
+                    ${escapeHtml(d.name)} (${d.count})
+                  </option>
+                `).join('')}
+              </select>
+              ${deptCols.length > 1 ? `
+                <button onclick="removeDailyDeptCol('${dateStr}', '${meta.key}', ${cIdx})" class="px-1.5 py-0.5 text-xs font-extrabold text-red-700 bg-red-100 hover:bg-red-200 rounded" title="Remove department column">✕</button>
+              ` : ''}
+            </div>
+            <input type="text" value="${escapeHtml(col.customLabel || '')}" onchange="onDailyDeptLabelEdit('${dateStr}', '${meta.key}', ${cIdx}, this.value)" placeholder="Custom header label..." class="w-full px-1.5 py-0.5 text-center text-xs font-extrabold bg-cyan-100/90 border border-slate-600 rounded text-slate-900" title="Editable column header name (e.g., Temple+KH(10))" />
+          </th>
+        `).join('');
+
+        // Department headcount cells (Row 2)
+        const deptCountCells = deptCols.map((col, cIdx) => `
+          <th class="bg-yellow-300 text-center p-1.5">
+            <div class="flex items-center justify-center gap-1">
+              <input type="number" step="1" min="0" value="${col.count}" oninput="onDailyDeptCountEdit('${dateStr}', '${meta.key}', ${cIdx}, this.value)" class="w-20 px-2 py-1 text-center text-sm font-extrabold bg-white border border-slate-700 rounded text-slate-900" title="Editable Department Headcount" />
+            </div>
+            <div class="text-[10px] font-semibold text-slate-700 mt-0.5">headcount</div>
+          </th>
+        `).join('');
+
+        // Dish Rows
+        const dishRowsHtml = (mPlan.rows || []).map((row, rIdx) => {
+          const rec = getRecipeById(row.recipeId);
+          const yieldUnit = rec ? rec.yieldUnit : 'L';
+          const servingUnit = rec ? rec.servingUnit : 'ml';
+          const calcTotal = computeRowCalculatedTotal(mPlan, row);
+          const hasCalcOverride = row.calcOverride !== null && row.calcOverride !== undefined && row.calcOverride !== '';
+
+          const deptCellsHtml = deptCols.map(col => {
+            const ov = row.overrides && row.overrides[col.colId];
+            const isOverridden = ov !== undefined && ov !== null && ov !== '';
+            const autoVal = computeDeptDishQty(rec, row.servingQty, col.count);
+            const displayVal = isOverridden ? ov : formatNum(autoVal, 2);
+
+            return `
+              <td class="${isOverridden ? 'bg-amber-50' : 'bg-white'} text-center p-1.5">
+                <div class="flex items-center justify-center gap-1">
+                  <input type="number" step="0.25" min="0" value="${displayVal}"
+                    onchange="onDailyCellOverride('${dateStr}', '${meta.key}', ${rIdx}, '${col.colId}', this.value)"
+                    class="w-20 px-1.5 py-1 text-center text-sm font-bold border ${isOverridden ? 'border-orange-500 bg-amber-100/70 text-orange-950' : 'border-slate-300 bg-white text-slate-900'} rounded"
+                    title="${isOverridden ? 'Manually overridden! Click ↺ to restore auto formula.' : `Auto: ${row.servingQty} ${servingUnit} × ${col.count} = ${formatNum(autoVal, 2)} ${yieldUnit}`}" />
+                  <span class="text-[11px] font-semibold text-slate-500">${yieldUnit}</span>
+                  ${isOverridden ? `
+                    <button onclick="clearDailyCellOverride('${dateStr}', '${meta.key}', ${rIdx}, '${col.colId}')" class="text-xs font-bold text-orange-700 hover:text-orange-900 px-1" title="Restore auto multiplication (${formatNum(autoVal, 2)} ${yieldUnit})">↺</button>
+                  ` : ''}
+                </div>
+              </td>
+            `;
+          }).join('');
+
+          return `
+            <tr class="hover:bg-slate-50/80">
+              <!-- Col 1: Dish Selector (Editable) -->
+              <td class="bg-white p-1.5">
+                <div class="flex items-center gap-1">
+                  <select onchange="onDailyRowRecipeChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)" class="flex-1 px-2 py-1 text-sm font-bold bg-white border border-slate-300 rounded text-slate-900">
+                    ${state.recipes.map(r => `<option value="${r.id}" ${r.id === row.recipeId ? 'selected' : ''}>${escapeHtml(r.name)} (${r.yieldUnit})</option>`).join('')}
+                  </select>
+                  <button onclick="removeDailyDishRow('${dateStr}', '${meta.key}', ${rIdx})" class="px-1.5 py-0.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded" title="Remove dish from meal">✕</button>
+                </div>
+              </td>
+
+              <!-- Col 2: Standard Serving Quantity (Editable) -->
+              <td class="bg-white text-center p-1.5">
+                <div class="flex items-center justify-center gap-1">
+                  <input type="number" step="1" min="0" value="${row.servingQty}"
+                    onchange="onDailyRowServingQtyChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
+                    class="w-20 px-1.5 py-1 text-center text-sm font-bold bg-white border border-slate-300 rounded text-slate-900"
+                    title="Editable Standard Serving Quantity per person (${servingUnit})" />
+                  <span class="text-xs font-semibold text-slate-500">${servingUnit}</span>
+                </div>
+              </td>
+
+              <!-- Dynamic Department Columns -->
+              ${deptCellsHtml}
+
+              <!-- Second-to-last Col: Calculated Quantity (Total) - Editable! -->
+              <td class="bg-yellow-300/90 text-center p-1.5">
+                <div class="flex items-center justify-center gap-1">
+                  <input type="number" step="0.25" min="0" value="${formatNum(calcTotal, 2)}"
+                    onchange="onDailyRowCalcOverride('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
+                    class="w-20 px-1.5 py-1 text-center text-sm font-extrabold ${hasCalcOverride ? 'bg-amber-100 border-2 border-orange-600' : 'bg-yellow-100 border border-slate-700'} rounded text-slate-900"
+                    title="Calculated Total across departments (Editable)" />
+                  <span class="text-xs font-bold text-slate-800">${yieldUnit}</span>
+                  ${hasCalcOverride ? `
+                    <button onclick="clearDailyRowCalcOverride('${dateStr}', '${meta.key}', ${rIdx})" class="text-xs font-bold text-orange-800 px-1" title="Restore automatic sum">↺</button>
+                  ` : ''}
+                </div>
+              </td>
+
+              <!-- Last Col: Adjusted Quantity (Ideal / Final Cook Qty) - Editable! -->
+              <td class="bg-lime-400 text-center p-1.5">
+                <div class="flex items-center justify-center gap-1">
+                  <input type="number" step="0.5" min="0" value="${formatNum(row.adjustedQty, 2)}"
+                    onchange="onDailyRowAdjustedQtyChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
+                    class="w-24 px-2 py-1 text-center text-sm font-extrabold bg-white border-2 border-slate-900 rounded text-slate-900 shadow-2xs"
+                    title="Final Adjusted Quantity to Cook (Used to generate recipes)" />
+                  <span class="text-xs font-extrabold text-slate-900">${yieldUnit}</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        tablesHtml += `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Meal Top Bar: Editable Bhoga Ready Time, Serving Time, Add Dept Column, Add Dish Row -->
+            <div class="px-5 py-3.5 ${meta.headerBg} border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="px-3 py-1 rounded-lg bg-slate-900 text-white text-xs sm:text-sm font-extrabold">
+                  ${meta.title}
+                </span>
+                <div class="flex items-center gap-1.5 bg-white/90 px-3 py-1 rounded-lg border border-slate-300">
+                  <span class="text-xs font-bold text-slate-600">🔔 Bhoga Ready:</span>
+                  <input type="time" value="${mPlan.bhogaTime}" onchange="onDailyMealTimeEdit('${dateStr}', '${meta.key}', 'bhogaTime', this.value)" class="text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none" />
+                </div>
+                <div class="flex items-center gap-1.5 bg-white/90 px-3 py-1 rounded-lg border border-slate-300">
+                  <span class="text-xs font-bold text-slate-600">🍛 Serving Time:</span>
+                  <input type="time" value="${mPlan.servingTime}" onchange="onDailyMealTimeEdit('${dateStr}', '${meta.key}', 'servingTime', this.value)" class="text-xs font-extrabold text-slate-900 bg-transparent focus:outline-none" />
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button onclick="addDailyDeptCol('${dateStr}', '${meta.key}')" class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold shadow-2xs transition">
+                  + Add Dept Column
+                </button>
+                <button onclick="addDailyDishRow('${dateStr}', '${meta.key}')" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-2xs transition">
+                  + Add Dish Row
+                </button>
+              </div>
+            </div>
+
+            <!-- Spreadsheet Table (Matches Screenshot 7) -->
+            <div class="p-4 overflow-x-auto">
+              <table class="sheet-table text-sm">
+                <thead>
+                  <tr>
+                    <th class="bg-yellow-300 text-center font-extrabold text-slate-900 min-w-[190px]">
+                      ${escapeHtml(formattedDate)}
+                    </th>
+                    <th class="bg-cyan-300 text-center font-extrabold text-slate-900 w-32">
+                      count
+                    </th>
+                    ${deptHeaderCells}
+                    <th class="bg-cyan-300 text-center font-extrabold text-slate-900 w-36" title="Sum of all department quantities for each dish">
+                      Calculated Qty<br/><span class="text-[11px] font-semibold">(total)</span>
+                    </th>
+                    <th class="bg-cyan-300 text-center font-extrabold text-slate-900 w-40" title="Manually rounded or adjusted final quantity to cook">
+                      Adjusted Qty<br/><span class="text-[11px] font-semibold">(ideal / final cook)</span>
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="bg-yellow-300 text-center font-extrabold text-slate-900">
+                      ${escapeHtml(meta.shortCode)}
+                    </th>
+                    <th class="bg-yellow-300 text-center font-bold text-slate-900 text-xs">
+                      ml / count<br/><span class="text-[10px] font-normal">(Std Serving)</span>
+                    </th>
+                    ${deptCountCells}
+                    <th class="bg-yellow-300 text-center font-extrabold text-slate-900 text-base">
+                      ${totalHeadcount} <span class="text-xs font-semibold block">total people</span>
+                    </th>
+                    <th class="bg-lime-400 text-center font-extrabold text-slate-900 text-xs">
+                      Final Cook Yield
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${dishRowsHtml || `
+                    <tr>
+                      <td colspan="${deptCols.length + 4}" class="py-6 text-center text-slate-400">
+                        No dishes in this meal yet. Click "+ Add Dish Row" to add a dish.
+                      </td>
+                    </tr>
+                  `}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = tablesHtml;
+      generateDailyRecipesSection(false);
+    }
+
+    // Daily Table Edit Handlers
+    function onDailyMealTimeEdit(dateStr, mealKey, field, val) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      plan.meals[mealKey][field] = val;
+      // Also keep calendar in sync
+      const calDay = ensureCalendarDay(dateStr);
+      if (calDay[mealKey]) calDay[mealKey][field] = val;
+      saveState();
+      generateDailyRecipesSection(false);
+    }
+
+    function onDailyDeptSelect(dateStr, mealKey, colIdx, newDeptId) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const col = plan.meals[mealKey].deptCols[colIdx];
+      if (!col) return;
+      col.deptId = newDeptId;
+      const dept = getDepartmentById(newDeptId);
+      if (dept) {
+        col.customLabel = dept.name;
+        col.count = dept.count;
+      }
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function onDailyDeptLabelEdit(dateStr, mealKey, colIdx, newLabel) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const col = plan.meals[mealKey].deptCols[colIdx];
+      if (!col) return;
+      col.customLabel = newLabel;
+      saveState();
+      generateDailyRecipesSection(false);
+    }
+
+    function onDailyDeptCountEdit(dateStr, mealKey, colIdx, newCount) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const col = plan.meals[mealKey].deptCols[colIdx];
+      if (!col) return;
+      col.count = Math.max(0, parseFloat(newCount) || 0);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function addDailyDeptCol(dateStr, mealKey) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const nextDept = state.departments[plan.meals[mealKey].deptCols.length % state.departments.length] || state.departments[0];
+      plan.meals[mealKey].deptCols.push({
+        colId: 'col_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+        deptId: nextDept ? nextDept.id : '',
+        customLabel: nextDept ? nextDept.name : 'New Dept',
+        count: nextDept ? nextDept.count : 30
+      });
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function removeDailyDeptCol(dateStr, mealKey, colIdx) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const cols = plan.meals[mealKey].deptCols;
+      if (cols.length <= 1) return;
+      const removed = cols.splice(colIdx, 1)[0];
+      if (removed) {
+        plan.meals[mealKey].rows.forEach(r => {
+          if (r.overrides) delete r.overrides[removed.colId];
+        });
+      }
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function addDailyDishRow(dateStr, mealKey) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const rec = state.recipes[0];
+      if (!rec) return;
+      const totalPeople = plan.meals[mealKey].deptCols.reduce((s, c) => s + (Number(c.count) || 0), 0);
+      const autoQty = computeDeptDishQty(rec, rec.servingQty, totalPeople);
+      plan.meals[mealKey].rows.push({
+        recipeId: rec.id,
+        servingQty: rec.servingQty,
+        overrides: {},
+        calcOverride: null,
+        adjustedQty: Math.ceil(autoQty) || rec.stdYield
+      });
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function removeDailyDishRow(dateStr, mealKey, rowIdx) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      plan.meals[mealKey].rows.splice(rowIdx, 1);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function onDailyRowRecipeChange(dateStr, mealKey, rowIdx, newRecId) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      const rec = getRecipeById(newRecId);
+      if (!row || !rec) return;
+      row.recipeId = newRecId;
+      row.servingQty = rec.servingQty;
+      row.overrides = {};
+      row.calcOverride = null;
+      const calcTotal = computeRowCalculatedTotal(plan.meals[mealKey], row);
+      row.adjustedQty = Math.ceil(calcTotal) || rec.stdYield;
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function onDailyRowServingQtyChange(dateStr, mealKey, rowIdx, newVal) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      if (!row) return;
+      row.servingQty = Math.max(0, parseFloat(newVal) || 0);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function onDailyCellOverride(dateStr, mealKey, rowIdx, colId, newVal) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      if (!row) return;
+      if (!row.overrides) row.overrides = {};
+      row.overrides[colId] = Math.max(0, parseFloat(newVal) || 0);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function clearDailyCellOverride(dateStr, mealKey, rowIdx, colId) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      if (!row || !row.overrides) return;
+      delete row.overrides[colId];
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function onDailyRowCalcOverride(dateStr, mealKey, rowIdx, newVal) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      if (!row) return;
+      row.calcOverride = Math.max(0, parseFloat(newVal) || 0);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function clearDailyRowCalcOverride(dateStr, mealKey, rowIdx) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      if (!row) return;
+      row.calcOverride = null;
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    function onDailyRowAdjustedQtyChange(dateStr, mealKey, rowIdx, newVal) {
+      const plan = ensureDailyPlanForDate(dateStr);
+      const row = plan.meals[mealKey].rows[rowIdx];
+      if (!row) return;
+      row.adjustedQty = Math.max(0, parseFloat(newVal) || 0);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
+    // =========================================================================
+    // GENERATE RECIPES FOR THE DAY & A4 PRINT VIEW
+    // =========================================================================
+    function togglePrintCostVisibility(checked) {
+      state.printShowCosts = checked;
+      generateDailyRecipesSection(false);
+    }
+
+    function generateDailyRecipesSection(scrollToView = false) {
+      const wrapper = document.getElementById('dailyGeneratedRecipesWrapper');
+      if (!wrapper) return;
+
+      const dateStr = state.selectedDailyDate || '2026-10-04';
+      const plan = ensureDailyPlanForDate(dateStr, false);
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+      const mealOrder = [
+        { key: 'breakfast', label: 'Breakfast (BF)' },
+        { key: 'lunch',     label: 'Lunch' },
+        { key: 'dinner',    label: 'Dinner' },
+        { key: 'order',     label: 'Order (Special)' },
+        { key: 'journey',   label: 'Journey Prasad' }
+      ];
+
+      let generatedCardsHtml = '';
+      let dailyTotalCalcCost = 0;
+      let dailyTotalAdjCost = 0;
+      let totalRecipesCount = 0;
+      const consolidatedIngredients = {}; // ingId -> { ing, totalInIngUnit, totalCost }
+
+      mealOrder.forEach(mInfo => {
+        const mPlan = plan.meals[mInfo.key];
+        if (!mPlan || !mPlan.enabled) return;
+        if (state.dailyMealFilter !== 'ALL' && state.dailyMealFilter !== mInfo.key) return;
+
+        (mPlan.rows || []).forEach(row => {
+          const cookQty = Number(row.adjustedQty) || 0;
+          if (cookQty <= 0) return;
+          const recipe = getRecipeById(row.recipeId);
+          if (!recipe) return;
+
+          totalRecipesCount++;
+          const stdYield = Number(recipe.stdYield) || 1;
+          const scaleRatio = cookQty / stdYield;
+          const calcQty = computeRowCalculatedTotal(mPlan, row);
+
+          // Department summary string
+          const deptBreakdown = (mPlan.deptCols || []).map(col => {
+            const ov = row.overrides && row.overrides[col.colId];
+            const val = (ov !== undefined && ov !== null && ov !== '')
+              ? Number(ov)
+              : computeDeptDishQty(recipe, row.servingQty, col.count);
+            return `${escapeHtml(col.customLabel || 'Dept')} (${col.count}): <strong>${formatNum(val, 2)} ${recipe.yieldUnit}</strong>`;
+          }).join(' • ');
+
+          let recipeCalcCost = 0;
+          let rowsHtml = '';
+
+          recipe.steps.forEach(step => {
+            const items = step.items || [];
+            const span = Math.max(items.length, 1);
+            items.forEach((it, idx) => {
+              const ing = getIngredientById(it.ingId);
+              const stdIngQty = Number(it.stdQty) || 0;
+              const reqIngQty = stdIngQty * scaleRatio;
+              const rowCost = calculateIngredientCost(reqIngQty, it.unit, ing);
+              recipeCalcCost += rowCost;
+
+              // Accumulate consolidated raw ingredients
+              if (ing) {
+                if (!consolidatedIngredients[ing.id]) {
+                  consolidatedIngredients[ing.id] = { ing, qtyInPurchaseUnit: 0, cost: 0 };
+                }
+                const factor = getUnitConversionFactor(it.unit, ing.unit);
+                consolidatedIngredients[ing.id].qtyInPurchaseUnit += reqIngQty * factor;
+                consolidatedIngredients[ing.id].cost += rowCost;
+              }
+
+              const uDisp = it.unit === 'g' ? 'gm' : it.unit;
+
+              rowsHtml += `
+                <tr>
+                  <td class="font-semibold text-slate-900">${escapeHtml(ing ? ing.name : 'Unknown')}</td>
+                  <td class="text-right text-slate-600 whitespace-nowrap">${formatNum(stdIngQty, 3)} ${uDisp}</td>
+                  <td class="text-right font-extrabold text-slate-900 bg-yellow-100/80 whitespace-nowrap">${formatNum(reqIngQty, 3)} ${uDisp}</td>
+                  ${idx === 0 ? `<td rowspan="${span}" class="align-middle text-center hindi-text text-xs sm:text-sm text-slate-800 px-3 py-1.5">${escapeHtml(step.process || '—')}</td>` : ''}
+                  ${state.printShowCosts ? `
+                    <td class="text-right text-xs text-slate-600 whitespace-nowrap">${ing ? `₹${formatNum(ing.price)}/${ing.unit}` : '—'}</td>
+                    <td class="text-right font-bold text-slate-900 whitespace-nowrap">₹${formatNum(rowCost, 2)}</td>
+                  ` : ''}
+                </tr>
+              `;
+            });
+          });
+
+          const recipeAdjCost = recipeCalcCost * (Number(state.multiplier) || 1);
+          dailyTotalCalcCost += recipeCalcCost;
+          dailyTotalAdjCost += recipeAdjCost;
+
+          generatedCardsHtml += `
+            <div class="bg-white rounded-2xl border-2 border-slate-800 p-5 shadow-sm a4-avoid-break space-y-3">
+              <!-- A4 Recipe Sheet Header -->
+              <div class="flex flex-wrap items-start justify-between gap-2 border-b-2 border-slate-800 pb-3">
+                <div>
+                  <div class="text-xs font-extrabold uppercase tracking-wider text-orange-700">
+                    🪷 Srimati Radharani ki Rasoi — ISKCON Kitchen Production Sheet
+                  </div>
+                  <h4 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">
+                    ${escapeHtml(recipe.name)} <span class="text-sm font-bold text-slate-600">— ${escapeHtml(mInfo.label)}</span>
+                  </h4>
+                  <div class="text-xs text-slate-600 mt-0.5">
+                    <strong>Date:</strong> ${escapeHtml(formattedDate)} &nbsp;|&nbsp;
+                    <strong>Bhoga Ready Time:</strong> <span class="font-bold text-red-700">${escapeHtml(mPlan.bhogaTime)}</span> &nbsp;|&nbsp;
+                    <strong>Serving Time:</strong> <span class="font-bold text-emerald-800">${escapeHtml(mPlan.servingTime)}</span>
+                  </div>
+                </div>
+                <div class="text-right bg-lime-100 border border-lime-500 px-3.5 py-1.5 rounded-xl">
+                  <div class="text-[10px] font-bold uppercase text-slate-600">Final Cook Yield (Adjusted)</div>
+                  <div class="text-xl font-extrabold text-slate-900">${formatNum(cookQty, 2)} ${escapeHtml(recipe.yieldUnit)}</div>
+                  <div class="text-[10px] text-slate-600">Calculated Need: ${formatNum(calcQty, 2)} ${escapeHtml(recipe.yieldUnit)}</div>
+                </div>
+              </div>
+
+              <!-- Dept Distribution Strip -->
+              <div class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-slate-700">
+                <strong>Department Breakdown (Std Serving: ${formatNum(row.servingQty)} ${recipe.servingUnit}/person):</strong>
+                ${deptBreakdown}
+              </div>
+
+              <!-- Scaled Recipe Table -->
+              <div class="overflow-x-auto">
+                <table class="sheet-table text-xs sm:text-sm">
+                  <thead>
+                    <tr class="bg-slate-100">
+                      <th class="text-left w-44">Ingredient (Yield)</th>
+                      <th class="text-right w-28">Std (${formatNum(stdYield)} ${recipe.yieldUnit})</th>
+                      <th class="text-right w-32 bg-yellow-200">Cook Now (${formatNum(cookQty, 2)} ${recipe.yieldUnit})</th>
+                      <th class="text-center">Cooking Process</th>
+                      ${state.printShowCosts ? `
+                        <th class="text-right w-24 bg-yellow-200">Rate</th>
+                        <th class="text-right w-28 bg-yellow-200">Amount (₹)</th>
+                      ` : ''}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rowsHtml}
+                  </tbody>
+                  ${state.printShowCosts ? `
+                    <tfoot>
+                      <tr class="bg-slate-100 font-bold">
+                        <td colspan="4" class="text-right">1) Calculated Ingredient Cost:</td>
+                        <td colspan="2" class="text-right text-sm font-extrabold text-slate-900">${formatCurrency(recipeCalcCost)}</td>
+                      </tr>
+                      <tr class="bg-orange-50 font-bold">
+                        <td colspan="4" class="text-right text-orange-900">2) Adjusted Cost (${Number(state.multiplier).toFixed(2)}x Multiplier):</td>
+                        <td colspan="2" class="text-right text-base font-extrabold text-orange-700">${formatCurrency(recipeAdjCost)}</td>
+                      </tr>
+                    </tfoot>
+                  ` : ''}
+                </table>
+              </div>
+            </div>
+          `;
+        });
+      });
+
+      const consolidatedList = Object.values(consolidatedIngredients);
+
+      wrapper.innerHTML = `
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-5">
+          <!-- Print Header Controls (No-Print) -->
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4 no-print">
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900">
+                Generated Daily Recipes & A4 Print Preview (${totalRecipesCount} Dishes)
+              </h3>
+              <p class="text-xs text-slate-500">
+                Scaled automatically to the <strong>Adjusted Quantity (Final Cook Yield)</strong> from your Daily Kitchen table above.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="inline-flex items-center gap-2 text-xs font-bold text-slate-700 bg-slate-100 px-3 py-2 rounded-xl cursor-pointer">
+                <input type="checkbox" ${state.printShowCosts ? 'checked' : ''} onchange="togglePrintCostVisibility(this.checked)" class="rounded text-orange-600" />
+                <span>Show Rates & Costs on Printout</span>
+              </label>
+              <button onclick="triggerA4Print()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+                <span>🖨️</span> <span>Print A4 Recipe Sheets</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Daily Cost & Consolidated Store Requisition Summary -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 a4-avoid-break">
+            <div class="lg:col-span-4 bg-orange-50/80 border border-orange-200 rounded-2xl p-4 flex flex-col justify-between">
+              <div>
+                <div class="text-xs font-extrabold uppercase tracking-wider text-orange-800">Daily Cost Summary</div>
+                <div class="text-sm font-bold text-slate-800 mt-0.5">${escapeHtml(formattedDate)}</div>
+              </div>
+              <div class="my-4 space-y-2">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-slate-600 font-medium">1) Calculated Cost:</span>
+                  <span class="font-extrabold text-slate-900 text-base">${formatCurrency(dailyTotalCalcCost)}</span>
+                </div>
+                <div class="flex items-center justify-between text-sm pt-2 border-t border-orange-200">
+                  <span class="text-orange-900 font-bold">2) Adjusted Cost (${Number(state.multiplier).toFixed(2)}x):</span>
+                  <span class="font-extrabold text-orange-600 text-xl">${formatCurrency(dailyTotalAdjCost)}</span>
+                </div>
+              </div>
+              <div class="text-[11px] text-slate-500">
+                Includes ${totalRecipesCount} scaled dishes across active meals.
+              </div>
+            </div>
+
+            <div class="lg:col-span-8 bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-slate-600 mb-2">
+                Consolidated Raw Ingredients Required for the Day (Store Issue Summary)
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-44 overflow-y-auto pr-1">
+                ${consolidatedList.map(item => `
+                  <div class="bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs flex items-center justify-between gap-1">
+                    <span class="font-semibold text-slate-800 truncate">${escapeHtml(item.ing.name)}</span>
+                    <span class="font-extrabold text-orange-700 whitespace-nowrap">${formatNum(item.qtyInPurchaseUnit, 2)} ${item.ing.unit}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Individual A4 Recipe Cards -->
+          <div class="space-y-6">
+            ${generatedCardsHtml || `<div class="py-8 text-center text-slate-400">No dishes with Adjusted Quantity > 0 found.</div>`}
+          </div>
+        </div>
+      `;
+
+      if (scrollToView) {
+        wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast(`Generated ${totalRecipesCount} scaled recipes for ${formattedDate}!`);
+      }
+    }
+
+    function triggerA4Print() {
+      generateDailyRecipesSection(false);
+      window.print();
+    }
+
+    // =========================================================================
+    // RESET DEMO DATA MODAL
+    // =========================================================================
+    function openResetModal() {
+      const m = document.getElementById('resetModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeResetModal() {
+      const m = document.getElementById('resetModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function confirmResetDemoData() {
+      state = getDefaultState();
+      saveState();
+      closeResetModal();
+      switchTab(state.activeTab);
+      showToast('Restored default Srimati Radharani ki Rasoi data!');
+    }
+
+    // Initialize App on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateNavCounts();
+      switchTab(state.activeTab || 'ingredients');
+    });
+  </script>
+</body>
+</html>
