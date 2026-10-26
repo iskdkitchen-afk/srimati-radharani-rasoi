@@ -175,6 +175,14 @@
       .sheet-table th, .sheet-table td {
         border: 1px solid #cbd5e1 !important;
       }
+      .sheet-table input, .sheet-table select {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        padding: 0 !important;
+      }
     }
   </style>
 </head>
@@ -238,32 +246,37 @@
           <span id="cloudSyncStatusText">Connect Cloud DB</span>
         </button>
 
-        <button onclick="openResetModal()" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-slate-600 bg-slate-100/90 hover:bg-slate-200/90 transition cursor-pointer" title="Restore sample kitchen data">
-          ↺ Reset Demo
-        </button>
+
       </div>
     </div>
 
     <!-- NAVIGATION TABS (5 Streamlined Tabs: Departments merged into Settings) -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 border-t border-slate-100/80 bg-white/50">
       <nav class="flex items-center gap-1.5 overflow-x-auto py-2" aria-label="Main Navigation">
-        <button id="tabBtn-ingredients" onclick="switchTab('ingredients')" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
-          <span>🥕</span> <span>1. Ingredients List</span>
-          <span id="navCount-ingredients" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
+        <button id="tabBtn-ingredients" onclick="switchTab('ingredients')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+          <span>🥕</span> <span>1. Ingredients</span>
+          <span id="navCount-ingredients" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
         </button>
-        <button id="tabBtn-recipes" onclick="switchTab('recipes')" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+        <button id="tabBtn-recipes" onclick="switchTab('recipes')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
           <span>🍲</span> <span>2. Recipes</span>
-          <span id="navCount-recipes" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
+          <span id="navCount-recipes" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
         </button>
-        <button id="tabBtn-calendar" onclick="switchTab('calendar')" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
-          <span>📅</span> <span>3. Monthly Menu Calendar</span>
+        <button id="tabBtn-calendar" onclick="switchTab('calendar')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+          <span>📅</span> <span>3. Menu Calendar</span>
         </button>
-        <button id="tabBtn-daily" onclick="switchTab('daily')" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
-          <span>📋</span> <span>4. Daily Kitchen & Print</span>
+        <button id="tabBtn-daily" onclick="switchTab('daily')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+          <span>📋</span> <span>4. Daily Kitchen</span>
         </button>
-        <button id="tabBtn-settings" onclick="switchTab('settings')" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
-          <span>⚙️</span> <span>5. Settings & Departments</span>
-          <span id="navCount-departments" class="ml-1 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
+        <button id="tabBtn-history" onclick="switchTab('history')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+          <span>📜</span> <span>5. History</span>
+          <span id="navCount-history" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
+        </button>
+        <button id="tabBtn-accounts" onclick="switchTab('accounts')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+          <span>💰</span> <span>6. Accounts</span>
+        </button>
+        <button id="tabBtn-settings" onclick="switchTab('settings')" class="tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5">
+          <span>⚙️</span> <span>7. Settings</span>
+          <span id="navCount-departments" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[11px] bg-slate-200/80 text-slate-700">0</span>
         </button>
       </nav>
     </div>
@@ -417,6 +430,8 @@
             <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200"><span class="w-2 h-2 rounded-full bg-purple-500"></span> Dinner</span>
             <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Order</span>
             <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Journey Prasad</span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-50 text-red-800 border border-red-200"><span>🪷</span> 2026 Vaishnava Festival / Ekadashi</span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200"><span>🌙</span> Meal Fasting</span>
           </div>
         </div>
 
@@ -498,17 +513,14 @@
               <input id="dailyDatePicker" type="hidden" value="2026-10-04" />
             </div>
 
-            <button onclick="onDailyDateChange('2026-10-04')" class="px-3 py-2 rounded-xl border border-amber-200 bg-amber-50/90 hover:bg-amber-100 text-amber-900 text-xs font-bold hover-lift" title="Load Sunday Oct 4, 2026 sample sheet">
-              ★ Oct 4 Sample
+            <span id="dailyHistoryStatusBadge" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              ✓ Saved in History
+            </span>
+            <button onclick="updateDailyHistory()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs sm:text-sm font-bold shadow-sm hover-lift flex items-center gap-1.5 cursor-pointer" title="Record this day's cooking tables & frozen costs into the History and Claims tabs">
+              <span>💾</span> <span>Update History</span>
             </button>
-            <button onclick="syncDailyFromCalendar(true)" class="px-3 py-2 rounded-xl border border-slate-200 bg-white/90 hover:bg-slate-100 text-slate-700 text-xs font-semibold hover-lift" title="Re-fetch menu dishes from Monthly Calendar">
-              🔄 Sync Menu
-            </button>
-            <button onclick="generateDailyRecipesSection(true)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white text-xs sm:text-sm font-bold shadow-sm hover-lift flex items-center gap-1.5">
-              <span>⚡</span> <span>Generate Recipes</span>
-            </button>
-            <button onclick="triggerA4Print()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm hover-lift flex items-center gap-1.5">
-              <span>🖨️</span> <span>Print Recipes (A4)</span>
+            <button onclick="triggerA4Print()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm hover-lift flex items-center gap-1.5 cursor-pointer" title="Print Department Allocation Tables + Scaled Recipes in A4">
+              <span>🖨️</span> <span>Print Tables & Recipes (A4)</span>
             </button>
           </div>
         </div>
@@ -535,14 +547,432 @@
         </div>
       </div>
 
-      <!-- Daily Meal Planning Tables Container -->
-      <div id="dailyPlanningTablesContainer" class="space-y-6 no-print">
+      <!-- Vaishnava Event & Fasting Info Banner for Selected Date -->
+      <div id="dailyVaishnavaBanner" class="hidden"></div>
+
+      <!-- Print-Only Header Banner for A4 Printout -->
+      <div class="hidden print-only border-b-2 border-slate-800 pb-3 mb-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-xl font-extrabold text-slate-900">🪷 Srimati Radharani ki Rasoi — ISKCON Kitchen Production & Prasadam Segregation Sheet</h1>
+            <p id="printA4DateSubtitle" class="text-sm font-bold text-slate-700 mt-0.5"></p>
+          </div>
+          <div class="text-right text-xs text-slate-600">
+            <div>Department Allocation Tables + Scaled Recipes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Meal Planning Tables Container (Included in A4 Print for Prasadam Segregation!) -->
+      <div id="dailyPlanningTablesContainer" class="space-y-6">
         <!-- Populated by JS -->
       </div>
 
       <!-- Generated Daily Recipes (Collapsible Accordions, Closed by Default!) -->
       <div id="dailyGeneratedRecipesWrapper" class="space-y-6">
         <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: HISTORY (Read-Only Cooking Archive & Prasadam Distribution)-->
+    <!-- ================================================================= -->
+    <section id="tab-history" class="tab-panel hidden space-y-6 pb-16 animate-tab-in">
+      <!-- Top Control & Filter Bar -->
+      <div class="glass-card rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">Immutable Kitchen Archive</span>
+              <h2 class="text-lg font-extrabold text-slate-900">Cooking & Prasadam Distribution History</h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Read-only archive recorded via <strong>"Update History"</strong> in the Daily Kitchen tab. Ingredient rates, recipe costs, and multipliers are frozen as of the time of cooking.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Archived Date</label>
+              <select id="historyDateSelect" onchange="onHistoryDateSelect(this.value)" class="px-3.5 py-2 text-xs sm:text-sm font-extrabold bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 min-w-[210px]">
+                <!-- Populated by JS -->
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter Meal</label>
+              <select id="historyMealFilter" onchange="renderHistoryTab()" class="px-3 py-2 text-xs sm:text-sm font-bold bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                <option value="ALL">All Meals</option>
+                <option value="breakfast">Breakfast (BF)</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="order">Order Meal</option>
+                <option value="journey">Journey Prasad</option>
+              </select>
+            </div>
+            <div class="pt-4">
+              <button onclick="openHistoryDateInDailyKitchen()" class="px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-bold transition cursor-pointer" title="Open this date in Daily Kitchen to make edits and re-update History">
+                ✏️ Edit in Daily Kitchen →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Archive Date Pills Strip -->
+        <div id="historyDatesPillStrip" class="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100 pb-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Selected History Date KPI Summary Strip -->
+      <div id="historyKpiStrip" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Read-Only Archived Department Allocation Tables & Recipes -->
+      <div id="historyContentContainer" class="space-y-6">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 6: ACCOUNTS (Sub-Tabs: Expenses, Revenue, Claims)             -->
+    <!-- ================================================================= -->
+    <section id="tab-accounts" class="tab-panel hidden space-y-6 pb-16 animate-tab-in">
+      <!-- Top Header & Sub-Tab Switcher -->
+      <div class="glass-card rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">Kitchen Finance & Billing</span>
+              <h2 class="text-lg font-extrabold text-slate-900">Accounts — Expenses, Department Claims & Revenue</h2>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Maintain manual purchase expenses, track automated billing claims for chargeable departments from History, and monitor total realized revenue.
+            </p>
+          </div>
+
+          <!-- 3 Sub-Tabs Switcher -->
+          <div class="inline-flex p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 gap-1">
+            <button id="accSubBtn-expenses" onclick="switchAccountsSubTab('expenses')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5">
+              <span>🧾</span> <span>a) Expenses</span>
+            </button>
+            <button id="accSubBtn-revenue" onclick="switchAccountsSubTab('revenue')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5">
+              <span>📈</span> <span>b) Revenue</span>
+            </button>
+            <button id="accSubBtn-claims" onclick="switchAccountsSubTab('claims')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5">
+              <span>🏛️</span> <span>c) Claims</span>
+              <span id="navBadge-pendingClaims" class="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-200 text-amber-900 font-extrabold">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Accounts KPI Overview Strip -->
+        <div id="accountsKpiOverview" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-slate-100">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- SUB-TAB A: EXPENSES (Manual Maintenance + Date/Type/Price Filter)-->
+      <!-- =============================================================== -->
+      <div id="accSubPanel-expenses" class="space-y-5 animate-tab-in">
+        <!-- Quick Add Expense Card -->
+        <div class="bg-orange-50/80 backdrop-blur-xs border border-orange-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs">
+          <div class="flex items-center justify-between">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-orange-900 flex items-center gap-1.5">
+              <span>➕</span> <span>Record New Kitchen Expense (Manual Entry)</span>
+            </div>
+            <span class="text-[11px] text-slate-500">All fields can also be edited later</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Date *</label>
+              <input id="expAddDate" type="date" value="2026-10-15" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold" />
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Expense Type *</label>
+              <select id="expAddType" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold">
+                <option value="Bulk - Grocery">Bulk - Grocery</option>
+                <option value="Bulk - Vegetable">Bulk - Vegetable</option>
+                <option value="Petty - Grocery">Petty - Grocery</option>
+                <option value="Petty - Vegetable">Petty - Vegetable</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Salaries">Salaries</option>
+                <option value="Gas Cylinders">Gas Cylinders</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Particulars / Description *</label>
+              <input id="expAddParticulars" type="text" placeholder="e.g., Monthly grocery Purchasing - Oct, Tomatoes, Cylinder..." class="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Debit Amount (₹) *</label>
+              <input id="expAddDebit" type="number" step="0.01" min="0" placeholder="e.g., 4400" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-bold" />
+            </div>
+            <div class="sm:col-span-1">
+              <button onclick="addExpenseEntry()" class="w-full px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold shadow-xs hover-lift cursor-pointer">
+                + Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Expenses Filter Bar (Date, Type, Price Range) -->
+        <div class="glass-card rounded-2xl border border-slate-200/80 p-4 flex flex-wrap items-end justify-between gap-3">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">From Date</label>
+              <input id="expFilterDateFrom" type="date" onchange="renderExpensesSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">To Date</label>
+              <input id="expFilterDateTo" type="date" onchange="renderExpensesSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Expense Type</label>
+              <select id="expFilterType" onchange="renderExpensesSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl">
+                <option value="ALL">All Types (9)</option>
+                <option value="Bulk - Grocery">Bulk - Grocery</option>
+                <option value="Bulk - Vegetable">Bulk - Vegetable</option>
+                <option value="Petty - Grocery">Petty - Grocery</option>
+                <option value="Petty - Vegetable">Petty - Vegetable</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Salaries">Salaries</option>
+                <option value="Gas Cylinders">Gas Cylinders</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Min Price (₹)</label>
+              <input id="expFilterMinPrice" type="number" min="0" step="10" oninput="renderExpensesSubTab()" placeholder="0" class="w-24 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Max Price (₹)</label>
+              <input id="expFilterMaxPrice" type="number" min="0" step="100" oninput="renderExpensesSubTab()" placeholder="Any" class="w-24 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Search Particulars</label>
+              <input id="expFilterSearch" type="text" oninput="renderExpensesSubTab()" placeholder="Search..." class="w-36 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+          </div>
+          <button onclick="resetExpenseFilters()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer">
+            Reset Filters
+          </button>
+        </div>
+
+        <!-- Expenses Table -->
+        <div class="modern-table-wrap glass-card">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gradient-to-r from-slate-50/90 via-orange-50/35 to-amber-50/35 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th class="py-3.5 px-5 w-36">DATE</th>
+                  <th class="py-3.5 px-5 w-48">TYPE</th>
+                  <th class="py-3.5 px-5">PARTICULARS</th>
+                  <th class="py-3.5 px-5 text-right w-44">DEBIT (₹)</th>
+                  <th class="py-3.5 px-5 text-right w-32">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody" class="divide-y divide-slate-100 text-sm">
+                <!-- Populated by JS -->
+              </tbody>
+              <tfoot id="expensesTableFoot" class="bg-amber-50/60 border-t border-slate-200/80 font-extrabold text-sm">
+                <!-- Populated by JS -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- SUB-TAB B: REVENUE (Auto from Paid/Partial Claims + Manual)     -->
+      <!-- =============================================================== -->
+      <div id="accSubPanel-revenue" class="hidden space-y-5 animate-tab-in">
+        <!-- Manual Revenue Entry Bar -->
+        <div class="bg-emerald-50/80 backdrop-blur-xs border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-3 shadow-2xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+              <span>➕</span> <span>Add Manual Revenue Entry</span>
+            </div>
+            <span class="text-[11px] text-emerald-800">Paid & Partially Paid entries from Claims are fetched automatically below</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Date *</label>
+              <input id="revAddDate" type="date" value="2026-10-05" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold" />
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Department (All Depts) *</label>
+              <select id="revAddDept" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+                <!-- Populated dynamically with ALL departments -->
+              </select>
+            </div>
+            <div class="sm:col-span-4">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Menu / Particulars *</label>
+              <input id="revAddMenu" type="text" placeholder="e.g., Special Festival Feast Prasadam, Rajbhog Sponsorship..." class="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Amount (₹) *</label>
+              <input id="revAddAmount" type="number" step="0.01" min="0" placeholder="e.g., 5000" class="w-full px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold" />
+            </div>
+            <div class="sm:col-span-1">
+              <button onclick="addManualRevenueEntry()" class="w-full px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold shadow-xs hover-lift cursor-pointer">
+                + Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue Filters -->
+        <div class="glass-card rounded-2xl border border-slate-200/80 p-4 flex flex-wrap items-end justify-between gap-3">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">From Date</label>
+              <input id="revFilterDateFrom" type="date" onchange="renderRevenueSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">To Date</label>
+              <input id="revFilterDateTo" type="date" onchange="renderRevenueSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Department</label>
+              <select id="revFilterDept" onchange="renderRevenueSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl">
+                <option value="ALL">All Departments</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Entry Source</label>
+              <select id="revFilterSource" onchange="renderRevenueSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl">
+                <option value="ALL">All (Claims + Manual)</option>
+                <option value="CLAIM">Fetched from Claims</option>
+                <option value="MANUAL">Manual Entries</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Min (₹)</label>
+              <input id="revFilterMinAmount" type="number" min="0" oninput="renderRevenueSubTab()" placeholder="0" class="w-24 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Max (₹)</label>
+              <input id="revFilterMaxAmount" type="number" min="0" oninput="renderRevenueSubTab()" placeholder="Any" class="w-24 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+          </div>
+          <button onclick="resetRevenueFilters()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer">
+            Reset Filters
+          </button>
+        </div>
+
+        <!-- Revenue Table (Columns: Date, Dept, Menu, Amount + Actions for manual entries) -->
+        <div class="modern-table-wrap glass-card">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gradient-to-r from-slate-50/90 via-emerald-50/35 to-teal-50/35 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th class="py-3.5 px-5 w-36">DATE</th>
+                  <th class="py-3.5 px-5 w-52">DEPT</th>
+                  <th class="py-3.5 px-5">MENU</th>
+                  <th class="py-3.5 px-5 text-right w-44">AMOUNT (₹)</th>
+                  <th class="py-3.5 px-5 text-right w-32">SOURCE / ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="revenueTableBody" class="divide-y divide-slate-100 text-sm">
+                <!-- Populated by JS -->
+              </tbody>
+              <tfoot id="revenueTableFoot" class="bg-emerald-50/60 border-t border-slate-200/80 font-extrabold text-sm">
+                <!-- Populated by JS -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- SUB-TAB C: CLAIMS (Auto-Calculated from History for Chargeable) -->
+      <!-- =============================================================== -->
+      <div id="accSubPanel-claims" class="hidden space-y-5 animate-tab-in">
+        <!-- Info Banner explaining how Claims are calculated -->
+        <div class="bg-blue-50/80 border border-blue-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs text-blue-950">
+          <div class="space-y-0.5">
+            <div class="font-extrabold flex items-center gap-1.5">
+              <span>⚡</span> <span>Automated Department Claims (Fetched from History Tab)</span>
+            </div>
+            <p class="text-blue-800">
+              Whenever cooking is recorded via <strong>"Update History"</strong>, each <strong>Chargeable Department's</strong> dishes and quantities are fetched automatically.
+              <strong>Calculated Chargeable Cost</strong> = <code>(Proportional Adjusted Cost of Dishes Served) × (Dept Profit Multiplier)</code>.
+              Any payments marked <strong>Partially Done</strong> or <strong>Paid</strong> automatically flow into the <strong>Revenue</strong> sub-tab!
+            </p>
+          </div>
+          <button onclick="switchTab('settings')" class="px-3 py-1.5 rounded-xl bg-white hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold whitespace-nowrap transition cursor-pointer">
+            ⚙️ Dept Profit Multipliers
+          </button>
+        </div>
+
+        <!-- Claims Filter Bar -->
+        <div class="glass-card rounded-2xl border border-slate-200/80 p-4 flex flex-wrap items-end justify-between gap-3">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">From Date</label>
+              <input id="claimFilterDateFrom" type="date" onchange="renderClaimsSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">To Date</label>
+              <input id="claimFilterDateTo" type="date" onchange="renderClaimsSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Chargeable Dept</label>
+              <select id="claimFilterDept" onchange="renderClaimsSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl">
+                <option value="ALL">All Chargeable Depts</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Payment Status</label>
+              <select id="claimFilterStatus" onchange="renderClaimsSubTab()" class="px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl">
+                <option value="ALL">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="partial">Partially Done</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Min Cost (₹)</label>
+              <input id="claimFilterMinCost" type="number" min="0" oninput="renderClaimsSubTab()" placeholder="0" class="w-24 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Max Cost (₹)</label>
+              <input id="claimFilterMaxCost" type="number" min="0" oninput="renderClaimsSubTab()" placeholder="Any" class="w-24 px-3 py-1.5 text-xs font-semibold bg-white border border-slate-200 rounded-xl" />
+            </div>
+          </div>
+          <button onclick="resetClaimFilters()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition cursor-pointer">
+            Reset Filters
+          </button>
+        </div>
+
+        <!-- Claims Table -->
+        <div class="modern-table-wrap glass-card">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gradient-to-r from-slate-50/90 via-blue-50/35 to-indigo-50/35 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th class="py-3.5 px-4 w-32">DATE</th>
+                  <th class="py-3.5 px-4 w-44">DEPT</th>
+                  <th class="py-3.5 px-4">MENU (TOTAL L / PCS PROVIDED)</th>
+                  <th class="py-3.5 px-4 text-right w-44">CALCULATED CHARGEABLE COST</th>
+                  <th class="py-3.5 px-4 text-right w-44">FINAL CHARGEABLE COST (ROUNDED / EDITABLE)</th>
+                  <th class="py-3.5 px-4 w-64">STATUS & PAID AMOUNT</th>
+                </tr>
+              </thead>
+              <tbody id="claimsTableBody" class="divide-y divide-slate-100 text-sm">
+                <!-- Populated by JS -->
+              </tbody>
+              <tfoot id="claimsTableFoot" class="bg-blue-50/50 border-t border-slate-200/80 font-extrabold text-sm">
+                <!-- Populated by JS -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -830,12 +1260,9 @@
         </div>
 
         <!-- Quick Jump Footer -->
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-          <button type="button" onclick="selectCustomDateAndClose('2026-10-04')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition">
-            ★ Oct 4 Sample
-          </button>
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
           <button type="button" onclick="selectCustomDateAndClose('2026-10-23')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-            Today (Oct 23)
+            Jump to Oct 23, 2026
           </button>
         </div>
       </div>
@@ -903,11 +1330,21 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Billing Status</label>
-            <select id="deptModalChargeable" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <select id="deptModalChargeable" onchange="onDeptModalChargeableChange()" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-orange-500">
               <option value="false">Non-Chargeable</option>
               <option value="true">Chargeable</option>
             </select>
           </div>
+        </div>
+        <div id="deptModalProfitMultWrap" class="hidden p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1.5">
+          <label class="block text-xs font-bold text-emerald-950">Department Profit Multiplier (for Claims Billing) *</label>
+          <div class="flex items-center gap-2">
+            <input id="deptModalProfitMultiplier" type="number" step="0.05" min="1" max="5" value="1.20" class="w-32 px-3 py-1.5 text-sm font-extrabold bg-white border border-emerald-300 rounded-xl text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+            <span class="text-xs font-bold text-emerald-800">× Adjusted Cost</span>
+          </div>
+          <p class="text-[11px] text-emerald-700">
+            Distinct from the kitchen maintenance multiplier. Multiplies the dish Adjusted Cost to compute this department's Calculated Chargeable Cost in Claims.
+          </p>
         </div>
       </div>
       <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
@@ -985,16 +1422,47 @@
     </div>
   </div>
 
-  <!-- 4. Reset Demo Data Confirmation Modal -->
-  <div id="resetModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 space-y-4 animate-modal-in">
-      <h3 class="text-base font-bold text-slate-900">Reset to Default Kitchen Data?</h3>
-      <p class="text-xs sm:text-sm text-slate-600">
-        This will restore the default Srimati Radharani ki Rasoi ingredients, recipes (Alu Bagan Badi, Dal Fry, Jeera Rice, Idli, Sambhar, etc.), October 2026 calendar, departments, and Oct 4 daily planning table.
-      </p>
-      <div class="flex items-center justify-end gap-2 pt-2">
-        <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
-        <button onclick="confirmResetDemoData()" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white">Yes, Reset Data</button>
+  <!-- 4. Expense Edit Modal -->
+  <div id="expenseModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-modal-in">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900">Edit Expense Entry</h3>
+        <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <div class="p-6 space-y-4">
+        <input id="expModalId" type="hidden" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Date</label>
+            <input id="expModalDate" type="date" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Expense Type</label>
+            <select id="expModalType" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl bg-white">
+              <option value="Bulk - Grocery">Bulk - Grocery</option>
+              <option value="Bulk - Vegetable">Bulk - Vegetable</option>
+              <option value="Petty - Grocery">Petty - Grocery</option>
+              <option value="Petty - Vegetable">Petty - Vegetable</option>
+              <option value="Fruits">Fruits</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Salaries">Salaries</option>
+              <option value="Gas Cylinders">Gas Cylinders</option>
+              <option value="Others">Others</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Particulars</label>
+          <input id="expModalParticulars" type="text" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Debit Amount (₹)</label>
+          <input id="expModalDebit" type="number" step="0.01" min="0" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl font-bold" />
+        </div>
+      </div>
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button onclick="closeExpenseModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Cancel</button>
+        <button onclick="saveExpenseModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white transition">Save Changes</button>
       </div>
     </div>
   </div>
@@ -1067,6 +1535,160 @@
 
     let dpYear = 2026;
     let dpMonth = 9; // October (0-indexed)
+
+    // =========================================================================
+    // 2026 ISKCON VAISHNAVA CALENDAR (Jan - Dec 2026 Festivals, Ekadashis & Fasts)
+    // Source: ISKCON Vaishnava Calendar 2026 (https://www.mayapur.com/calendar)
+    // =========================================================================
+    const VAISHNAVA_CALENDAR_2026 = {
+      // JANUARY 2026
+      '2026-01-03': { events: ['Sri Krishna Pushya Abhishek'], type: 'festival', fastMeals: [] },
+      '2026-01-07': { events: ['Appearance of Srila Gopala Bhatta Goswami', 'Disappearance of Sri Ramacandra Kaviraja'], type: 'appearance', fastMeals: [] },
+      '2026-01-08': { events: ['Disappearance of Sri Jayadeva Goswami'], type: 'disappearance', fastMeals: [] },
+      '2026-01-09': { events: ['Disappearance of Sri Locana Dasa Thakura'], type: 'disappearance', fastMeals: [] },
+      '2026-01-14': { events: ['Sat-tila Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-01-15': { events: ['Makara Sankranti', 'Ganga Sagara Mela'], type: 'festival', fastMeals: [] },
+      '2026-01-23': { events: ['Vasanta Pancami', 'Appearance of Srimati Vishnupriya Devi', 'Disappearance of Srila Visvanatha Cakravarti Thakura', 'Appearance of Srila Raghunatha Dasa Goswami'], type: 'festival', fastMeals: [] },
+      '2026-01-24': { events: ['Sri Advaita Acharya Appearance (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-01-26': { events: ['Bhismastami', 'Disappearance of Sri Madhvacharya'], type: 'disappearance', fastMeals: [] },
+      '2026-01-27': { events: ['Disappearance of Sri Ramanujacharya'], type: 'disappearance', fastMeals: [] },
+      '2026-01-29': { events: ['Bhaimi Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-01-30': { events: ['Varaha Dvadasi — Appearance of Lord Varahadeva (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-01-31': { events: ['Nityananda Trayodasi — Appearance of Sri Nityananda Prabhu (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+
+      // FEBRUARY 2026
+      '2026-02-01': { events: ['Sri Krishna Madhura Utsava', 'Appearance of Srila Narottama Dasa Thakura'], type: 'festival', fastMeals: [] },
+      '2026-02-06': { events: ['Appearance of Srila Bhaktisiddhanta Sarasvati Thakura (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-02-13': { events: ['Vijaya Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-02-14': { events: ['Disappearance of Sri Isvara Puri'], type: 'disappearance', fastMeals: [] },
+      '2026-02-16': { events: ['Sri Siva Ratri'], type: 'festival', fastMeals: [] },
+      '2026-02-18': { events: ['Disappearance of Srila Jagannatha Dasa Babaji & Sri Rasikananda'], type: 'disappearance', fastMeals: [] },
+      '2026-02-21': { events: ['Appearance of Sri Purusottama Dasa Thakura'], type: 'appearance', fastMeals: [] },
+      '2026-02-27': { events: ['Amalaki Vrata Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-02-28': { events: ['Disappearance of Sri Madhavendra Puri'], type: 'disappearance', fastMeals: [] },
+
+      // MARCH 2026
+      '2026-03-03': { events: ['Gaura Purnima — Appearance of Sri Caitanya Mahaprabhu (Fast till moonrise)'], type: 'major_fast', fastNote: 'Fast till moonrise', fastMeals: ['breakfast', 'lunch'] },
+      '2026-03-04': { events: ['Festival of Jagannatha Misra'], type: 'festival', fastMeals: [] },
+      '2026-03-11': { events: ['Appearance of Sri Srivasa Pandita'], type: 'appearance', fastMeals: [] },
+      '2026-03-15': { events: ['Papamochani Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-03-16': { events: ['Disappearance of Sri Govinda Ghosh'], type: 'disappearance', fastMeals: [] },
+      '2026-03-23': { events: ['Appearance of Sri Ramanujacharya'], type: 'appearance', fastMeals: [] },
+      '2026-03-27': { events: ['Sri Rama Navami — Appearance of Lord Sri Ramacandra (Fast till sunset)'], type: 'major_fast', fastNote: 'Fast till sunset', fastMeals: ['breakfast', 'lunch'] },
+      '2026-03-29': { events: ['Kamada Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-03-30': { events: ['Damanaka Ropana Dvadasi'], type: 'festival', fastMeals: [] },
+
+      // APRIL 2026
+      '2026-04-02': { events: ['Sri Balarama Rasayatra', 'Sri Krishna Vasanta Rasa', 'Appearance of Sri Syamananda Prabhu'], type: 'festival', fastMeals: [] },
+      '2026-04-09': { events: ['Disappearance of Sri Abhirama Thakura'], type: 'disappearance', fastMeals: [] },
+      '2026-04-12': { events: ['Disappearance of Srila Vrndavana Dasa Thakura'], type: 'disappearance', fastMeals: [] },
+      '2026-04-13': { events: ['Varuthini Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-04-15': { events: ['Beginning of Salagrama & Tulasi Jala Dana'], type: 'festival', fastMeals: [] },
+      '2026-04-17': { events: ['Appearance of Sri Gadadhara Pandita'], type: 'appearance', fastMeals: [] },
+      '2026-04-20': { events: ['Aksaya Tritiya — Candana Yatra Starts'], type: 'festival', fastMeals: [] },
+      '2026-04-23': { events: ['Jahnu Saptami'], type: 'festival', fastMeals: [] },
+      '2026-04-25': { events: ['Appearance of Srimati Sita Devi & Srimati Jahnava Devi'], type: 'appearance', fastMeals: [] },
+      '2026-04-27': { events: ['Mohini Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-04-28': { events: ['Rukmini Dvadasi'], type: 'festival', fastMeals: [] },
+      '2026-04-29': { events: ['Disappearance of Sri Jayananda Prabhu'], type: 'disappearance', fastMeals: [] },
+      '2026-04-30': { events: ['Narasimha Caturdasi — Appearance of Lord Narasimhadeva (Fast till dusk)'], type: 'major_fast', fastNote: 'Fast till dusk', fastMeals: ['breakfast', 'lunch'] },
+
+      // MAY 2026
+      '2026-05-01': { events: ['Krishna Phula Dola', 'Appearance of Sri Sri Radha-Ramana Devji', 'Appearance of Sri Srinivasa Acharya'], type: 'festival', fastMeals: [] },
+      '2026-05-07': { events: ['Disappearance of Sri Ramananda Raya'], type: 'disappearance', fastMeals: [] },
+      '2026-05-13': { events: ['Apara Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-05-14': { events: ['Appearance of Srila Vrndavana Dasa Thakura'], type: 'appearance', fastMeals: [] },
+      '2026-05-15': { events: ['End of Jala Dana'], type: 'festival', fastMeals: [] },
+      '2026-05-27': { events: ['Padmini Mahadvadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Mahadvadashi Fast', fastMeals: ['breakfast'] },
+
+      // JUNE 2026
+      '2026-06-11': { events: ['Parama Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-06-24': { events: ['Ganga Puja', 'Disappearance of Sri Baladeva Vidyabhusana'], type: 'disappearance', fastMeals: [] },
+      '2026-06-25': { events: ['Pandava Nirjala Ekadashi (Total fast even from water)'], type: 'ekadashi', fastNote: 'Nirjala Ekadashi Total Fast', fastMeals: ['breakfast', 'lunch', 'dinner'] },
+      '2026-06-27': { events: ['Panihati Cida Dahi Utsava'], type: 'festival', fastMeals: [] },
+      '2026-06-29': { events: ['Snana Yatra of Lord Jagannatha', 'Disappearance of Sri Mukunda Datta'], type: 'festival', fastMeals: [] },
+      '2026-06-30': { events: ['Disappearance of Sri Syamananda Prabhu'], type: 'disappearance', fastMeals: [] },
+
+      // JULY 2026
+      '2026-07-05': { events: ['Appearance of Sri Vakresvara Pandita'], type: 'appearance', fastMeals: [] },
+      '2026-07-10': { events: ['Disappearance of Sri Srivasa Pandita'], type: 'disappearance', fastMeals: [] },
+      '2026-07-11': { events: ['Yogini Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-07-14': { events: ['Disappearance of Sri Gadadhara Pandita & Srila Bhaktivinoda Thakura (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-07-15': { events: ['Gundica Marjana'], type: 'festival', fastMeals: [] },
+      '2026-07-16': { events: ['Sri Jagannatha Ratha Yatra', 'Disappearance of Sri Svarupa Damodara Goswami'], type: 'festival', fastMeals: [] },
+      '2026-07-18': { events: ['Hera Pancami'], type: 'festival', fastMeals: [] },
+      '2026-07-24': { events: ['Return Ratha Yatra (Bahuda Yatra)'], type: 'festival', fastMeals: [] },
+      '2026-07-25': { events: ['Sayana Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-07-29': { events: ['Guru (Vyasa) Purnima', 'Disappearance of Srila Sanatana Goswami'], type: 'festival', fastMeals: [] },
+      '2026-07-30': { events: ['First Month of Caturmasya Begins (No green leafy vegetables)'], type: 'festival', fastMeals: [] },
+
+      // AUGUST 2026
+      '2026-08-03': { events: ['Disappearance of Srila Gopala Bhatta Goswami'], type: 'disappearance', fastMeals: [] },
+      '2026-08-06': { events: ['Disappearance of Srila Lokanatha Goswami'], type: 'disappearance', fastMeals: [] },
+      '2026-08-07': { events: ['Incorporation of ISKCON in New York'], type: 'festival', fastMeals: [] },
+      '2026-08-09': { events: ['Kamika Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-08-16': { events: ['Disappearance of Sri Raghunandana Thakura & Sri Vamsidasa Babaji'], type: 'disappearance', fastMeals: [] },
+      '2026-08-23': { events: ['Pavitropana Ekadashi (Fast from grains & beans)', 'Radha Govinda Jhulana Yatra Begins'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-08-24': { events: ['Disappearance of Srila Rupa Goswami & Sri Gauridasa Pandita'], type: 'disappearance', fastMeals: [] },
+      '2026-08-28': { events: ['Balarama Purnima — Appearance of Lord Balarama (Fast till noon)', 'Jhulana Yatra Ends'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-08-29': { events: ['Second Month of Caturmasya Begins', "Srila Prabhupada's Departure for the USA"], type: 'festival', fastMeals: [] },
+
+      // SEPTEMBER 2026
+      '2026-09-04': { events: ['Sri Krsna Janmastami — Appearance of Lord Sri Krsna (Fast till midnight)'], type: 'major_fast', fastNote: 'Fast till midnight', fastMeals: ['breakfast', 'lunch', 'dinner'] },
+      '2026-09-05': { events: ['Nandotsava', 'Appearance of His Divine Grace A.C. Bhaktivedanta Swami Prabhupada (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-09-09': { events: ['Annada Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-09-16': { events: ['Appearance of Srimati Sita Thakurani (Sri Advaita Consort)'], type: 'appearance', fastMeals: [] },
+      '2026-09-19': { events: ['Sri Radhastami — Appearance of Srimati Radharani (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-09-22': { events: ['Parsva Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-09-23': { events: ['Sri Vamana Dvadasi — Appearance of Lord Vamanadeva (Fast till noon)', 'Appearance of Srila Jiva Goswami'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-09-24': { events: ['Appearance of Srila Bhaktivinoda Thakura (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-09-25': { events: ['Ananta Caturdasi Vrata', 'Disappearance of Srila Haridasa Thakura'], type: 'disappearance', fastMeals: [] },
+      '2026-09-26': { events: ['Sri Visvarupa Mahotsava', 'Acceptance of Sannyasa by Srila Prabhupada'], type: 'festival', fastMeals: [] },
+      '2026-09-27': { events: ['Third Month of Caturmasya Begins'], type: 'festival', fastMeals: [] },
+
+      // OCTOBER 2026
+      '2026-10-03': { events: ["Srila Prabhupada's Arrival in the USA"], type: 'festival', fastMeals: [] },
+      '2026-10-06': { events: ['Indira Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-10-21': { events: ['Ramacandra Vijayotsava', 'Appearance of Sri Madhvacharya'], type: 'festival', fastMeals: [] },
+      '2026-10-22': { events: ['Pasankusa Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-10-23': { events: ['Disappearance of Srila Raghunatha Dasa Goswami, Srila Raghunatha Bhatta Goswami & Srila Krsnadasa Kaviraja Goswami'], type: 'disappearance', fastMeals: [] },
+      '2026-10-26': { events: ['Sri Krsna Saradiya Rasayatra', 'Disappearance of Sri Murari Gupta', 'Laksmi Puja'], type: 'festival', fastMeals: [] },
+      '2026-10-27': { events: ['Fourth Month of Caturmasya Begins', 'Kartika Vrata (Damodara Masa) Begins'], type: 'festival', fastMeals: [] },
+      '2026-10-30': { events: ['Disappearance of Srila Narottama Dasa Thakura'], type: 'disappearance', fastMeals: [] },
+
+      // NOVEMBER 2026
+      '2026-11-02': { events: ['Appearance of Radha Kunda, Snana Dana', 'Bahulastami'], type: 'festival', fastMeals: [] },
+      '2026-11-03': { events: ['Appearance of Sri Virabhadra'], type: 'appearance', fastMeals: [] },
+      '2026-11-05': { events: ['Rama Ekadashi (Fast from grains & beans)'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-11-09': { events: ['Dipa Dana, Dipavali (Kali Puja)'], type: 'festival', fastMeals: [] },
+      '2026-11-10': { events: ['Govardhana Puja, Go Puja', 'Bali Daityaraja Puja', 'Appearance of Sri Rasikananda'], type: 'festival', fastMeals: [] },
+      '2026-11-11': { events: ['Disappearance of Sri Vasudeva Ghosh'], type: 'disappearance', fastMeals: [] },
+      '2026-11-13': { events: ['Disappearance of His Divine Grace A.C. Bhaktivedanta Swami Prabhupada (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] },
+      '2026-11-17': { events: ['Gopastami, Gosthastami', 'Disappearance of Sri Gadadhara Dasa Goswami, Sri Dhananjaya Pandita & Sri Srinivasa Acharya'], type: 'festival', fastMeals: [] },
+      '2026-11-21': { events: ['Utthana Ekadashi (Fast from grains & beans)', 'Disappearance of Srila Gaura Kisora Dasa Babaji (Fast till noon)', 'Bhisma Pancaka Begins'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-11-23': { events: ['Disappearance of Sri Bhugarbha Goswami & Sri Kasisvara Pandita'], type: 'disappearance', fastMeals: [] },
+      '2026-11-24': { events: ['Sri Krsna Rasayatra', 'Tulasi-Saligrama Vivaha', 'Last Day of Caturmasya & Kartika Vrata'], type: 'festival', fastMeals: [] },
+      '2026-11-25': { events: ['Katyayani Vrata Begins'], type: 'festival', fastMeals: [] },
+
+      // DECEMBER 2026
+      '2026-12-04': { events: ['Utpanna Ekadashi (Fast from grains & beans)', 'Disappearance of Sri Narahari Sarakara Thakura'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-12-05': { events: ['Disappearance of Sri Kaliya Krsnadasa'], type: 'disappearance', fastMeals: [] },
+      '2026-12-06': { events: ['Disappearance of Sri Saranga Thakura'], type: 'disappearance', fastMeals: [] },
+      '2026-12-15': { events: ['Odana Sasthi'], type: 'festival', fastMeals: [] },
+      '2026-12-20': { events: ['Moksada Ekadashi (Fast from grains & beans)', 'Advent of Srimad Bhagavad-gita'], type: 'ekadashi', fastNote: 'Ekadashi Fast', fastMeals: ['breakfast'] },
+      '2026-12-23': { events: ['Katyayani Vrata Ends'], type: 'festival', fastMeals: [] },
+      '2026-12-27': { events: ['Disappearance of Srila Bhaktisiddhanta Sarasvati Thakura (Fast till noon)'], type: 'major_fast', fastNote: 'Fast till noon', fastMeals: ['breakfast'] }
+    };
+
+    function getVaishnavaEvent(dateStr) {
+      return VAISHNAVA_CALENDAR_2026[dateStr] || null;
+    }
+
+    function getDefaultFastingForDateMeal(dateStr, mealKey) {
+      const v = getVaishnavaEvent(dateStr);
+      if (!v || !Array.isArray(v.fastMeals)) return false;
+      return v.fastMeals.includes(mealKey);
+    }
 
     function getDefaultState() {
       return {
@@ -1382,19 +2004,40 @@
         // 3. MONTHLY MENU CALENDAR
         calendarDays: buildDefaultOctoberCalendar(),
 
-        // 5. DEPARTMENTS (Merged into Settings Tab)
+        // 5. DEPARTMENTS (Merged into Settings Tab, with Profit Multiplier for Chargeable Depts)
         departments: [
-          { id: 'dept_temple', name: 'Temple', count: 60, chargeable: false, icon: '🏛️' },
-          { id: 'dept_abhay', name: 'Abhay Hostel', count: 35, chargeable: true, icon: '🏢' },
-          { id: 'dept_bit', name: 'BIT Voice', count: 7, chargeable: true, icon: '🎓' },
-          { id: 'dept_cong', name: 'Congregation', count: 45, chargeable: true, icon: '🙏' },
-          { id: 'dept_kh', name: 'KH Devotees', count: 10, chargeable: false, icon: '🏠' },
-          { id: 'dept_annadan', name: 'Daily Annadan Hall', count: 350, chargeable: false, icon: '🍛' }
+          { id: 'dept_temple', name: 'Temple', count: 60, chargeable: false, profitMultiplier: 1.0, icon: '🏛️' },
+          { id: 'dept_abhay', name: 'Abhay Hostel', count: 35, chargeable: true, profitMultiplier: 1.20, icon: '🏢' },
+          { id: 'dept_bit', name: 'BIT Voice', count: 7, chargeable: true, profitMultiplier: 1.25, icon: '🎓' },
+          { id: 'dept_cong', name: 'Congregation', count: 45, chargeable: true, profitMultiplier: 1.15, icon: '🙏' },
+          { id: 'dept_kh', name: 'KH Devotees', count: 10, chargeable: false, profitMultiplier: 1.0, icon: '🏠' },
+          { id: 'dept_annadan', name: 'Daily Annadan Hall', count: 350, chargeable: false, profitMultiplier: 1.0, icon: '🍛' }
         ],
 
         // 4. DAILY KITCHEN PLANS
         dailyPlans: {
-          '2026-10-04': buildOct4SamplePlan()
+          '2026-10-04': buildOct4SamplePlan(),
+          '2026-10-03': buildOct3SamplePlan()
+        },
+
+        // 5. HISTORY ARCHIVE (Populated by updateDailyHistory; initialized with Oct 4 & Oct 3)
+        selectedHistoryDate: '2026-10-04',
+        history: {},
+
+        // 6. ACCOUNTS (Expenses, Claims, Revenue)
+        accountsSubTab: 'expenses',
+        accounts: {
+          expenses: [
+            { id: 'exp_1', date: '2026-10-07', type: 'Bulk - Grocery', particulars: 'Monthly grocery Purchasing - Sept', debit: 25000.00 },
+            { id: 'exp_2', date: '2026-10-08', type: 'Petty - Vegetable', particulars: 'Tomatoes', debit: 120.00 },
+            { id: 'exp_3', date: '2026-10-10', type: 'Fruits', particulars: 'Apple', debit: 600.00 },
+            { id: 'exp_4', date: '2026-10-10', type: 'Salaries', particulars: 'Salaries', debit: 45000.00 },
+            { id: 'exp_5', date: '2026-10-15', type: 'Gas Cylinders', particulars: 'Cylinder', debit: 4400.00 }
+          ],
+          claims: {},
+          manualRevenue: [
+            { id: 'mrev_1', date: '2026-10-03', deptId: 'dept_temple', deptName: 'Temple', menu: 'Srila Prabhupada Arrival Festival Sponsorship', amount: 5100.00 }
+          ]
         }
       };
     }
@@ -1407,12 +2050,14 @@
         days[dateStr] = {
           breakfast: {
             enabled: true,
+            fasting: getDefaultFastingForDateMeal(dateStr, 'breakfast'),
             bhogaTime: '07:15',
             servingTime: '08:00',
             dishes: ['rec_dal_fry']
           },
           lunch: {
             enabled: true,
+            fasting: getDefaultFastingForDateMeal(dateStr, 'lunch'),
             bhogaTime: '12:00',
             servingTime: '13:00',
             dishes: isEven
@@ -1421,6 +2066,7 @@
           },
           dinner: {
             enabled: true,
+            fasting: getDefaultFastingForDateMeal(dateStr, 'dinner'),
             bhogaTime: '19:30',
             servingTime: '20:15',
             dishes: d === 5
@@ -1525,6 +2171,61 @@
       };
     }
 
+
+    function buildOct3SamplePlan() {
+      return {
+        meals: {
+          breakfast: {
+            enabled: true,
+            fasting: false,
+            bhogaTime: '07:15',
+            servingTime: '08:00',
+            deptCols: [
+              { colId: 'col_3b1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
+              { colId: 'col_3b2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 },
+              { colId: 'col_3b3', deptId: 'dept_bit', customLabel: 'BIT Voice', count: 7 }
+            ],
+            rows: [
+              { recipeId: 'rec_idli', servingQty: 3, overrides: {}, calcOverride: null, adjustedQty: 310 },
+              { recipeId: 'rec_sambhar', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 26 }
+            ]
+          },
+          lunch: {
+            enabled: true,
+            fasting: false,
+            bhogaTime: '12:00',
+            servingTime: '13:00',
+            deptCols: [
+              { colId: 'col_3l1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
+              { colId: 'col_3l2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 },
+              { colId: 'col_3l3', deptId: 'dept_bit', customLabel: 'BIT Voice', count: 7 }
+            ],
+            rows: [
+              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 22 },
+              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 26 },
+              { recipeId: 'rec_dal_fry', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 22 }
+            ]
+          },
+          dinner: {
+            enabled: true,
+            fasting: false,
+            bhogaTime: '19:30',
+            servingTime: '20:15',
+            deptCols: [
+              { colId: 'col_3d1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
+              { colId: 'col_3d2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 }
+            ],
+            rows: [
+              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 20 },
+              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 24 }
+            ]
+          },
+          order: { enabled: false, fasting: false, bhogaTime: '11:00', servingTime: '11:30', deptCols: [], rows: [] },
+          journey: { enabled: false, fasting: false, bhogaTime: '06:00', servingTime: '06:30', deptCols: [], rows: [] }
+        }
+      };
+    }
+
     let state = loadState();
     let modalRecipeDraft = null;
 
@@ -1562,20 +2263,64 @@
       return false;
     }
 
+    function normalizeAndUpgradeState(s) {
+      const def = getDefaultState();
+      if (!s || typeof s !== 'object') return def;
+      if (s.activeTab === 'multiplier' || s.activeTab === 'departments') {
+        s.activeTab = 'settings';
+      }
+      if (!Array.isArray(s.departments)) s.departments = def.departments;
+      s.departments.forEach(d => {
+        if (d.profitMultiplier === undefined || d.profitMultiplier === null || isNaN(Number(d.profitMultiplier))) {
+          if (d.id === 'dept_abhay') d.profitMultiplier = 1.20;
+          else if (d.id === 'dept_bit') d.profitMultiplier = 1.25;
+          else if (d.id === 'dept_cong') d.profitMultiplier = 1.15;
+          else d.profitMultiplier = d.chargeable ? 1.20 : 1.0;
+        } else {
+          d.profitMultiplier = Number(d.profitMultiplier);
+        }
+      });
+
+      if (!s.calendarDays) s.calendarDays = def.calendarDays;
+      Object.keys(s.calendarDays).forEach(dateStr => {
+        const dayObj = s.calendarDays[dateStr];
+        ['breakfast', 'lunch', 'dinner'].forEach(mk => {
+          if (dayObj[mk] && dayObj[mk].fasting === undefined) {
+            dayObj[mk].fasting = getDefaultFastingForDateMeal(dateStr, mk);
+          }
+        });
+      });
+
+      if (!s.dailyPlans) s.dailyPlans = def.dailyPlans;
+      if (!s.dailyPlans['2026-10-03']) s.dailyPlans['2026-10-03'] = buildOct3SamplePlan();
+
+      if (!s.history || typeof s.history !== 'object') s.history = {};
+      if (!s.selectedHistoryDate) s.selectedHistoryDate = '2026-10-04';
+
+      if (!s.accounts || typeof s.accounts !== 'object') {
+        s.accounts = def.accounts;
+      } else {
+        if (!Array.isArray(s.accounts.expenses)) s.accounts.expenses = def.accounts.expenses;
+        if (!s.accounts.claims || typeof s.accounts.claims !== 'object') s.accounts.claims = {};
+        if (!Array.isArray(s.accounts.manualRevenue)) s.accounts.manualRevenue = def.accounts.manualRevenue;
+      }
+      if (!s.accountsSubTab) s.accountsSubTab = 'expenses';
+      return s;
+    }
+
     function loadState() {
+      let s = null;
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && parsed.ingredients && parsed.recipes) {
-            if (parsed.activeTab === 'multiplier' || parsed.activeTab === 'departments') {
-              parsed.activeTab = 'settings';
-            }
-            return parsed;
+            s = normalizeAndUpgradeState(parsed);
           }
         }
       } catch (e) {}
-      return getDefaultState();
+      if (!s) s = normalizeAndUpgradeState(getDefaultState());
+      return s;
     }
 
     async function loadStateFromCloud(notify = false) {
@@ -1591,10 +2336,8 @@
           return;
         }
         if (data && data.data && data.data.ingredients && data.data.recipes) {
-          state = data.data;
-          if (state.activeTab === 'multiplier' || state.activeTab === 'departments') {
-            state.activeTab = 'settings';
-          }
+          state = normalizeAndUpgradeState(data.data);
+          ensureInitialHistorySnapshots();
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
           } catch (e) {}
@@ -1998,7 +2741,7 @@
         tabId = 'settings';
       }
       state.activeTab = tabId;
-      const tabs = ['ingredients', 'recipes', 'calendar', 'daily', 'settings'];
+      const tabs = ['ingredients', 'recipes', 'calendar', 'daily', 'history', 'accounts', 'settings'];
       tabs.forEach(t => {
         const panel = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`tabBtn-${t}`);
@@ -2013,9 +2756,9 @@
         }
         if (btn) {
           if (t === tabId) {
-            btn.className = 'tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-sm shadow-orange-500/20 scale-[1.02]';
+            btn.className = 'tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-sm shadow-orange-500/20 scale-[1.02]';
           } else {
-            btn.className = 'tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 text-slate-600 hover:bg-orange-50/80 hover:text-orange-900';
+            btn.className = 'tab-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 text-slate-600 hover:bg-orange-50/80 hover:text-orange-900';
           }
         }
       });
@@ -2024,7 +2767,7 @@
       const bg1 = document.getElementById('bgSlide-1');
       const bg2 = document.getElementById('bgSlide-2');
       if (bg1 && bg2) {
-        const useDeityPhoto = (tabId === 'recipes' || tabId === 'daily');
+        const useDeityPhoto = (tabId === 'recipes' || tabId === 'daily' || tabId === 'history');
         bg1.style.opacity = useDeityPhoto ? '0' : '1';
         bg2.style.opacity = useDeityPhoto ? '1' : '0';
       }
@@ -2033,6 +2776,8 @@
       if (tabId === 'recipes') renderRecipesTab();
       if (tabId === 'calendar') renderCalendarTab();
       if (tabId === 'daily') renderDailyKitchenTab();
+      if (tabId === 'history') renderHistoryTab();
+      if (tabId === 'accounts') renderAccountsTab();
       if (tabId === 'settings') renderSettingsTab();
       saveState();
     }
@@ -2041,9 +2786,17 @@
       const ingEl = document.getElementById('navCount-ingredients');
       const recEl = document.getElementById('navCount-recipes');
       const depEl = document.getElementById('navCount-departments');
+      const histEl = document.getElementById('navCount-history');
+      const claimBadgeEl = document.getElementById('navBadge-pendingClaims');
+
       if (ingEl) ingEl.textContent = state.ingredients.length;
       if (recEl) recEl.textContent = state.recipes.length;
       if (depEl) depEl.textContent = state.departments.length;
+      if (histEl) histEl.textContent = Object.keys(state.history || {}).length;
+      if (claimBadgeEl && state.accounts && state.accounts.claims) {
+        const pendingCount = Object.values(state.accounts.claims).filter(c => c.status !== 'paid').length;
+        claimBadgeEl.textContent = pendingCount;
+      }
 
       const multText = `${Number(state.multiplier).toFixed(2)}x active`;
       const headerBadge = document.getElementById('headerMultiplierVal');
@@ -2693,12 +3446,36 @@
       if (!state.calendarDays[dateStr]) {
         const st = state.standardTimings;
         state.calendarDays[dateStr] = {
-          breakfast: { enabled: true, bhogaTime: st.breakfast.bhoga, servingTime: st.breakfast.serving, dishes: ['rec_dal_fry'] },
-          lunch:     { enabled: true, bhogaTime: st.lunch.bhoga, servingTime: st.lunch.serving, dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry'] },
-          dinner:    { enabled: true, bhogaTime: st.dinner.bhoga, servingTime: st.dinner.serving, dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice'] },
-          order:     { enabled: false, bhogaTime: '11:00', servingTime: '11:30', dishes: [] },
-          journey:   { enabled: false, bhogaTime: '06:00', servingTime: '06:30', dishes: [] }
+          breakfast: {
+            enabled: true,
+            fasting: getDefaultFastingForDateMeal(dateStr, 'breakfast'),
+            bhogaTime: st.breakfast.bhoga,
+            servingTime: st.breakfast.serving,
+            dishes: ['rec_dal_fry']
+          },
+          lunch: {
+            enabled: true,
+            fasting: getDefaultFastingForDateMeal(dateStr, 'lunch'),
+            bhogaTime: st.lunch.bhoga,
+            servingTime: st.lunch.serving,
+            dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry']
+          },
+          dinner: {
+            enabled: true,
+            fasting: getDefaultFastingForDateMeal(dateStr, 'dinner'),
+            bhogaTime: st.dinner.bhoga,
+            servingTime: st.dinner.serving,
+            dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice']
+          },
+          order:   { enabled: false, fasting: false, bhogaTime: '11:00', servingTime: '11:30', dishes: [] },
+          journey: { enabled: false, fasting: false, bhogaTime: '06:00', servingTime: '06:30', dishes: [] }
         };
+      } else {
+        ['breakfast', 'lunch', 'dinner'].forEach(mk => {
+          if (state.calendarDays[dateStr][mk] && state.calendarDays[dateStr][mk].fasting === undefined) {
+            state.calendarDays[dateStr][mk].fasting = getDefaultFastingForDateMeal(dateStr, mk);
+          }
+        });
       }
       return state.calendarDays[dateStr];
     }
@@ -2738,21 +3515,49 @@
           return `<div class="px-2 py-0.5 rounded-md border text-[11px] font-semibold truncate ${cls}">${escapeHtml(rec.name)}</div>`;
         }).join('');
 
-        const bfPills = renderPills(dayMenu.breakfast?.dishes, 'bg-amber-50/90 text-amber-900 border-amber-200');
-        const lnPills = renderPills(dayMenu.lunch?.dishes, 'bg-emerald-50/90 text-emerald-900 border-emerald-200');
-        const dnPills = renderPills(dayMenu.dinner?.dishes, 'bg-purple-50/90 text-purple-900 border-purple-200');
+        const vEvent = getVaishnavaEvent(dateStr);
+        let vaishnavaBadge = '';
+        if (vEvent && vEvent.events && vEvent.events.length > 0) {
+          const isEkadashiOrFast = vEvent.type === 'ekadashi' || vEvent.type === 'major_fast';
+          const badgeColors = isEkadashiOrFast
+            ? 'bg-red-100/95 text-red-900 border-red-300'
+            : 'bg-orange-100/90 text-orange-950 border-orange-300';
+          const icon = vEvent.type === 'ekadashi' ? '🌾' : (vEvent.type === 'major_fast' ? '🪷' : '✨');
+          vaishnavaBadge = `
+            <div class="px-1.5 py-0.5 rounded-md border text-[10px] font-extrabold leading-tight ${badgeColors}" title="${escapeHtml(vEvent.events.join(' • '))}">
+              ${icon} ${escapeHtml(vEvent.events[0])}
+              ${vEvent.events.length > 1 ? `<span class="opacity-75">+${vEvent.events.length - 1}</span>` : ''}
+            </div>
+          `;
+        }
+
+        const bfPills = dayMenu.breakfast?.fasting
+          ? `<div class="px-2 py-0.5 rounded-md border text-[10px] font-extrabold bg-indigo-50 text-indigo-900 border-indigo-200">🌙 BF: Fasting</div>`
+          : renderPills(dayMenu.breakfast?.dishes, 'bg-amber-50/90 text-amber-900 border-amber-200');
+        const lnPills = dayMenu.lunch?.fasting
+          ? `<div class="px-2 py-0.5 rounded-md border text-[10px] font-extrabold bg-indigo-50 text-indigo-900 border-indigo-200">🌙 Lunch: Fasting</div>`
+          : renderPills(dayMenu.lunch?.dishes, 'bg-emerald-50/90 text-emerald-900 border-emerald-200');
+        const dnPills = dayMenu.dinner?.fasting
+          ? `<div class="px-2 py-0.5 rounded-md border text-[10px] font-extrabold bg-indigo-50 text-indigo-900 border-indigo-200">🌙 Dinner: Fasting</div>`
+          : renderPills(dayMenu.dinner?.dishes, 'bg-purple-50/90 text-purple-900 border-purple-200');
         const orPills = dayMenu.order?.enabled ? renderPills(dayMenu.order.dishes, 'bg-blue-50/90 text-blue-900 border-blue-200') : '';
         const jnPills = dayMenu.journey?.enabled ? renderPills(dayMenu.journey.dishes, 'bg-rose-50/90 text-rose-900 border-rose-200') : '';
 
+        const hasHistory = Boolean(state.history && state.history[dateStr]);
+
         cellsHtml += `
-          <div onclick="selectCalendarDate('${dateStr}')" class="min-h-[140px] p-2.5 cursor-pointer transition-all duration-150 flex flex-col gap-1 ${
-            isSelected ? 'bg-orange-50/80 ring-2 ring-inset ring-orange-500 shadow-inner' : 'bg-white/60 hover:bg-orange-50/35'
+          <div onclick="selectCalendarDate('${dateStr}')" class="min-h-[148px] p-2.5 cursor-pointer transition-all duration-150 flex flex-col gap-1 ${
+            isSelected ? 'bg-orange-50/85 ring-2 ring-inset ring-orange-500 shadow-inner' : (vEvent ? 'bg-amber-50/35 hover:bg-orange-50/45' : 'bg-white/60 hover:bg-orange-50/35')
           }">
             <div class="flex items-center justify-between mb-0.5">
               <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold ${isSelected ? 'bg-orange-600 text-white' : 'text-slate-700'}">${d}</span>
-              ${(dayMenu.order?.enabled || dayMenu.journey?.enabled) ? `<span class="text-[10px] px-1.5 rounded-full bg-blue-100 text-blue-800 font-bold">+Extra</span>` : ''}
+              <div class="flex items-center gap-1">
+                ${hasHistory ? `<span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-extrabold" title="Cooking archived in History">✓ Hist</span>` : ''}
+                ${(dayMenu.order?.enabled || dayMenu.journey?.enabled) ? `<span class="text-[10px] px-1.5 rounded-full bg-blue-100 text-blue-800 font-bold">+Extra</span>` : ''}
+              </div>
             </div>
             <div class="space-y-1">
+              ${vaishnavaBadge}
               ${bfPills}
               ${lnPills}
               ${dnPills}
@@ -2828,10 +3633,30 @@
 
       let html = '';
 
+      // Show 2026 Vaishnava Calendar Event card if present on this date
+      const vEvent = getVaishnavaEvent(dateStr);
+      if (vEvent && vEvent.events && vEvent.events.length > 0) {
+        const isFastDay = vEvent.type === 'ekadashi' || vEvent.type === 'major_fast';
+        html += `
+          <div class="p-3.5 rounded-2xl border ${isFastDay ? 'bg-red-50/90 border-red-200 text-red-950' : 'bg-amber-50/90 border-amber-200 text-amber-950'} space-y-1.5 shadow-2xs">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1">
+                <span>🪷</span> <span>Vaishnava Calendar (Mayapur)</span>
+              </span>
+              ${vEvent.fastNote ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-600 text-white">${escapeHtml(vEvent.fastNote)}</span>` : ''}
+            </div>
+            <ul class="text-xs font-bold space-y-0.5 list-disc list-inside">
+              ${vEvent.events.map(ev => `<li>${escapeHtml(ev)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
       mealConfigs.forEach(cfg => {
         const mObj = dayMenu[cfg.key];
         if (!cfg.alwaysOn && !mObj?.enabled) return;
 
+        const isFasting = Boolean(cfg.alwaysOn && mObj?.fasting);
         const dishes = mObj.dishes || [];
         const selectsHtml = dishes.map((recId, idx) => `
           <div class="flex items-center gap-1.5 animate-row-in">
@@ -2846,15 +3671,25 @@
         const servVal = mObj.servingTime || '08:00';
 
         html += `
-          <div class="p-4 rounded-2xl border border-slate-200/80 bg-white/80 space-y-3 shadow-2xs animate-row-in">
-            <div class="flex items-center justify-between">
-              <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold border ${cfg.badgeCls}">
-                ${cfg.label}
-              </span>
+          <div class="p-4 rounded-2xl border ${isFasting ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200/80 bg-white/80'} space-y-3 shadow-2xs animate-row-in">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold border ${cfg.badgeCls}">
+                  ${cfg.label}
+                </span>
+                ${cfg.alwaysOn ? `
+                  <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer border transition ${isFasting ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-indigo-50'}">
+                    <input type="checkbox" ${isFasting ? 'checked' : ''} onchange="toggleCalMealFasting('${dateStr}', '${cfg.key}', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500" />
+                    <span>🌙 Fasting</span>
+                  </label>
+                ` : ''}
+              </div>
               <div class="flex items-center gap-1.5">
-                <button onclick="addCalDayDish('${dateStr}', '${cfg.key}')" class="text-xs font-bold text-orange-700 hover:bg-orange-100 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 transition">
-                  + Add Dish
-                </button>
+                ${!isFasting ? `
+                  <button onclick="addCalDayDish('${dateStr}', '${cfg.key}')" class="text-xs font-bold text-orange-700 hover:bg-orange-100 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 transition">
+                    + Add Dish
+                  </button>
+                ` : ''}
                 ${!cfg.alwaysOn ? `
                   <button onclick="toggleCalExtraMeal('${dateStr}', '${cfg.key}', false)" class="text-xs font-bold text-red-600 hover:text-red-800 px-1.5 py-0.5">
                     Remove
@@ -2863,28 +3698,38 @@
               </div>
             </div>
 
-            <!-- Beautified Custom Time Picker Triggers -->
-            <div class="grid grid-cols-2 gap-2 pt-1">
-              <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Bhoga Ready</label>
-                <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'bhogaTime', '${bhogaVal}', '${cfg.label} Bhoga Ready')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition">
-                  <span>🔔 ${formatTime12h(bhogaVal)}</span>
-                  <span class="text-[10px] text-orange-600">▾</span>
-                </button>
+            ${isFasting ? `
+              <div class="p-3 rounded-xl bg-indigo-100/70 border border-indigo-200 text-xs text-indigo-950 font-semibold flex items-center gap-2">
+                <span class="text-base">🌙</span>
+                <div>
+                  <strong>Fasting Observed for ${cfg.label}</strong>
+                  <div class="text-[11px] text-indigo-800 font-normal">Menu selection is hidden and no cooking table will be generated in Daily Kitchen for this meal. Untick "Fasting" above to set a menu.</div>
+                </div>
               </div>
-              <div>
-                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Serving Time</label>
-                <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'servingTime', '${servVal}', '${cfg.label} Serving Time')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition">
-                  <span>🍛 ${formatTime12h(servVal)}</span>
-                  <span class="text-[10px] text-orange-600">▾</span>
-                </button>
+            ` : `
+              <!-- Beautified Custom Time Picker Triggers -->
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Bhoga Ready</label>
+                  <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'bhogaTime', '${bhogaVal}', '${cfg.label} Bhoga Ready')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition">
+                    <span>🔔 ${formatTime12h(bhogaVal)}</span>
+                    <span class="text-[10px] text-orange-600">▾</span>
+                  </button>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Serving Time</label>
+                  <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'servingTime', '${servVal}', '${cfg.label} Serving Time')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition">
+                    <span>🍛 ${formatTime12h(servVal)}</span>
+                    <span class="text-[10px] text-orange-600">▾</span>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <!-- Dish Dropdowns -->
-            <div class="space-y-2 pt-1">
-              ${selectsHtml || `<div class="text-xs text-slate-400 italic">No dishes added yet. Click "+ Add Dish".</div>`}
-            </div>
+              <!-- Dish Dropdowns -->
+              <div class="space-y-2 pt-1">
+                ${selectsHtml || `<div class="text-xs text-slate-400 italic">No dishes added yet. Click "+ Add Dish".</div>`}
+              </div>
+            `}
           </div>
         `;
       });
@@ -2921,9 +3766,30 @@
       });
     }
 
+    function toggleCalMealFasting(dateStr, mealKey, isFasting) {
+      const dayMenu = ensureCalendarDay(dateStr);
+      if (dayMenu[mealKey]) {
+        dayMenu[mealKey].fasting = Boolean(isFasting);
+      }
+      if (state.dailyPlans[dateStr] && state.dailyPlans[dateStr].meals && state.dailyPlans[dateStr].meals[mealKey]) {
+        state.dailyPlans[dateStr].meals[mealKey].fasting = Boolean(isFasting);
+      }
+      saveState();
+      renderCalendarTab();
+      showToast(`${mealKey.toUpperCase()} set to ${isFasting ? '🌙 Fasting' : 'Regular Prasadam Menu'} on ${dateStr}`);
+    }
+
+    function syncUnarchivedDailyPlanFromCalendar(dateStr) {
+      if (state.history && state.history[dateStr]) return; // Never overwrite a date already saved in History!
+      if (state.dailyPlans[dateStr]) {
+        delete state.dailyPlans[dateStr];
+      }
+    }
+
     function updateCalDayDish(dateStr, mealKey, dishIdx, newRecId) {
       const dayMenu = ensureCalendarDay(dateStr);
       dayMenu[mealKey].dishes[dishIdx] = newRecId;
+      syncUnarchivedDailyPlanFromCalendar(dateStr);
       saveState();
       renderCalendarTab();
     }
@@ -2932,6 +3798,7 @@
       const dayMenu = ensureCalendarDay(dateStr);
       const firstRecId = state.recipes[0]?.id || 'rec_dal_fry';
       dayMenu[mealKey].dishes.push(firstRecId);
+      syncUnarchivedDailyPlanFromCalendar(dateStr);
       saveState();
       renderCalendarTab();
     }
@@ -2939,6 +3806,7 @@
     function removeCalDayDish(dateStr, mealKey, dishIdx) {
       const dayMenu = ensureCalendarDay(dateStr);
       dayMenu[mealKey].dishes.splice(dishIdx, 1);
+      syncUnarchivedDailyPlanFromCalendar(dateStr);
       saveState();
       renderCalendarTab();
     }
@@ -3030,9 +3898,16 @@
             </div>
 
             <h3 class="text-base font-extrabold text-slate-900">${escapeHtml(dept.name)}</h3>
-            <div class="mt-1 flex items-baseline gap-1.5">
-              <span class="text-3xl font-extrabold text-orange-600">${formatNum(dept.count, 0)}</span>
-              <span class="text-xs font-medium text-slate-500">people</span>
+            <div class="mt-1 flex items-baseline justify-between gap-2">
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-3xl font-extrabold text-orange-600">${formatNum(dept.count, 0)}</span>
+                <span class="text-xs font-medium text-slate-500">people</span>
+              </div>
+              ${dept.chargeable ? `
+                <span class="px-2.5 py-1 rounded-xl text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200" title="Profit Multiplier applied to Adjusted Cost when calculating Claims">
+                  📈 Profit Mult: ${Number(dept.profitMultiplier || 1.2).toFixed(2)}x
+                </span>
+              ` : ''}
             </div>
           </div>
 
@@ -3139,13 +4014,22 @@
       showToast('Standard Meal Timings applied across the calendar!');
     }
 
+    function onDeptModalChargeableChange() {
+      const chg = document.getElementById('deptModalChargeable')?.value === 'true';
+      const wrap = document.getElementById('deptModalProfitMultWrap');
+      if (wrap) wrap.classList.toggle('hidden', !chg);
+    }
+
     function toggleDepartmentChargeable(deptId) {
       const dept = getDepartmentById(deptId);
       if (!dept) return;
       dept.chargeable = !dept.chargeable;
+      if (dept.chargeable && (!dept.profitMultiplier || dept.profitMultiplier <= 1)) {
+        dept.profitMultiplier = 1.20;
+      }
       saveState();
       renderDepartmentsSection();
-      showToast(`${dept.name} set to ${dept.chargeable ? 'Chargeable' : 'Non-Chargeable'}`);
+      showToast(`${dept.name} set to ${dept.chargeable ? `Chargeable (${Number(dept.profitMultiplier).toFixed(2)}x profit)` : 'Non-Chargeable'}`);
     }
 
     function openDepartmentModal(deptId = null) {
@@ -3155,6 +4039,7 @@
       const nameEl = document.getElementById('deptModalName');
       const countEl = document.getElementById('deptModalCount');
       const chgEl = document.getElementById('deptModalChargeable');
+      const pmEl = document.getElementById('deptModalProfitMultiplier');
 
       if (deptId) {
         const d = getDepartmentById(deptId);
@@ -3164,13 +4049,16 @@
         nameEl.value = d.name;
         countEl.value = d.count;
         chgEl.value = d.chargeable ? 'true' : 'false';
+        if (pmEl) pmEl.value = d.profitMultiplier || 1.20;
       } else {
         title.textContent = 'Add New Department';
         idEl.value = '';
         nameEl.value = '';
         countEl.value = 50;
         chgEl.value = 'false';
+        if (pmEl) pmEl.value = 1.20;
       }
+      onDeptModalChargeableChange();
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     }
@@ -3186,6 +4074,9 @@
       const name = document.getElementById('deptModalName').value.trim();
       const count = parseInt(document.getElementById('deptModalCount').value, 10);
       const chargeable = document.getElementById('deptModalChargeable').value === 'true';
+      const profitMultiplier = chargeable
+        ? Math.max(1, parseFloat(document.getElementById('deptModalProfitMultiplier')?.value) || 1.20)
+        : 1.0;
 
       if (!name) {
         showToast('Please enter a department name', 'error');
@@ -3202,7 +4093,8 @@
           d.name = name;
           d.count = count;
           d.chargeable = chargeable;
-          showToast(`Updated "${name}"`);
+          d.profitMultiplier = profitMultiplier;
+          showToast(`Updated "${name}" (Upcoming History updates will use ${profitMultiplier.toFixed(2)}x)`);
         }
       } else {
         state.departments.push({
@@ -3210,6 +4102,7 @@
           name,
           count,
           chargeable,
+          profitMultiplier,
           icon: chargeable ? '🏢' : '🏛️'
         });
         showToast(`Added department "${name}"`);
@@ -3234,6 +4127,15 @@
     // =========================================================================
     function ensureDailyPlanForDate(dateStr, forceResync = false) {
       const calDay = ensureCalendarDay(dateStr);
+
+      // Requirement #7: Once History is recorded for a date, Daily Kitchen must populate from the saved History details
+      // (and never reset to the monthly calendar), while keeping it editable in Daily Kitchen!
+      if (!state.dailyPlans[dateStr] && state.history && state.history[dateStr] && state.history[dateStr].mealsSnapshot) {
+        state.dailyPlans[dateStr] = {
+          meals: JSON.parse(JSON.stringify(state.history[dateStr].mealsSnapshot))
+        };
+      }
+
       if (!state.dailyPlans[dateStr] || forceResync) {
         const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
         const mealsObj = {};
@@ -3262,6 +4164,7 @@
 
           mealsObj[mKey] = {
             enabled: mKey === 'breakfast' || mKey === 'lunch' || mKey === 'dinner' ? true : Boolean(calMeal?.enabled),
+            fasting: Boolean(calMeal?.fasting),
             bhogaTime: calMeal?.bhogaTime || '07:15',
             servingTime: calMeal?.servingTime || '08:00',
             deptCols: defaultDepts,
@@ -3269,6 +4172,13 @@
           };
         });
         state.dailyPlans[dateStr] = { meals: mealsObj };
+      } else {
+        // Keep fasting flags in sync with Calendar day
+        ['breakfast', 'lunch', 'dinner'].forEach(mKey => {
+          if (state.dailyPlans[dateStr].meals[mKey] && calDay[mKey]) {
+            state.dailyPlans[dateStr].meals[mKey].fasting = Boolean(calDay[mKey].fasting);
+          }
+        });
       }
       return state.dailyPlans[dateStr];
     }
@@ -3361,6 +4271,47 @@
       const prettyLbl = document.getElementById('dailyDatePrettyLabel');
       if (prettyLbl) prettyLbl.textContent = shortPrettyDate;
 
+      const printSub = document.getElementById('printA4DateSubtitle');
+      if (printSub) {
+        const vEv = getVaishnavaEvent(dateStr);
+        printSub.textContent = `${formattedDate}${vEv ? ' • ' + vEv.events.join(', ') : ''}`;
+      }
+
+      const histBadge = document.getElementById('dailyHistoryStatusBadge');
+      if (histBadge) {
+        const archived = state.history && state.history[dateStr];
+        if (archived) {
+          histBadge.className = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200';
+          histBadge.innerHTML = `<span>✓ Archived in History</span>`;
+        } else {
+          histBadge.className = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+          histBadge.innerHTML = `<span>⏳ Not Yet in History</span>`;
+        }
+      }
+
+      const vBanner = document.getElementById('dailyVaishnavaBanner');
+      if (vBanner) {
+        const vEv = getVaishnavaEvent(dateStr);
+        if (vEv && vEv.events && vEv.events.length > 0) {
+          vBanner.className = 'glass-card rounded-2xl border border-orange-200/90 bg-gradient-to-r from-amber-50/90 via-orange-50/80 to-red-50/80 p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs';
+          vBanner.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-2xl bg-orange-600 text-white flex items-center justify-center text-lg shadow-xs">🪷</span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-extrabold uppercase tracking-wider text-orange-800">2026 Vaishnava Calendar Event</span>
+                  ${vEv.fastNote ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-600 text-white">${escapeHtml(vEv.fastNote)}</span>` : ''}
+                </div>
+                <div class="text-sm font-extrabold text-slate-900 mt-0.5">${escapeHtml(vEv.events.join(' • '))}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          vBanner.className = 'hidden';
+          vBanner.innerHTML = '';
+        }
+      }
+
       const plan = ensureDailyPlanForDate(dateStr, false);
 
       const mealMeta = [
@@ -3377,6 +4328,28 @@
         const mPlan = plan.meals[meta.key];
         if (!mPlan || !mPlan.enabled) return;
         if (state.dailyMealFilter !== 'ALL' && state.dailyMealFilter !== meta.key) return;
+
+        if (mPlan.fasting) {
+          tablesHtml += `
+            <div class="glass-card rounded-3xl border border-indigo-200/90 bg-indigo-50/55 p-6 shadow-xs flex flex-wrap items-center justify-between gap-4 animate-row-in a4-avoid-break">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-xs">🌙</div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-xl ${meta.badgeBg} text-white text-xs font-extrabold">${meta.title}</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-indigo-100 text-indigo-900 border border-indigo-300">Fasting Observed</span>
+                  </div>
+                  <h4 class="text-base font-extrabold text-indigo-950 mt-1">No Regular Cooking Table — ${meta.title} is Marked as Fasting</h4>
+                  <p class="text-xs text-indigo-800 mt-0.5">As marked in the Monthly Menu Calendar for ${escapeHtml(formattedDate)}, no regular meal table is generated for ${meta.title}.</p>
+                </div>
+              </div>
+              <button onclick="toggleCalMealFasting('${dateStr}', '${meta.key}', false); renderDailyKitchenTab();" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs font-bold transition no-print cursor-pointer">
+                Untick Fasting & Enable Table
+              </button>
+            </div>
+          `;
+          return;
+        }
 
         const deptCols = mPlan.deptCols || [];
         const totalHeadcount = deptCols.reduce((acc, c) => acc + (Number(c.count) || 0), 0);
@@ -3519,7 +4492,7 @@
                 </button>
               </div>
 
-              <div class="flex flex-wrap items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2 no-print">
                 <button onclick="addDailyDeptCol('${dateStr}', '${meta.key}')" class="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-2xs hover-lift">
                   + Add Dept Column
                 </button>
@@ -3816,7 +4789,7 @@
 
       mealOrder.forEach(mInfo => {
         const mPlan = plan.meals[mInfo.key];
-        if (!mPlan || !mPlan.enabled) return;
+        if (!mPlan || !mPlan.enabled || mPlan.fasting) return;
         if (state.dailyMealFilter !== 'ALL' && state.dailyMealFilter !== mInfo.key) return;
 
         (mPlan.rows || []).forEach((row, rIdx) => {
@@ -4066,31 +5039,1213 @@
     }
 
     // =========================================================================
-    // RESET DEMO DATA MODAL
+    // TAB 5: IMMUTABLE HISTORY ARCHIVE & SNAPSHOT ENGINE
+    // (Guarantees that future changes to ingredient prices, recipes, or
+    //  multipliers NEVER alter past History, Claims, or Revenue records!)
     // =========================================================================
-    function openResetModal() {
-      const m = document.getElementById('resetModal');
+    let openHistoryRecipeAccordions = {};
+
+    function computeCurrentRecipeSnapshot(recipe, kitchenMultiplier) {
+      if (!recipe) return null;
+      const stdYield = Number(recipe.stdYield) || 1;
+      let stdCalcCost = 0;
+      const stepsSnapshot = (recipe.steps || []).map(step => {
+        const itemsSnap = (step.items || []).map(it => {
+          const ing = getIngredientById(it.ingId);
+          const stdQty = Number(it.stdQty) || 0;
+          const itemStdCost = calculateIngredientCost(stdQty, it.unit, ing);
+          stdCalcCost += itemStdCost;
+          return {
+            ingId: it.ingId,
+            ingName: ing ? ing.name : 'Unknown',
+            ingUnit: ing ? ing.unit : it.unit,
+            ingPrice: ing ? Number(ing.price) || 0 : 0,
+            stdQty: stdQty,
+            unit: it.unit,
+            itemStdCost: itemStdCost
+          };
+        });
+        return {
+          process: step.process || '',
+          items: itemsSnap
+        };
+      });
+      const mult = Number(kitchenMultiplier) || 1;
+      const stdAdjCost = stdCalcCost * mult;
+      return {
+        id: recipe.id,
+        name: recipe.name,
+        stdYield: stdYield,
+        yieldUnit: recipe.yieldUnit || 'L',
+        servingQty: Number(recipe.servingQty) || 200,
+        servingUnit: recipe.servingUnit || 'ml',
+        stdCalcCost: stdCalcCost,
+        stdAdjCost: stdAdjCost,
+        calcCostPerYieldUnit: stdCalcCost / stdYield,
+        adjCostPerYieldUnit: stdAdjCost / stdYield,
+        steps: stepsSnapshot
+      };
+    }
+
+    function buildHistoryRecordForDate(dateStr, planObj, statusOverridesForClaims = {}) {
+      const kitchenMult = Number(state.multiplier) || 1.2;
+      const deptSnapshots = {};
+      state.departments.forEach(d => {
+        deptSnapshots[d.id] = {
+          id: d.id,
+          name: d.name,
+          count: Number(d.count) || 0,
+          chargeable: Boolean(d.chargeable),
+          profitMultiplier: d.chargeable ? (Number(d.profitMultiplier) || 1.2) : 1.0,
+          icon: d.icon || '🏛️'
+        };
+      });
+
+      const recipeSnapshots = {};
+      state.recipes.forEach(r => {
+        recipeSnapshots[r.id] = computeCurrentRecipeSnapshot(r, kitchenMult);
+      });
+
+      const mealsClone = JSON.parse(JSON.stringify(planObj.meals || {}));
+      const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
+
+      let totalDishesCooked = 0;
+      let totalCalcCost = 0;
+      let totalAdjCost = 0;
+
+      // Also aggregate chargeable department allocations across the day's meals for Claims
+      const chargeableDeptAgg = {}; // deptId -> { deptSnap, dishesMap: { recId -> { name, unit, qty, adjCost } }, totalAdjCost }
+
+      mealKeys.forEach(mKey => {
+        const mPlan = mealsClone[mKey];
+        if (!mPlan || !mPlan.enabled || mPlan.fasting) return;
+
+        const deptCols = mPlan.deptCols || [];
+        (mPlan.rows || []).forEach(row => {
+          const recSnap = recipeSnapshots[row.recipeId];
+          if (!recSnap) return;
+
+          // Compute exact quantity supplied to each department column and freeze it
+          row.frozenDeptQtys = {};
+          let rowSum = 0;
+          deptCols.forEach(col => {
+            const ov = row.overrides && row.overrides[col.colId];
+            const val = (ov !== undefined && ov !== null && ov !== '')
+              ? Number(ov)
+              : computeDeptDishQty(recSnap, row.servingQty, col.count);
+            const cleanVal = Number(val) || 0;
+            row.frozenDeptQtys[col.colId] = cleanVal;
+            rowSum += cleanVal;
+
+            // Check if this column belongs to a chargeable department
+            const dSnap = deptSnapshots[col.deptId];
+            if (dSnap && dSnap.chargeable && cleanVal > 0) {
+              if (!chargeableDeptAgg[dSnap.id]) {
+                chargeableDeptAgg[dSnap.id] = {
+                  deptSnap: dSnap,
+                  dishesMap: {},
+                  totalAdjCost: 0
+                };
+              }
+              const agg = chargeableDeptAgg[dSnap.id];
+              if (!agg.dishesMap[recSnap.id]) {
+                agg.dishesMap[recSnap.id] = {
+                  recipeId: recSnap.id,
+                  name: recSnap.name,
+                  yieldUnit: recSnap.yieldUnit,
+                  totalQty: 0,
+                  adjCostPerUnit: recSnap.adjCostPerYieldUnit,
+                  totalAdjCost: 0
+                };
+              }
+              const dishEntry = agg.dishesMap[recSnap.id];
+              dishEntry.totalQty += cleanVal;
+              const dishAdjCost = cleanVal * recSnap.adjCostPerYieldUnit;
+              dishEntry.totalAdjCost += dishAdjCost;
+              agg.totalAdjCost += dishAdjCost;
+            }
+          });
+
+          row.frozenCalcTotal = (row.calcOverride !== null && row.calcOverride !== undefined && row.calcOverride !== '')
+            ? (Number(row.calcOverride) || 0)
+            : rowSum;
+
+          const cookQty = Number(row.adjustedQty) || 0;
+          row.frozenCookQty = cookQty;
+          if (cookQty > 0) {
+            totalDishesCooked++;
+            const rowCalcCost = cookQty * recSnap.calcCostPerYieldUnit;
+            const rowAdjCost = cookQty * recSnap.adjCostPerYieldUnit;
+            row.frozenRowCalcCost = rowCalcCost;
+            row.frozenRowAdjCost = rowAdjCost;
+            totalCalcCost += rowCalcCost;
+            totalAdjCost += rowAdjCost;
+          } else {
+            row.frozenRowCalcCost = 0;
+            row.frozenRowAdjCost = 0;
+          }
+        });
+      });
+
+      // Update frozen claims for this dateStr
+      if (!state.accounts) state.accounts = { expenses: [], claims: {}, manualRevenue: [] };
+      if (!state.accounts.claims) state.accounts.claims = {};
+
+      // Remove any old claims for this dateStr Whose department is no longer served on this date
+      Object.keys(state.accounts.claims).forEach(claimKey => {
+        const c = state.accounts.claims[claimKey];
+        if (c && c.date === dateStr && !chargeableDeptAgg[c.deptId]) {
+          delete state.accounts.claims[claimKey];
+        }
+      });
+
+      Object.keys(chargeableDeptAgg).forEach(deptId => {
+        const agg = chargeableDeptAgg[deptId];
+        const dSnap = agg.deptSnap;
+        const claimId = `${dateStr}__${deptId}`;
+        const existingClaim = state.accounts.claims[claimId];
+        const presetOverride = statusOverridesForClaims[claimId] || null;
+
+        const dishItems = Object.values(agg.dishesMap);
+        const menuSummaryText = dishItems
+          .map(di => `${di.name} (${formatNum(di.totalQty, 2)} ${di.yieldUnit})`)
+          .join(', ');
+
+        const calcChargeableCost = agg.totalAdjCost * dSnap.profitMultiplier;
+        const roundedFinalCost = Math.round(calcChargeableCost);
+
+        // Preserve user's manual finalChargeableCost/status/paidAmount if they already customized it,
+        // unless calculated cost changed or presetOverride is supplied
+        let finalCost = roundedFinalCost;
+        let status = 'pending';
+        let paidAmount = 0;
+
+        if (presetOverride) {
+          finalCost = presetOverride.finalChargeableCost ?? roundedFinalCost;
+          status = presetOverride.status || 'pending';
+          paidAmount = presetOverride.paidAmount ?? 0;
+        } else if (existingClaim) {
+          status = existingClaim.status || 'pending';
+          paidAmount = Number(existingClaim.paidAmount) || 0;
+          if (existingClaim.finalCostManuallyEdited) {
+            finalCost = Number(existingClaim.finalChargeableCost) || roundedFinalCost;
+          } else {
+            finalCost = roundedFinalCost;
+          }
+          if (status === 'paid') {
+            paidAmount = finalCost;
+          }
+        }
+
+        state.accounts.claims[claimId] = {
+          id: claimId,
+          date: dateStr,
+          deptId: dSnap.id,
+          deptName: dSnap.name,
+          deptIcon: dSnap.icon || '🏢',
+          kitchenMultiplierSnapshot: kitchenMult,
+          profitMultiplierSnapshot: dSnap.profitMultiplier,
+          dishes: dishItems,
+          menuText: menuSummaryText,
+          adjustedCostBase: agg.totalAdjCost,
+          calculatedChargeableCost: calcChargeableCost,
+          finalChargeableCost: finalCost,
+          finalCostManuallyEdited: existingClaim ? Boolean(existingClaim.finalCostManuallyEdited) : false,
+          status: status, // 'pending' | 'partial' | 'paid'
+          paidAmount: paidAmount
+        };
+      });
+
+      return {
+        date: dateStr,
+        updatedAt: new Date().toISOString(),
+        kitchenMultiplierSnapshot: kitchenMult,
+        deptSnapshots: deptSnapshots,
+        recipeSnapshots: recipeSnapshots,
+        mealsSnapshot: mealsClone,
+        totalDishesCooked: totalDishesCooked,
+        totalCalcCost: totalCalcCost,
+        totalAdjCost: totalAdjCost
+      };
+    }
+
+    function ensureInitialHistorySnapshots() {
+      if (!state.history || Object.keys(state.history).length === 0) {
+        state.history = {};
+        // Pre-populate Oct 3 & Oct 4 in History so History, Claims, and Revenue tabs have live data out of the box
+        const oct3Plan = state.dailyPlans['2026-10-03'] || buildOct3SamplePlan();
+        state.history['2026-10-03'] = buildHistoryRecordForDate('2026-10-03', oct3Plan, {
+          '2026-10-03__dept_abhay': { status: 'paid', paidAmount: Math.round(1450) },
+          '2026-10-03__dept_bit': { status: 'partial', paidAmount: 200 }
+        });
+        // Fix paidAmount for 2026-10-03__dept_abhay to match its exact finalChargeableCost
+        if (state.accounts.claims['2026-10-03__dept_abhay']) {
+          state.accounts.claims['2026-10-03__dept_abhay'].paidAmount = state.accounts.claims['2026-10-03__dept_abhay'].finalChargeableCost;
+        }
+
+        const oct4Plan = state.dailyPlans['2026-10-04'] || buildOct4SamplePlan();
+        state.history['2026-10-04'] = buildHistoryRecordForDate('2026-10-04', oct4Plan, {
+          '2026-10-04__dept_cong': { status: 'partial', paidAmount: 800 }
+        });
+        state.selectedHistoryDate = '2026-10-04';
+      }
+    }
+
+    function updateDailyHistory() {
+      const dateStr = state.selectedDailyDate || '2026-10-04';
+      const plan = ensureDailyPlanForDate(dateStr, false);
+      const record = buildHistoryRecordForDate(dateStr, plan);
+      if (!state.history) state.history = {};
+      state.history[dateStr] = record;
+      state.selectedHistoryDate = dateStr;
+      saveState();
+      renderDailyKitchenTab();
+      showToast(`Recorded ${dateStr} cooking in History & updated Chargeable Department Claims!`);
+    }
+
+    function onHistoryDateSelect(dateStr) {
+      if (!dateStr) return;
+      state.selectedHistoryDate = dateStr;
+      saveState();
+      renderHistoryTab();
+    }
+
+    function openHistoryDateInDailyKitchen() {
+      const dateStr = state.selectedHistoryDate || '2026-10-04';
+      state.selectedDailyDate = dateStr;
+      const picker = document.getElementById('dailyDatePicker');
+      if (picker) picker.value = dateStr;
+      switchTab('daily');
+    }
+
+    function toggleHistoryRecipeAccordion(accKey) {
+      openHistoryRecipeAccordions[accKey] = !openHistoryRecipeAccordions[accKey];
+      const bodyEl = document.getElementById('histAccBody-' + accKey);
+      const iconEl = document.getElementById('histAccIcon-' + accKey);
+      if (bodyEl) bodyEl.classList.toggle('hidden', !openHistoryRecipeAccordions[accKey]);
+      if (iconEl) iconEl.style.transform = openHistoryRecipeAccordions[accKey] ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function renderHistoryTab() {
+      const selectEl = document.getElementById('historyDateSelect');
+      const pillsEl = document.getElementById('historyDatesPillStrip');
+      const kpiEl = document.getElementById('historyKpiStrip');
+      const contentEl = document.getElementById('historyContentContainer');
+      if (!selectEl || !contentEl) return;
+
+      const dates = Object.keys(state.history || {}).sort().reverse();
+      if (dates.length === 0) {
+        selectEl.innerHTML = `<option value="">No archived dates yet</option>`;
+        if (pillsEl) pillsEl.innerHTML = '';
+        if (kpiEl) kpiEl.innerHTML = '';
+        contentEl.innerHTML = `
+          <div class="glass-card rounded-3xl border border-slate-200 p-10 text-center space-y-3">
+            <div class="text-4xl">📜</div>
+            <h3 class="text-base font-extrabold text-slate-900">No Cooking History Recorded Yet</h3>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+              Go to the <strong>Daily Kitchen</strong> tab, review your department quantities and adjusted cooking yields, and click <strong>"💾 Update History"</strong> to archive a day's cooking.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      if (!state.selectedHistoryDate || !state.history[state.selectedHistoryDate]) {
+        state.selectedHistoryDate = dates[0];
+      }
+      const activeDate = state.selectedHistoryDate;
+      const record = state.history[activeDate];
+      const mealFilter = document.getElementById('historyMealFilter')?.value || 'ALL';
+
+      selectEl.innerHTML = dates.map(d => {
+        const dObj = new Date(d + 'T00:00:00');
+        const lbl = dObj.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+        return `<option value="${d}" ${d === activeDate ? 'selected' : ''}>${lbl} (${d})</option>`;
+      }).join('');
+
+      if (pillsEl) {
+        pillsEl.innerHTML = `<span class="text-[11px] font-bold uppercase text-slate-400 mr-1">Archived Days:</span>` + dates.map(d => {
+          const dObj = new Date(d + 'T00:00:00');
+          const shortLbl = dObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const isSel = d === activeDate;
+          return `
+            <button onclick="onHistoryDateSelect('${d}')" class="px-3 py-1 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+              isSel ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-white hover:bg-emerald-50 text-slate-700 border border-slate-200'
+            }">
+              📜 ${shortLbl}
+            </button>
+          `;
+        }).join('');
+      }
+
+      const dateObj = new Date(activeDate + 'T00:00:00');
+      const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      const updatedTimeStr = record.updatedAt ? new Date(record.updatedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Archived';
+      const vEvent = getVaishnavaEvent(activeDate);
+
+      if (kpiEl) {
+        kpiEl.innerHTML = `
+          <div class="glass-card p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="text-[11px] font-bold uppercase text-slate-400">Archived Date</div>
+            <div class="text-sm font-extrabold text-slate-900 mt-1">${escapeHtml(formattedDate)}</div>
+            <div class="text-[11px] text-emerald-700 font-semibold mt-0.5">Saved: ${escapeHtml(updatedTimeStr)}</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="text-[11px] font-bold uppercase text-slate-400">Vaishnava Calendar</div>
+            <div class="text-xs font-extrabold text-orange-900 mt-1 line-clamp-2">${vEvent ? escapeHtml(vEvent.events.join(' • ')) : 'Regular Temple Service Day'}</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="text-[11px] font-bold uppercase text-slate-400">Dishes Cooked</div>
+            <div class="text-2xl font-extrabold text-slate-900 mt-0.5">${record.totalDishesCooked || 0} <span class="text-xs font-semibold text-slate-500">preparations</span></div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
+            <div class="text-[11px] font-bold uppercase text-slate-400">Frozen Calculated Cost</div>
+            <div class="text-xl font-extrabold text-slate-900 mt-0.5">${formatCurrency(record.totalCalcCost || 0)}</div>
+            <div class="text-[10px] text-slate-500">Locked ingredient rates</div>
+          </div>
+          <div class="glass-card p-4 rounded-2xl border border-orange-200/90 bg-orange-50/50 shadow-2xs">
+            <div class="text-[11px] font-bold uppercase text-orange-800">Frozen Adjusted Cost (${Number(record.kitchenMultiplierSnapshot || 1.2).toFixed(2)}x)</div>
+            <div class="text-xl font-extrabold text-orange-600 mt-0.5">${formatCurrency(record.totalAdjCost || 0)}</div>
+            <div class="text-[10px] text-orange-800">Immune to future price edits</div>
+          </div>
+        `;
+      }
+
+      const mealMeta = [
+        { key: 'breakfast', shortCode: 'BF', title: 'Breakfast (BF)', headerBg: 'from-amber-50/90 via-orange-50/50 to-amber-50/80', badgeBg: 'bg-amber-600', pillCls: 'bg-amber-100 text-amber-900 border-amber-200' },
+        { key: 'lunch',     shortCode: 'LUNCH', title: 'Lunch', headerBg: 'from-emerald-50/90 via-teal-50/50 to-emerald-50/80', badgeBg: 'bg-emerald-600', pillCls: 'bg-emerald-100 text-emerald-900 border-emerald-200' },
+        { key: 'dinner',    shortCode: 'DINNER', title: 'Dinner', headerBg: 'from-purple-50/90 via-indigo-50/50 to-purple-50/80', badgeBg: 'bg-purple-600', pillCls: 'bg-purple-100 text-purple-900 border-purple-200' },
+        { key: 'order',     shortCode: 'ORDER', title: 'Order Meal (Special)', headerBg: 'from-blue-50/90 via-sky-50/50 to-blue-50/80', badgeBg: 'bg-blue-600', pillCls: 'bg-blue-100 text-blue-900 border-blue-200' },
+        { key: 'journey',   shortCode: 'JOURNEY', title: 'Journey Prasad', headerBg: 'from-rose-50/90 via-pink-50/50 to-rose-50/80', badgeBg: 'bg-rose-600', pillCls: 'bg-rose-100 text-rose-900 border-rose-200' }
+      ];
+
+      let tablesHtml = '';
+      let recipeCardsHtml = '';
+
+      mealMeta.forEach(meta => {
+        const mPlan = record.mealsSnapshot ? record.mealsSnapshot[meta.key] : null;
+        if (!mPlan || !mPlan.enabled) return;
+        if (mealFilter !== 'ALL' && mealFilter !== meta.key) return;
+
+        if (mPlan.fasting) {
+          tablesHtml += `
+            <div class="glass-card rounded-3xl border border-indigo-200/90 bg-indigo-50/55 p-5 shadow-xs flex items-center gap-4">
+              <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-xl">🌙</div>
+              <div>
+                <span class="px-2.5 py-0.5 rounded-lg ${meta.badgeBg} text-white text-xs font-extrabold">${meta.title}</span>
+                <h4 class="text-sm font-extrabold text-indigo-950 mt-1">${meta.title} — Fasting Observed (No Cooking)</h4>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        const deptCols = mPlan.deptCols || [];
+        const totalHeadcount = deptCols.reduce((acc, c) => acc + (Number(c.count) || 0), 0);
+
+        const deptHeaderCells = deptCols.map(col => {
+          const dSnap = record.deptSnapshots ? record.deptSnapshots[col.deptId] : null;
+          return `
+            <th class="bg-sky-50/60 text-center p-2.5 min-w-[140px]">
+              <div class="text-xs font-extrabold text-slate-900">${escapeHtml(col.customLabel || (dSnap ? dSnap.name : 'Department'))}</div>
+              ${dSnap && dSnap.chargeable ? `<div class="text-[10px] font-bold text-emerald-700">Chargeable (${Number(dSnap.profitMultiplier).toFixed(2)}x)</div>` : `<div class="text-[10px] text-slate-400">Non-Chargeable</div>`}
+            </th>
+          `;
+        }).join('');
+
+        const deptCountCells = deptCols.map(col => `
+          <th class="bg-amber-50/50 text-center p-2">
+            <span class="text-sm font-extrabold text-slate-900">${formatNum(col.count, 0)}</span>
+            <span class="text-[10px] font-semibold text-slate-500 block">devotees</span>
+          </th>
+        `).join('');
+
+        const dishRowsHtml = (mPlan.rows || []).map((row, rIdx) => {
+          const recSnap = (record.recipeSnapshots && record.recipeSnapshots[row.recipeId]) || getRecipeById(row.recipeId);
+          const recName = recSnap ? recSnap.name : 'Unknown Dish';
+          const yieldUnit = recSnap ? recSnap.yieldUnit : 'L';
+          const servingUnit = recSnap ? recSnap.servingUnit : 'ml';
+          const calcTotal = row.frozenCalcTotal !== undefined ? row.frozenCalcTotal : computeRowCalculatedTotal(mPlan, row);
+          const cookQty = row.frozenCookQty !== undefined ? row.frozenCookQty : row.adjustedQty;
+          const rowAdjCost = row.frozenRowAdjCost !== undefined ? row.frozenRowAdjCost : 0;
+
+          const deptCells = deptCols.map(col => {
+            const val = (row.frozenDeptQtys && row.frozenDeptQtys[col.colId] !== undefined)
+              ? row.frozenDeptQtys[col.colId]
+              : computeDeptDishQty(recSnap, row.servingQty, col.count);
+            return `
+              <td class="text-center p-2.5 font-bold text-slate-800">
+                ${formatNum(val, 2)} <span class="text-xs font-medium text-slate-400">${yieldUnit}</span>
+              </td>
+            `;
+          }).join('');
+
+          // Also build collapsible read-only archived recipe card
+          if (cookQty > 0 && recSnap && recSnap.steps) {
+            const accKey = `hist_${activeDate}_${meta.key}_${rIdx}`;
+            const isOpen = Boolean(openHistoryRecipeAccordions[accKey]);
+            const scaleRatio = cookQty / (Number(recSnap.stdYield) || 1);
+            let stepRowsHtml = '';
+            recSnap.steps.forEach(st => {
+              const items = st.items || [];
+              const span = Math.max(items.length, 1);
+              items.forEach((it, idx) => {
+                const reqQty = (Number(it.stdQty) || 0) * scaleRatio;
+                const itemCost = (Number(it.itemStdCost) || 0) * scaleRatio;
+                const uDisp = it.unit === 'g' ? 'gm' : it.unit;
+                stepRowsHtml += `
+                  <tr>
+                    <td class="font-semibold text-slate-800">${escapeHtml(it.ingName)}</td>
+                    <td class="text-right text-slate-500">${formatNum(it.stdQty, 3)} ${uDisp}</td>
+                    <td class="text-right font-extrabold text-orange-900 bg-amber-50/50">${formatNum(reqQty, 3)} ${uDisp}</td>
+                    ${idx === 0 ? `<td rowspan="${span}" class="align-middle text-center hindi-text text-xs sm:text-sm text-slate-700 bg-slate-50/40 px-3 py-2">${escapeHtml(st.process || '—')}</td>` : ''}
+                    <td class="text-right text-xs text-slate-500">₹${formatNum(it.ingPrice)}/${it.ingUnit}</td>
+                    <td class="text-right font-bold text-slate-900">₹${formatNum(itemCost, 2)}</td>
+                  </tr>
+                `;
+              });
+            });
+
+            recipeCardsHtml += `
+              <div class="bg-white/95 rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                <button type="button" onclick="toggleHistoryRecipeAccordion('${accKey}')" class="w-full text-left px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 hover:bg-slate-50 transition cursor-pointer">
+                  <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center text-sm font-bold">📜</span>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-slate-900 text-sm sm:text-base">${escapeHtml(recName)}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${meta.pillCls}">${escapeHtml(meta.title)}</span>
+                      </div>
+                      <div class="text-xs text-slate-500">Cooked Yield: <strong>${formatNum(cookQty, 2)} ${yieldUnit}</strong> • Frozen Adjusted Cost: <strong class="text-orange-600">${formatCurrency(rowAdjCost)}</strong></div>
+                    </div>
+                  </div>
+                  <span id="histAccIcon-${accKey}" class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold transition-transform" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};">▼</span>
+                </button>
+                <div id="histAccBody-${accKey}" class="${isOpen ? '' : 'hidden'} px-5 pb-4 pt-2 border-t border-slate-100">
+                  <div class="modern-table-wrap">
+                    <div class="overflow-x-auto">
+                      <table class="sheet-table text-xs sm:text-sm">
+                        <thead>
+                          <tr class="bg-slate-50 text-slate-600">
+                            <th class="text-left">Ingredient (Frozen Rate)</th>
+                            <th class="text-right">Std (${formatNum(recSnap.stdYield)} ${yieldUnit})</th>
+                            <th class="text-right bg-amber-50/70 text-orange-900">Cooked (${formatNum(cookQty, 2)} ${yieldUnit})</th>
+                            <th class="text-center">Cooking Process</th>
+                            <th class="text-right">Frozen Rate</th>
+                            <th class="text-right">Frozen Cost</th>
+                          </tr>
+                        </thead>
+                        <tbody>${stepRowsHtml}</tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          return `
+            <tr>
+              <td class="p-2.5 font-extrabold text-slate-900">${escapeHtml(recName)} <span class="text-xs font-normal text-slate-400">(${yieldUnit})</span></td>
+              <td class="text-center p-2.5 font-semibold text-slate-700">${formatNum(row.servingQty)} <span class="text-xs text-slate-400">${servingUnit}</span></td>
+              ${deptCells}
+              <td class="bg-amber-50/45 text-center p-2.5 font-extrabold text-amber-950">${formatNum(calcTotal, 2)} ${yieldUnit}</td>
+              <td class="bg-emerald-50/55 text-center p-2.5 font-extrabold text-emerald-900">${formatNum(cookQty, 2)} ${yieldUnit}</td>
+              <td class="bg-orange-50/45 text-right p-2.5 font-extrabold text-orange-700">${formatCurrency(rowAdjCost)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        tablesHtml += `
+          <div class="glass-card rounded-3xl border border-slate-200/85 shadow-xs overflow-hidden">
+            <div class="px-5 py-3.5 bg-gradient-to-r ${meta.headerBg} border-b border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="px-3.5 py-1 rounded-xl ${meta.badgeBg} text-white text-xs sm:text-sm font-extrabold">${meta.title}</span>
+                <span class="text-xs font-bold text-slate-700 bg-white/80 px-3 py-1 rounded-xl border border-slate-200/80">🔔 Bhoga Ready: ${formatTime12h(mPlan.bhogaTime)}</span>
+                <span class="text-xs font-bold text-slate-700 bg-white/80 px-3 py-1 rounded-xl border border-slate-200/80">🍛 Serving: ${formatTime12h(mPlan.servingTime)}</span>
+              </div>
+              <span class="text-xs font-bold text-slate-500">🔒 Read-Only Archive Snapshot</span>
+            </div>
+            <div class="p-4 sm:p-5">
+              <div class="modern-table-wrap">
+                <div class="overflow-x-auto">
+                  <table class="sheet-table text-sm">
+                    <thead>
+                      <tr class="bg-slate-50/90 text-slate-700">
+                        <th class="text-left font-extrabold text-slate-800 min-w-[180px]">Dish (${escapeHtml(meta.shortCode)})</th>
+                        <th class="text-center font-bold text-xs uppercase text-slate-500 w-28">Std Serving</th>
+                        ${deptHeaderCells}
+                        <th class="bg-amber-50/70 text-center font-bold text-xs uppercase text-amber-900 w-32">Calculated Qty</th>
+                        <th class="bg-emerald-50/75 text-center font-bold text-xs uppercase text-emerald-950 w-36">Cooked Yield</th>
+                        <th class="bg-orange-50/60 text-right font-bold text-xs uppercase text-orange-900 w-36">Frozen Adj. Cost</th>
+                      </tr>
+                      <tr class="bg-slate-50/40">
+                        <th class="text-left text-xs text-slate-400">Read-only record</th>
+                        <th class="text-center text-[11px] text-slate-400">per person</th>
+                        ${deptCountCells}
+                        <th class="bg-amber-50/50 text-center font-extrabold text-amber-950 text-sm">${totalHeadcount} <span class="text-[10px] font-normal block">total people</span></th>
+                        <th class="bg-emerald-50/60 text-center text-xs font-bold text-emerald-800">Final Cook</th>
+                        <th class="bg-orange-50/40 text-right text-[11px] font-semibold text-orange-800">${Number(record.kitchenMultiplierSnapshot || 1.2).toFixed(2)}x Mult</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${dishRowsHtml || `<tr><td colspan="${deptCols.length + 5}" class="py-6 text-center text-slate-400">No dishes recorded for this meal.</td></tr>`}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      contentEl.innerHTML = `
+        <div class="space-y-6">
+          ${tablesHtml}
+          ${recipeCardsHtml ? `
+            <div class="glass-card rounded-3xl border border-slate-200/85 p-5 space-y-3">
+              <h3 class="text-base font-extrabold text-slate-900">Archived Recipe & Ingredient Cost Breakdown (Frozen Rates as of ${escapeHtml(formattedDate)})</h3>
+              <p class="text-xs text-slate-500">Click any dish below to view the exact ingredient quantities and frozen purchase rates used on this date.</p>
+              <div class="space-y-2.5">${recipeCardsHtml}</div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // TAB 6: ACCOUNTS (Sub-Tabs: a) Expenses, b) Revenue, c) Claims)
+    // =========================================================================
+    function switchAccountsSubTab(subTab) {
+      if (!['expenses', 'revenue', 'claims'].includes(subTab)) subTab = 'expenses';
+      state.accountsSubTab = subTab;
+      ['expenses', 'revenue', 'claims'].forEach(st => {
+        const panel = document.getElementById(`accSubPanel-${st}`);
+        const btn = document.getElementById(`accSubBtn-${st}`);
+        if (panel) panel.classList.toggle('hidden', st !== subTab);
+        if (btn) {
+          if (st === subTab) {
+            btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 bg-white text-slate-900 shadow-xs border border-slate-200/80';
+          } else {
+            btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+          }
+        }
+      });
+      renderAccountsTab();
+      saveState();
+    }
+
+    function formatDateDDMMYYYY(isoDate) {
+      if (!isoDate) return '—';
+      const parts = isoDate.split('-');
+      if (parts.length !== 3) return isoDate;
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function renderAccountsTab() {
+      if (!state.accounts) state.accounts = { expenses: [], claims: {}, manualRevenue: [] };
+      const subTab = state.accountsSubTab || 'expenses';
+      ['expenses', 'revenue', 'claims'].forEach(st => {
+        const panel = document.getElementById(`accSubPanel-${st}`);
+        const btn = document.getElementById(`accSubBtn-${st}`);
+        if (panel) panel.classList.toggle('hidden', st !== subTab);
+        if (btn) {
+          if (st === subTab) {
+            btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 bg-white text-slate-900 shadow-xs border border-slate-200/80';
+          } else {
+            btn.className = 'px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 text-slate-600 hover:text-slate-900';
+          }
+        }
+      });
+
+      renderAccountsOverviewKpis();
+      renderExpensesSubTab();
+      renderClaimsSubTab();
+      renderRevenueSubTab();
+      updateNavCounts();
+    }
+
+    function renderAccountsOverviewKpis() {
+      const kpiWrap = document.getElementById('accountsKpiOverview');
+      if (!kpiWrap) return;
+
+      const totalExpenses = (state.accounts.expenses || []).reduce((s, e) => s + (Number(e.debit) || 0), 0);
+      const claimsList = Object.values(state.accounts.claims || {});
+      const totalClaimsBilled = claimsList.reduce((s, c) => s + (Number(c.finalChargeableCost) || 0), 0);
+      const totalClaimsPaid = claimsList.reduce((s, c) => {
+        if (c.status === 'paid') return s + (Number(c.finalChargeableCost) || 0);
+        if (c.status === 'partial') return s + (Number(c.paidAmount) || 0);
+        return s;
+      }, 0);
+      const totalClaimsPending = Math.max(0, totalClaimsBilled - totalClaimsPaid);
+      const totalManualRev = (state.accounts.manualRevenue || []).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+      const totalRevenue = totalClaimsPaid + totalManualRev;
+
+      kpiWrap.innerHTML = `
+        <div onclick="switchAccountsSubTab('expenses')" class="p-3.5 rounded-2xl bg-red-50/70 border border-red-200/80 cursor-pointer hover:bg-red-50 transition">
+          <div class="text-[11px] font-bold uppercase text-red-800">a) Total Expenses (Debit)</div>
+          <div class="text-xl font-extrabold text-red-700 mt-0.5">${formatCurrency(totalExpenses)}</div>
+          <div class="text-[11px] text-red-600">${(state.accounts.expenses || []).length} manual entries</div>
+        </div>
+        <div onclick="switchAccountsSubTab('revenue')" class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 cursor-pointer hover:bg-emerald-50 transition">
+          <div class="text-[11px] font-bold uppercase text-emerald-800">b) Total Realized Revenue</div>
+          <div class="text-xl font-extrabold text-emerald-700 mt-0.5">${formatCurrency(totalRevenue)}</div>
+          <div class="text-[11px] text-emerald-700">Claims Paid: ${formatCurrency(totalClaimsPaid)} + Manual: ${formatCurrency(totalManualRev)}</div>
+        </div>
+        <div onclick="switchAccountsSubTab('claims')" class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/80 cursor-pointer hover:bg-blue-50 transition">
+          <div class="text-[11px] font-bold uppercase text-blue-800">c) Total Dept Claims Billed</div>
+          <div class="text-xl font-extrabold text-blue-800 mt-0.5">${formatCurrency(totalClaimsBilled)}</div>
+          <div class="text-[11px] text-blue-700">${claimsList.length} chargeable dept records from History</div>
+        </div>
+        <div onclick="switchAccountsSubTab('claims')" class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 cursor-pointer hover:bg-amber-50 transition">
+          <div class="text-[11px] font-bold uppercase text-amber-900">Pending Claims Receivable</div>
+          <div class="text-xl font-extrabold text-amber-700 mt-0.5">${formatCurrency(totalClaimsPending)}</div>
+          <div class="text-[11px] text-amber-800">Balance yet to be collected</div>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // SUB-TAB A: EXPENSES FUNCTIONS
+    // -------------------------------------------------------------------------
+    function getExpenseTypeBadgeClass(type) {
+      const map = {
+        'Bulk - Grocery': 'bg-amber-100 text-amber-900 border-amber-300',
+        'Bulk - Vegetable': 'bg-emerald-100 text-emerald-900 border-emerald-300',
+        'Petty - Grocery': 'bg-orange-50 text-orange-800 border-orange-200',
+        'Petty - Vegetable': 'bg-teal-50 text-teal-800 border-teal-200',
+        'Fruits': 'bg-rose-50 text-rose-800 border-rose-200',
+        'Maintenance': 'bg-purple-50 text-purple-800 border-purple-200',
+        'Salaries': 'bg-blue-100 text-blue-900 border-blue-300',
+        'Gas Cylinders': 'bg-red-100 text-red-900 border-red-300',
+        'Others': 'bg-slate-100 text-slate-800 border-slate-300'
+      };
+      return map[type] || 'bg-slate-100 text-slate-800 border-slate-200';
+    }
+
+    function renderExpensesSubTab() {
+      const tbody = document.getElementById('expensesTableBody');
+      const tfoot = document.getElementById('expensesTableFoot');
+      if (!tbody || !tfoot) return;
+
+      const dateFrom = document.getElementById('expFilterDateFrom')?.value || '';
+      const dateTo = document.getElementById('expFilterDateTo')?.value || '';
+      const typeFilter = document.getElementById('expFilterType')?.value || 'ALL';
+      const minPriceRaw = document.getElementById('expFilterMinPrice')?.value;
+      const maxPriceRaw = document.getElementById('expFilterMaxPrice')?.value;
+      const searchQ = (document.getElementById('expFilterSearch')?.value || '').trim().toLowerCase();
+
+      const minPrice = minPriceRaw !== '' && minPriceRaw !== undefined ? Number(minPriceRaw) : null;
+      const maxPrice = maxPriceRaw !== '' && maxPriceRaw !== undefined ? Number(maxPriceRaw) : null;
+
+      const list = (state.accounts.expenses || []).filter(item => {
+        if (dateFrom && item.date < dateFrom) return false;
+        if (dateTo && item.date > dateTo) return false;
+        if (typeFilter !== 'ALL' && item.type !== typeFilter) return false;
+        const amt = Number(item.debit) || 0;
+        if (minPrice !== null && amt < minPrice) return false;
+        if (maxPrice !== null && amt > maxPrice) return false;
+        if (searchQ && !(item.particulars || '').toLowerCase().includes(searchQ) && !(item.type || '').toLowerCase().includes(searchQ)) return false;
+        return true;
+      }).sort((a, b) => (a.date > b.date ? 1 : -1));
+
+      let totalDebit = 0;
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">No expense entries match the current filters.</td></tr>`;
+      } else {
+        tbody.innerHTML = list.map(item => {
+          const amt = Number(item.debit) || 0;
+          totalDebit += amt;
+          return `
+            <tr class="hover:bg-orange-50/35 transition animate-row-in">
+              <td class="py-3.5 px-5 font-bold text-slate-800 whitespace-nowrap">${formatDateDDMMYYYY(item.date)}</td>
+              <td class="py-3.5 px-5">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${getExpenseTypeBadgeClass(item.type)}">
+                  ${escapeHtml(item.type)}
+                </span>
+              </td>
+              <td class="py-3.5 px-5 font-semibold text-slate-800">${escapeHtml(item.particulars)}</td>
+              <td class="py-3.5 px-5 text-right font-extrabold text-slate-900 whitespace-nowrap">${formatCurrency(amt)}</td>
+              <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                <button onclick="openExpenseModal('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition mr-1">Edit</button>
+                <button onclick="deleteExpenseEntry('${item.id}')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 transition">Del</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      tfoot.innerHTML = `
+        <tr>
+          <td colspan="3" class="py-3.5 px-5 text-right text-slate-700 uppercase text-xs tracking-wider">Total Filtered Debit (${list.length} entries):</td>
+          <td class="py-3.5 px-5 text-right text-base font-extrabold text-red-700">${formatCurrency(totalDebit)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    function addExpenseEntry() {
+      const date = document.getElementById('expAddDate')?.value || '2026-10-15';
+      const type = document.getElementById('expAddType')?.value || 'Bulk - Grocery';
+      const particulars = (document.getElementById('expAddParticulars')?.value || '').trim();
+      const debit = parseFloat(document.getElementById('expAddDebit')?.value);
+
+      if (!date || !particulars) {
+        showToast('Please enter Date and Particulars for the expense', 'error');
+        return;
+      }
+      if (isNaN(debit) || debit < 0) {
+        showToast('Please enter a valid Debit amount', 'error');
+        return;
+      }
+
+      state.accounts.expenses.push({
+        id: 'exp_' + Date.now(),
+        date,
+        type,
+        particulars,
+        debit
+      });
+      document.getElementById('expAddParticulars').value = '';
+      document.getElementById('expAddDebit').value = '';
+      saveState();
+      renderAccountsTab();
+      showToast(`Added expense "${particulars}" (${formatCurrency(debit)})`);
+    }
+
+    function openExpenseModal(expId) {
+      const item = (state.accounts.expenses || []).find(e => e.id === expId);
+      if (!item) return;
+      document.getElementById('expModalId').value = item.id;
+      document.getElementById('expModalDate').value = item.date;
+      document.getElementById('expModalType').value = item.type;
+      document.getElementById('expModalParticulars').value = item.particulars;
+      document.getElementById('expModalDebit').value = item.debit;
+      const m = document.getElementById('expenseModal');
       m.classList.remove('hidden');
       m.classList.add('flex');
     }
 
-    function closeResetModal() {
-      const m = document.getElementById('resetModal');
+    function closeExpenseModal() {
+      const m = document.getElementById('expenseModal');
       m.classList.add('hidden');
       m.classList.remove('flex');
     }
 
-    function confirmResetDemoData() {
-      state = getDefaultState();
-      openDailyRecipeAccordions = {};
+    function saveExpenseModal() {
+      const id = document.getElementById('expModalId').value;
+      const item = (state.accounts.expenses || []).find(e => e.id === id);
+      if (!item) return;
+      const date = document.getElementById('expModalDate').value;
+      const type = document.getElementById('expModalType').value;
+      const particulars = document.getElementById('expModalParticulars').value.trim();
+      const debit = parseFloat(document.getElementById('expModalDebit').value);
+      if (!date || !particulars || isNaN(debit) || debit < 0) {
+        showToast('Please fill all expense fields validly', 'error');
+        return;
+      }
+      item.date = date;
+      item.type = type;
+      item.particulars = particulars;
+      item.debit = debit;
+      closeExpenseModal();
       saveState();
-      closeResetModal();
-      switchTab(state.activeTab);
-      showToast('Restored default Srimati Radharani ki Rasoi data!');
+      renderAccountsTab();
+      showToast('Updated expense entry');
+    }
+
+    function deleteExpenseEntry(expId) {
+      const idx = (state.accounts.expenses || []).findIndex(e => e.id === expId);
+      if (idx === -1) return;
+      state.accounts.expenses.splice(idx, 1);
+      saveState();
+      renderAccountsTab();
+      showToast('Deleted expense entry');
+    }
+
+    function resetExpenseFilters() {
+      ['expFilterDateFrom', 'expFilterDateTo', 'expFilterMinPrice', 'expFilterMaxPrice', 'expFilterSearch'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const t = document.getElementById('expFilterType');
+      if (t) t.value = 'ALL';
+      renderExpensesSubTab();
+    }
+
+    // -------------------------------------------------------------------------
+    // SUB-TAB C: CLAIMS FUNCTIONS (Auto-Fetched from History for Chargeable Depts)
+    // -------------------------------------------------------------------------
+    function renderClaimsSubTab() {
+      const tbody = document.getElementById('claimsTableBody');
+      const tfoot = document.getElementById('claimsTableFoot');
+      const deptFilterEl = document.getElementById('claimFilterDept');
+      if (!tbody || !tfoot) return;
+
+      const allClaims = Object.values(state.accounts.claims || {}).sort((a, b) => (a.date < b.date ? 1 : -1));
+
+      if (deptFilterEl) {
+        const curVal = deptFilterEl.value || 'ALL';
+        const chargeableDepts = state.departments.filter(d => d.chargeable);
+        deptFilterEl.innerHTML = `<option value="ALL">All Chargeable Depts</option>` +
+          chargeableDepts.map(d => `<option value="${d.id}" ${d.id === curVal ? 'selected' : ''}>${escapeHtml(d.name)}</option>`).join('');
+      }
+
+      const dateFrom = document.getElementById('claimFilterDateFrom')?.value || '';
+      const dateTo = document.getElementById('claimFilterDateTo')?.value || '';
+      const deptFilter = document.getElementById('claimFilterDept')?.value || 'ALL';
+      const statusFilter = document.getElementById('claimFilterStatus')?.value || 'ALL';
+      const minCostRaw = document.getElementById('claimFilterMinCost')?.value;
+      const maxCostRaw = document.getElementById('claimFilterMaxCost')?.value;
+      const minCost = minCostRaw !== '' && minCostRaw !== undefined ? Number(minCostRaw) : null;
+      const maxCost = maxCostRaw !== '' && maxCostRaw !== undefined ? Number(maxCostRaw) : null;
+
+      const filtered = allClaims.filter(c => {
+        if (dateFrom && c.date < dateFrom) return false;
+        if (dateTo && c.date > dateTo) return false;
+        if (deptFilter !== 'ALL' && c.deptId !== deptFilter) return false;
+        if (statusFilter !== 'ALL' && c.status !== statusFilter) return false;
+        const fc = Number(c.finalChargeableCost) || 0;
+        if (minCost !== null && fc < minCost) return false;
+        if (maxCost !== null && fc > maxCost) return false;
+        return true;
+      });
+
+      let sumCalc = 0;
+      let sumFinal = 0;
+      let sumPaid = 0;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">No chargeable department claims match the current filters. Click "Update History" in Daily Kitchen to generate claims.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(c => {
+          const calcCost = Number(c.calculatedChargeableCost) || 0;
+          const finalCost = Number(c.finalChargeableCost) || 0;
+          const paidAmt = c.status === 'paid' ? finalCost : (c.status === 'partial' ? (Number(c.paidAmount) || 0) : 0);
+          const balance = Math.max(0, finalCost - paidAmt);
+
+          sumCalc += calcCost;
+          sumFinal += finalCost;
+          sumPaid += paidAmt;
+
+          const dishPills = (c.dishes || []).map(di => `
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 mr-1.5 mb-1" title="Adjusted Cost: ${formatCurrency(di.totalAdjCost)}">
+              <span>🍲 ${escapeHtml(di.name)}:</span>
+              <span class="text-orange-700 font-extrabold">${formatNum(di.totalQty, 2)} ${di.yieldUnit}</span>
+            </span>
+          `).join('');
+
+          const statusBadgeCls = c.status === 'paid'
+            ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+            : (c.status === 'partial' ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-red-50 text-red-800 border-red-200');
+
+          return `
+            <tr class="hover:bg-blue-50/25 transition align-top animate-row-in">
+              <td class="py-3.5 px-4 font-bold text-slate-800 whitespace-nowrap">
+                <div>${formatDateDDMMYYYY(c.date)}</div>
+                <div class="text-[10px] text-slate-400">${c.date}</div>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <span>${c.deptIcon || '🏢'}</span>
+                  <span>${escapeHtml(c.deptName)}</span>
+                </div>
+                <div class="text-[11px] font-bold text-emerald-700 mt-0.5">
+                  Profit Mult: ${Number(c.profitMultiplierSnapshot || 1.2).toFixed(2)}x
+                </div>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="flex flex-wrap">${dishPills}</div>
+                <div class="text-[11px] text-slate-500 mt-1">
+                  Base Adjusted Cost: <strong>${formatCurrency(c.adjustedCostBase || 0)}</strong> (at ${Number(c.kitchenMultiplierSnapshot || 1.2).toFixed(2)}x kitchen mult)
+                </div>
+              </td>
+              <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                <div class="font-extrabold text-slate-900 text-sm">${formatCurrency(calcCost)}</div>
+                <div class="text-[10px] text-slate-500">
+                  ${formatCurrency(c.adjustedCostBase || 0)} × ${Number(c.profitMultiplierSnapshot || 1.2).toFixed(2)}x
+                </div>
+              </td>
+              <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                <div class="inline-flex items-center justify-end gap-1">
+                  <span class="text-xs font-bold text-slate-400">₹</span>
+                  <input type="number" step="1" min="0" value="${finalCost}"
+                    onchange="onClaimFinalCostEdit('${c.id}', this.value)"
+                    class="w-28 px-2.5 py-1.5 text-right text-sm font-extrabold bg-white border-2 border-blue-300 rounded-xl text-blue-950 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Rounded to nearest rupee by default. Click to manually edit Final Chargeable Cost." />
+                </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">
+                  Nearest round-off (Editable)
+                </div>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="space-y-2">
+                  <select onchange="onClaimStatusChange('${c.id}', this.value)" class="w-full px-3 py-1.5 text-xs font-extrabold rounded-xl border ${statusBadgeCls} focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                    <option value="pending" ${c.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+                    <option value="partial" ${c.status === 'partial' ? 'selected' : ''}>🌗 Partially Done</option>
+                    <option value="paid" ${c.status === 'paid' ? 'selected' : ''}>✅ Paid (Full)</option>
+                  </select>
+
+                  ${c.status === 'partial' ? `
+                    <div class="p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 space-y-1">
+                      <label class="block text-[10px] font-extrabold uppercase text-amber-900">Amount Paid So Far (₹):</label>
+                      <input type="number" step="1" min="0" max="${finalCost}" value="${Number(c.paidAmount) || 0}"
+                        onchange="onClaimPaidAmountEdit('${c.id}', this.value)"
+                        class="w-full px-2.5 py-1 text-xs font-extrabold bg-white border border-amber-300 rounded-lg text-slate-900" />
+                      <div class="text-[10px] font-bold text-amber-800 flex justify-between">
+                        <span>Paid: ${formatCurrency(paidAmt)}</span>
+                        <span>Bal: ${formatCurrency(balance)}</span>
+                      </div>
+                    </div>
+                  ` : ''}
+
+                  ${c.status === 'paid' ? `
+                    <div class="text-[11px] font-bold text-emerald-700 flex items-center justify-between px-1">
+                      <span>✓ Synced to Revenue:</span>
+                      <span>${formatCurrency(finalCost)}</span>
+                    </div>
+                  ` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      tfoot.innerHTML = `
+        <tr>
+          <td colspan="3" class="py-3.5 px-4 text-right text-slate-700 uppercase text-xs tracking-wider">Totals (${filtered.length} Claims):</td>
+          <td class="py-3.5 px-4 text-right font-extrabold text-slate-800">${formatCurrency(sumCalc)}</td>
+          <td class="py-3.5 px-4 text-right font-extrabold text-blue-900 text-base">${formatCurrency(sumFinal)}</td>
+          <td class="py-3.5 px-4 text-xs font-extrabold text-emerald-800">
+            Collected: ${formatCurrency(sumPaid)} • Pending: ${formatCurrency(Math.max(0, sumFinal - sumPaid))}
+          </td>
+        </tr>
+      `;
+    }
+
+    function onClaimFinalCostEdit(claimId, newVal) {
+      const c = state.accounts.claims[claimId];
+      if (!c) return;
+      const val = Math.max(0, Math.round(parseFloat(newVal) || 0));
+      c.finalChargeableCost = val;
+      c.finalCostManuallyEdited = true;
+      if (c.status === 'paid') {
+        c.paidAmount = val;
+      }
+      saveState();
+      renderAccountsTab();
+      showToast(`Updated Final Chargeable Cost for ${c.deptName} to ${formatCurrency(val)}`);
+    }
+
+    function onClaimStatusChange(claimId, newStatus) {
+      const c = state.accounts.claims[claimId];
+      if (!c) return;
+      c.status = newStatus;
+      if (newStatus === 'paid') {
+        c.paidAmount = Number(c.finalChargeableCost) || 0;
+      } else if (newStatus === 'pending') {
+        c.paidAmount = 0;
+      } else if (newStatus === 'partial' && (!c.paidAmount || c.paidAmount <= 0 || c.paidAmount >= c.finalChargeableCost)) {
+        c.paidAmount = Math.round((Number(c.finalChargeableCost) || 0) / 2);
+      }
+      saveState();
+      renderAccountsTab();
+      showToast(`Updated ${c.deptName} claim status to "${newStatus.toUpperCase()}" (Revenue updated automatically)`);
+    }
+
+    function onClaimPaidAmountEdit(claimId, newPaidVal) {
+      const c = state.accounts.claims[claimId];
+      if (!c) return;
+      const paid = Math.max(0, parseFloat(newPaidVal) || 0);
+      c.paidAmount = paid;
+      saveState();
+      renderAccountsTab();
+      showToast(`Recorded partial payment of ${formatCurrency(paid)} for ${c.deptName} (Synced to Revenue)`);
+    }
+
+    function resetClaimFilters() {
+      ['claimFilterDateFrom', 'claimFilterDateTo', 'claimFilterMinCost', 'claimFilterMaxCost'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const d = document.getElementById('claimFilterDept');
+      if (d) d.value = 'ALL';
+      const s = document.getElementById('claimFilterStatus');
+      if (s) s.value = 'ALL';
+      renderClaimsSubTab();
+    }
+
+    // -------------------------------------------------------------------------
+    // SUB-TAB B: REVENUE FUNCTIONS (Auto from Claims Paid/Partial + Manual)
+    // -------------------------------------------------------------------------
+    function renderRevenueSubTab() {
+      const tbody = document.getElementById('revenueTableBody');
+      const tfoot = document.getElementById('revenueTableFoot');
+      const addDeptSelect = document.getElementById('revAddDept');
+      const filterDeptSelect = document.getElementById('revFilterDept');
+      if (!tbody || !tfoot) return;
+
+      // Populate ALL departments in both the Manual Entry dropdown and Filter dropdown
+      if (addDeptSelect) {
+        const curAdd = addDeptSelect.value;
+        addDeptSelect.innerHTML = state.departments.map(d =>
+          `<option value="${d.id}" ${d.id === curAdd ? 'selected' : ''}>${escapeHtml(d.name)} (${d.chargeable ? 'Chargeable' : 'Non-Chargeable'})</option>`
+        ).join('');
+      }
+      if (filterDeptSelect) {
+        const curFilt = filterDeptSelect.value || 'ALL';
+        filterDeptSelect.innerHTML = `<option value="ALL">All Departments</option>` +
+          state.departments.map(d => `<option value="${d.id}" ${d.id === curFilt ? 'selected' : ''}>${escapeHtml(d.name)}</option>`).join('');
+      }
+
+      // 1. Gather automatic revenue entries from Claims where status is 'paid' or 'partial' (and amount > 0)
+      const autoClaimRevenues = [];
+      Object.values(state.accounts.claims || {}).forEach(c => {
+        if (c.status === 'paid' || c.status === 'partial') {
+          const amt = c.status === 'paid' ? (Number(c.finalChargeableCost) || 0) : (Number(c.paidAmount) || 0);
+          if (amt > 0) {
+            autoClaimRevenues.push({
+              id: 'claimrev_' + c.id,
+              source: 'CLAIM',
+              claimStatus: c.status,
+              date: c.date,
+              deptId: c.deptId,
+              deptName: c.deptName,
+              menu: c.menuText || (c.dishes || []).map(d => `${d.name} (${formatNum(d.totalQty, 2)} ${d.yieldUnit})`).join(', '),
+              amount: amt
+            });
+          }
+        }
+      });
+
+      // 2. Gather manual revenue entries
+      const manualRevs = (state.accounts.manualRevenue || []).map(m => ({
+        id: m.id,
+        source: 'MANUAL',
+        date: m.date,
+        deptId: m.deptId,
+        deptName: m.deptName || (getDepartmentById(m.deptId)?.name || 'Department'),
+        menu: m.menu,
+        amount: Number(m.amount) || 0
+      }));
+
+      const combined = [...autoClaimRevenues, ...manualRevs].sort((a, b) => (a.date < b.date ? 1 : -1));
+
+      const dateFrom = document.getElementById('revFilterDateFrom')?.value || '';
+      const dateTo = document.getElementById('revFilterDateTo')?.value || '';
+      const deptFilter = document.getElementById('revFilterDept')?.value || 'ALL';
+      const sourceFilter = document.getElementById('revFilterSource')?.value || 'ALL';
+      const minAmtRaw = document.getElementById('revFilterMinAmount')?.value;
+      const maxAmtRaw = document.getElementById('revFilterMaxAmount')?.value;
+      const minAmt = minAmtRaw !== '' && minAmtRaw !== undefined ? Number(minAmtRaw) : null;
+      const maxAmt = maxAmtRaw !== '' && maxAmtRaw !== undefined ? Number(maxAmtRaw) : null;
+
+      const filtered = combined.filter(r => {
+        if (dateFrom && r.date < dateFrom) return false;
+        if (dateTo && r.date > dateTo) return false;
+        if (deptFilter !== 'ALL' && r.deptId !== deptFilter) return false;
+        if (sourceFilter !== 'ALL' && r.source !== sourceFilter) return false;
+        if (minAmt !== null && r.amount < minAmt) return false;
+        if (maxAmt !== null && r.amount > maxAmt) return false;
+        return true;
+      });
+
+      let totalRevenueAmt = 0;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">No revenue entries match the current filters.</td></tr>`;
+      } else {
+        tbody.innerHTML = filtered.map(r => {
+          totalRevenueAmt += r.amount;
+          return `
+            <tr class="hover:bg-emerald-50/30 transition animate-row-in">
+              <td class="py-3.5 px-5 font-bold text-slate-800 whitespace-nowrap">${formatDateDDMMYYYY(r.date)}</td>
+              <td class="py-3.5 px-5 font-extrabold text-slate-900">${escapeHtml(r.deptName)}</td>
+              <td class="py-3.5 px-5 text-slate-700 font-medium">${escapeHtml(r.menu)}</td>
+              <td class="py-3.5 px-5 text-right font-extrabold text-emerald-700 whitespace-nowrap">${formatCurrency(r.amount)}</td>
+              <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                ${r.source === 'CLAIM' ? `
+                  <span onclick="switchAccountsSubTab('claims')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${r.claimStatus === 'paid' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-amber-100 text-amber-900 border border-amber-200'} cursor-pointer" title="Automatically fetched from Claims sub-tab">
+                    <span>⚡ Auto (${r.claimStatus === 'paid' ? 'Paid Claim' : 'Partial Claim'})</span>
+                  </span>
+                ` : `
+                  <div class="inline-flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Manual</span>
+                    <button onclick="deleteManualRevenueEntry('${r.id}')" class="px-2 py-1 rounded-lg text-xs font-bold text-red-600 hover:bg-red-50 transition">Del</button>
+                  </div>
+                `}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      tfoot.innerHTML = `
+        <tr>
+          <td colspan="3" class="py-3.5 px-5 text-right text-slate-700 uppercase text-xs tracking-wider">Total Filtered Revenue (${filtered.length} entries):</td>
+          <td class="py-3.5 px-5 text-right text-base font-extrabold text-emerald-800">${formatCurrency(totalRevenueAmt)}</td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    function addManualRevenueEntry() {
+      const date = document.getElementById('revAddDate')?.value || '2026-10-05';
+      const deptId = document.getElementById('revAddDept')?.value || (state.departments[0]?.id || '');
+      const deptObj = getDepartmentById(deptId);
+      const menu = (document.getElementById('revAddMenu')?.value || '').trim();
+      const amount = parseFloat(document.getElementById('revAddAmount')?.value);
+
+      if (!date || !deptId || !menu) {
+        showToast('Please select Date, Department, and enter Menu description', 'error');
+        return;
+      }
+      if (isNaN(amount) || amount <= 0) {
+        showToast('Please enter a valid positive Revenue Amount', 'error');
+        return;
+      }
+
+      if (!state.accounts.manualRevenue) state.accounts.manualRevenue = [];
+      state.accounts.manualRevenue.push({
+        id: 'mrev_' + Date.now(),
+        date,
+        deptId,
+        deptName: deptObj ? deptObj.name : 'Department',
+        menu,
+        amount
+      });
+      document.getElementById('revAddMenu').value = '';
+      document.getElementById('revAddAmount').value = '';
+      saveState();
+      renderAccountsTab();
+      showToast(`Added manual revenue of ${formatCurrency(amount)} for ${deptObj ? deptObj.name : 'Department'}`);
+    }
+
+    function deleteManualRevenueEntry(revId) {
+      const idx = (state.accounts.manualRevenue || []).findIndex(r => r.id === revId);
+      if (idx === -1) return;
+      state.accounts.manualRevenue.splice(idx, 1);
+      saveState();
+      renderAccountsTab();
+      showToast('Deleted manual revenue entry');
+    }
+
+    function resetRevenueFilters() {
+      ['revFilterDateFrom', 'revFilterDateTo', 'revFilterMinAmount', 'revFilterMaxAmount'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      const d = document.getElementById('revFilterDept');
+      if (d) d.value = 'ALL';
+      const s = document.getElementById('revFilterSource');
+      if (s) s.value = 'ALL';
+      renderRevenueSubTab();
     }
 
     // Initialize App on Load
     window.addEventListener('DOMContentLoaded', () => {
+      ensureInitialHistorySnapshots();
       if (state.bgOpacity !== undefined) {
         const slider = document.getElementById('bgOpacitySlider');
         if (slider) slider.value = state.bgOpacity;
