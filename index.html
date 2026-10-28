@@ -689,15 +689,22 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2.5">
-            <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Archived Date</label>
-              <select id="historyDateSelect" onchange="onHistoryDateSelect(this.value)" class="px-3.5 py-2 text-xs sm:text-sm font-extrabold bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 min-w-[210px]">
-                <!-- Populated by JS -->
-              </select>
+            <!-- Beautified Custom Date Picker Trigger Button for History Tab -->
+            <div class="relative">
+              <button type="button" onclick="openCustomDatePicker(event, 'history')" class="inline-flex items-center gap-2.5 bg-white hover:bg-orange-50/60 px-3.5 py-2 rounded-xl border border-slate-200/90 shadow-2xs transition cursor-pointer group">
+                <span class="w-7 h-7 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center text-sm group-hover:scale-105 transition">📅</span>
+                <div class="text-left">
+                  <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none">History Date</div>
+                  <div id="historyDatePrettyLabel" class="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">Sun, 04 Oct 2026</div>
+                </div>
+                <span class="text-slate-400 text-xs ml-1">▾</span>
+              </button>
+              <input id="historyDatePicker" type="hidden" value="" />
             </div>
-            <div>
-              <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Filter Meal</label>
-              <select id="historyMealFilter" onchange="renderHistoryTab()" class="px-3 py-2 text-xs sm:text-sm font-bold bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+
+            <div class="inline-flex items-center gap-2 bg-white px-3.5 py-2.5 rounded-xl border border-slate-200/90 shadow-2xs">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Filter Meal:</span>
+              <select id="historyMealFilter" onchange="renderHistoryTab()" class="text-xs sm:text-sm font-bold bg-transparent text-slate-700 focus:outline-none cursor-pointer">
                 <option value="ALL">All Meals</option>
                 <option value="breakfast">Breakfast (BF)</option>
                 <option value="lunch">Lunch</option>
@@ -706,11 +713,12 @@
                 <option value="journey">Journey Prasad</option>
               </select>
             </div>
-            <div class="pt-4 flex items-center gap-2">
-              <button onclick="triggerGoogleSheetBackupOrModal()" class="px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5" title="Backup History & Accounts to Google Sheet Archive">
+
+            <div class="flex items-center gap-2">
+              <button onclick="triggerGoogleSheetBackupOrModal()" class="px-3.5 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5" title="Backup History & Accounts to Google Sheet Archive">
                 <span>📊</span> <span>Backup to Google Sheet</span>
               </button>
-              <button onclick="openHistoryDateInDailyKitchen()" class="px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-bold transition cursor-pointer" title="Open this date in Daily Kitchen to make edits and re-update History">
+              <button onclick="openHistoryDateInDailyKitchen()" class="px-3.5 py-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-bold transition cursor-pointer" title="Open this date in Daily Kitchen to make edits and re-update History">
                 ✏️ Edit in Daily Kitchen →
               </button>
             </div>
@@ -1378,7 +1386,7 @@
     <div class="bg-white rounded-3xl border border-orange-200/90 shadow-2xl max-w-sm w-full overflow-hidden animate-popover">
       <div class="px-5 py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white flex items-center justify-between">
         <div>
-          <div class="text-[10px] font-bold uppercase tracking-wider text-orange-100">Kitchen Production Date</div>
+          <div id="dpHeaderSubtitle" class="text-[10px] font-bold uppercase tracking-wider text-orange-100">Kitchen Production Date</div>
           <h4 id="dpHeaderSelectedText" class="text-base font-extrabold mt-0.5">Sun, Oct 4, 2026</h4>
         </div>
         <button type="button" onclick="closeCustomDatePicker()" class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-xs font-bold">✕</button>
@@ -2650,8 +2658,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (!s.history || typeof s.history !== 'object') s.history = {};
       Object.keys(s.history).forEach(d => { s.history[d] = pruneHistoryRecord(s.history[d]); });
       const histDates = Object.keys(s.history).sort().reverse();
-      if (!s.selectedHistoryDate || !s.history[s.selectedHistoryDate]) {
-        s.selectedHistoryDate = histDates[0] || '';
+      if (!s.selectedHistoryDate) {
+        s.selectedHistoryDate = histDates[0] || getTodayDateISO();
       }
 
       if (!s.accounts || typeof s.accounts !== 'object') {
@@ -4088,9 +4096,15 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    function openCustomDatePicker(evt) {
+    let dpTargetMode = 'daily';
+
+    function openCustomDatePicker(evt, mode = 'daily') {
       if (evt) evt.stopPropagation();
-      const cur = state.selectedDailyDate || getTomorrowDateISO();
+      dpTargetMode = mode === 'history' ? 'history' : 'daily';
+      const fallbackHistDate = Object.keys(state.history || {}).sort().reverse()[0] || getTodayDateISO();
+      const cur = dpTargetMode === 'history'
+        ? (state.selectedHistoryDate || fallbackHistDate)
+        : (state.selectedDailyDate || getTomorrowDateISO());
       const [y, m] = cur.split('-').map(Number);
       dpYear = y || new Date().getFullYear();
       dpMonth = (m ? m - 1 : new Date().getMonth());
@@ -4122,8 +4136,15 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function renderCustomDatePickerUI() {
-      const cur = state.selectedDailyDate || getTomorrowDateISO();
+      const fallbackHistDate = Object.keys(state.history || {}).sort().reverse()[0] || getTodayDateISO();
+      const cur = dpTargetMode === 'history'
+        ? (state.selectedHistoryDate || fallbackHistDate)
+        : (state.selectedDailyDate || getTomorrowDateISO());
       const curObj = new Date(cur + 'T00:00:00');
+      const sub = document.getElementById('dpHeaderSubtitle');
+      if (sub) {
+        sub.textContent = dpTargetMode === 'history' ? 'Archived History Date' : 'Kitchen Production Date';
+      }
       const hdr = document.getElementById('dpHeaderSelectedText');
       if (hdr) {
         hdr.textContent = curObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
@@ -4145,7 +4166,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       for (let d = 1; d <= daysInMonth; d++) {
         const dStr = `${dpYear}-${String(dpMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const isSel = dStr === cur;
-        const hasPlan = Boolean(state.dailyPlans[dStr] || state.calendarDays[dStr]);
+        const hasIndicator = dpTargetMode === 'history'
+          ? Boolean(state.history && state.history[dStr])
+          : Boolean(state.dailyPlans[dStr] || state.calendarDays[dStr]);
+        const dotColor = isSel
+          ? 'bg-white'
+          : (dpTargetMode === 'history' ? 'bg-emerald-500' : 'bg-orange-400');
         html += `
           <button type="button" onclick="selectCustomDateAndClose('${dStr}')" class="h-9 rounded-xl text-xs font-bold flex flex-col items-center justify-center relative transition ${
             isSel
@@ -4153,7 +4179,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               : 'hover:bg-orange-50 text-slate-700'
           }">
             <span>${d}</span>
-            ${hasPlan ? `<span class="w-1 h-1 rounded-full ${isSel ? 'bg-white' : 'bg-orange-400'} mt-0.5"></span>` : ''}
+            ${hasIndicator ? `<span class="w-1.5 h-1.5 rounded-full ${dotColor} mt-0.5"></span>` : ''}
           </button>
         `;
       }
@@ -4162,7 +4188,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function selectCustomDateAndClose(dateStr) {
       closeCustomDatePicker();
-      onDailyDateChange(dateStr);
+      if (dpTargetMode === 'history') {
+        onHistoryDateSelect(dateStr);
+      } else {
+        onDailyDateChange(dateStr);
+      }
     }
 
     // =========================================================================
@@ -6178,9 +6208,51 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       renderDailyKitchenTab();
     }
 
+    // Track whether any Daily Kitchen changes have not yet been updated into History
+    let hasUnsavedDailyKitchenChanges = false;
+
+    function markDailyKitchenDirty(dateStr) {
+      hasUnsavedDailyKitchenChanges = true;
+      const d = dateStr || state.selectedDailyDate || getTomorrowDateISO();
+      if (d && state.dailyPlans && state.dailyPlans[d]) {
+        state.dailyPlans[d].userModified = true;
+        state.dailyPlans[d].hasUnarchivedChanges = true;
+      }
+    }
+
+    function hasAnyUnarchivedDailyKitchenChanges() {
+      if (hasUnsavedDailyKitchenChanges) return true;
+      if (state.dailyPlans && typeof state.dailyPlans === 'object') {
+        return Object.values(state.dailyPlans).some(p => p && p.hasUnarchivedChanges === true);
+      }
+      return false;
+    }
+
+    window.addEventListener('beforeunload', function (e) {
+      if (hasAnyUnarchivedDailyKitchenChanges()) {
+        const msg = 'You have changes in the Daily Kitchen tab that are not updated into History yet. Are you sure you want to reload or close the browser?';
+        e.preventDefault();
+        e.returnValue = msg;
+        return msg;
+      }
+    });
+
+    function untickFastingInDaily(dateStr, mealKey) {
+      if (state.dailyPlans[dateStr]?.meals?.[mealKey]) {
+        state.dailyPlans[dateStr].meals[mealKey].fasting = false;
+      }
+      if (state.calendarDays[dateStr]?.[mealKey]) {
+        state.calendarDays[dateStr][mealKey].fasting = false;
+      }
+      markDailyKitchenDirty(dateStr);
+      saveState();
+      renderDailyKitchenTab();
+    }
+
     function enableExtraMealInDaily(mealKey) {
       const plan = ensureDailyPlanForDate(state.selectedDailyDate);
       plan.meals[mealKey].enabled = true;
+      markDailyKitchenDirty(state.selectedDailyDate);
       saveState();
       renderDailyKitchenTab();
       showToast(`Enabled "${mealKey === 'order' ? 'Order' : 'Journey Prasad'}" meal table for ${state.selectedDailyDate}`);
@@ -6284,7 +6356,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                   <p class="text-xs text-indigo-800 mt-0.5">As marked in the Monthly Menu Calendar for ${escapeHtml(formattedDate)}, no regular meal table is generated for ${meta.title}.</p>
                 </div>
               </div>
-              <button onclick="if(state.dailyPlans['${dateStr}']?.meals?.['${meta.key}']) state.dailyPlans['${dateStr}'].meals['${meta.key}'].fasting = false; if(state.calendarDays['${dateStr}']?.['${meta.key}']) state.calendarDays['${dateStr}']['${meta.key}'].fasting = false; saveState(); renderDailyKitchenTab();" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs font-bold transition no-print cursor-pointer">
+              <button onclick="untickFastingInDaily('${dateStr}', '${meta.key}')" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs font-bold transition no-print cursor-pointer">
                 Untick Fasting & Enable Table
               </button>
             </div>
@@ -6508,7 +6580,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     // Daily Table Edit Handlers (persisted in local browser cache via saveState)
     function onDailyMealTimeEdit(dateStr, mealKey, field, val) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       plan.meals[mealKey][field] = val;
       const calDay = getSavedCalendarDay(dateStr);
       if (calDay && calDay[mealKey]) calDay[mealKey][field] = val;
@@ -6580,7 +6652,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyDeptSelect(dateStr, mealKey, colIdx, newDeptId) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.deptId = newDeptId;
@@ -6603,7 +6675,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyDeptLabelEdit(dateStr, mealKey, colIdx, newLabel) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.customLabel = newLabel;
@@ -6613,7 +6685,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyDeptCountEdit(dateStr, mealKey, colIdx, newCount) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.count = Math.max(0, parseFloat(newCount) || 0);
@@ -6627,7 +6699,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function addDailyDeptCol(dateStr, mealKey) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const hasDepts = Array.isArray(state.departments) && state.departments.length > 0;
       const nextDept = hasDepts
         ? (state.departments[plan.meals[mealKey].deptCols.length % state.departments.length] || state.departments[0])
@@ -6648,7 +6720,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeDailyDeptCol(dateStr, mealKey, colIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const cols = plan.meals[mealKey].deptCols;
       if (!cols || cols.length === 0) return;
       const removed = cols.splice(colIdx, 1)[0];
@@ -6665,7 +6737,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function addDailyDishRow(dateStr, mealKey) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const rec = state.recipes[0];
       if (!rec) return;
       const totalPeople = plan.meals[mealKey].deptCols.reduce((s, c) => s + (Number(c.count) || 0), 0);
@@ -6683,7 +6755,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeDailyDishRow(dateStr, mealKey, rowIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       plan.meals[mealKey].rows.splice(rowIdx, 1);
       saveState();
       renderDailyKitchenTab();
@@ -6691,7 +6763,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowRecipeChange(dateStr, mealKey, rowIdx, newRecId) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       const rec = getRecipeById(newRecId);
       if (!row || !rec) return;
@@ -6707,7 +6779,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowServingQtyChange(dateStr, mealKey, rowIdx, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.servingQty = Math.max(0, parseFloat(newVal) || 0);
@@ -6719,7 +6791,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyCellOverride(dateStr, mealKey, rowIdx, colId, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       if (!row.overrides) row.overrides = {};
@@ -6731,7 +6803,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function clearDailyCellOverride(dateStr, mealKey, rowIdx, colId) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row || !row.overrides) return;
       delete row.overrides[colId];
@@ -6742,7 +6814,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowCalcOverride(dateStr, mealKey, rowIdx, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.calcOverride = Math.max(0, parseFloat(newVal) || 0);
@@ -6752,7 +6824,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function clearDailyRowCalcOverride(dateStr, mealKey, rowIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.calcOverride = null;
@@ -6762,7 +6834,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowAdjustedQtyChange(dateStr, mealKey, rowIdx, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
-      plan.userModified = true;
+      markDailyKitchenDirty(dateStr);
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.adjustedQty = Math.max(0, parseFloat(newVal) || 0);
@@ -7338,6 +7410,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
       const dateStr = state.selectedDailyDate || getTomorrowDateISO();
       const plan = ensureDailyPlanForDate(dateStr, false);
+      plan.hasUnarchivedChanges = false;
+      hasUnsavedDailyKitchenChanges = Object.values(state.dailyPlans || {}).some(p => p && p.hasUnarchivedChanges === true);
       const record = pruneHistoryRecord(buildHistoryRecordForDate(dateStr, plan));
       if (!state.history) state.history = {};
       state.history[dateStr] = record;
@@ -7390,44 +7464,45 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function renderHistoryTab() {
-      const selectEl = document.getElementById('historyDateSelect');
-            const kpiEl = document.getElementById('historyKpiStrip');
+      const kpiEl = document.getElementById('historyKpiStrip');
       const contentEl = document.getElementById('historyContentContainer');
-      if (!selectEl || !contentEl) return;
+      if (!contentEl) return;
 
       const dates = Object.keys(state.history || {}).sort().reverse();
-      if (dates.length === 0) {
-        selectEl.innerHTML = `<option value="">No archived dates yet</option>`;
-                if (kpiEl) kpiEl.innerHTML = '';
+      if (!state.selectedHistoryDate) {
+        state.selectedHistoryDate = dates.length > 0 ? dates[0] : getTodayDateISO();
+      }
+      const activeDate = state.selectedHistoryDate;
+      const dateObj = new Date(activeDate + 'T00:00:00');
+      const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+      const shortPrettyDate = dateObj.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+
+      const prettyLbl = document.getElementById('historyDatePrettyLabel');
+      if (prettyLbl) prettyLbl.textContent = shortPrettyDate;
+      const hiddenPicker = document.getElementById('historyDatePicker');
+      if (hiddenPicker) hiddenPicker.value = activeDate;
+
+      const record = state.history ? state.history[activeDate] : null;
+      if (!record) {
+        if (kpiEl) kpiEl.innerHTML = '';
         contentEl.innerHTML = `
           <div class="glass-card rounded-3xl border border-slate-200 p-10 text-center space-y-3">
             <div class="text-4xl">📜</div>
-            <h3 class="text-base font-extrabold text-slate-900">No Cooking History Recorded Yet</h3>
+            <h3 class="text-base font-extrabold text-slate-900">History is not generated for this date yet</h3>
             <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-              Go to the <strong>Daily Kitchen</strong> tab, review your department quantities and adjusted cooking yields, and click <strong>"💾 Update History"</strong> to archive a day's cooking.
+              No cooking history has been generated for <strong>${escapeHtml(formattedDate)}</strong> (${escapeHtml(activeDate)}). Go to the <strong>Daily Kitchen</strong> tab, review your department quantities and cooked yields, and click <strong>"💾 Update History"</strong> to archive this day's cooking.
             </p>
+            <div class="pt-2">
+              <button onclick="openHistoryDateInDailyKitchen()" class="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs transition cursor-pointer">
+                Open ${escapeHtml(shortPrettyDate)} in Daily Kitchen →
+              </button>
+            </div>
           </div>
         `;
         return;
       }
 
-      if (!state.selectedHistoryDate || !state.history[state.selectedHistoryDate]) {
-        state.selectedHistoryDate = dates[0];
-      }
-      const activeDate = state.selectedHistoryDate;
-      const record = state.history[activeDate];
       const mealFilter = document.getElementById('historyMealFilter')?.value || 'ALL';
-
-      selectEl.innerHTML = dates.map(d => {
-        const dObj = new Date(d + 'T00:00:00');
-        const lbl = dObj.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-        return `<option value="${d}" ${d === activeDate ? 'selected' : ''}>${lbl} (${d})</option>`;
-      }).join('');
-
-
-
-      const dateObj = new Date(activeDate + 'T00:00:00');
-      const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
       const updatedTimeStr = record.updatedAt ? new Date(record.updatedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Archived';
       const vEvent = getVaishnavaEvent(activeDate);
 
