@@ -241,9 +241,14 @@
           <span id="headerMultiplierVal" class="font-bold">1.20x active</span>
         </button>
 
-        <button id="cloudSyncStatusBtn" onclick="openSupabaseModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition cursor-pointer" title="Connect or check Supabase Cloud Database Sync">
+        <button id="cloudSyncStatusBtn" onclick="openSupabaseModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition cursor-pointer" title="Production 10-Table Supabase Cloud Database Sync">
           <span>☁️</span>
-          <span id="cloudSyncStatusText">Connect Cloud DB</span>
+          <span id="cloudSyncStatusText">Cloud Sync Active</span>
+        </button>
+
+        <button id="gsheetBackupStatusBtn" onclick="openGoogleSheetModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-50/90 text-teal-800 border border-teal-200/80 hover:bg-teal-100 transition cursor-pointer" title="Automated Daily Google Sheets Archive Backup for History & Accounts">
+          <span>📊</span>
+          <span id="gsheetBackupStatusText">G-Sheet Backup</span>
         </button>
 
 
@@ -609,7 +614,10 @@
                 <option value="journey">Journey Prasad</option>
               </select>
             </div>
-            <div class="pt-4">
+            <div class="pt-4 flex items-center gap-2">
+              <button onclick="triggerGoogleSheetBackupOrModal()" class="px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5" title="Backup History & Accounts to Google Sheet Archive">
+                <span>📊</span> <span>Backup to Google Sheet</span>
+              </button>
               <button onclick="openHistoryDateInDailyKitchen()" class="px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200 text-xs font-bold transition cursor-pointer" title="Open this date in Daily Kitchen to make edits and re-update History">
                 ✏️ Edit in Daily Kitchen →
               </button>
@@ -651,8 +659,12 @@
             </p>
           </div>
 
-          <!-- 3 Sub-Tabs Switcher -->
-          <div class="inline-flex p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 gap-1">
+          <!-- 3 Sub-Tabs Switcher + Google Sheet Archive Button -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="triggerGoogleSheetBackupOrModal()" class="px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-900 border border-teal-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5" title="Backup History & Accounts to Google Sheet Archive">
+              <span>📊</span> <span>G-Sheet Archive Backup</span>
+            </button>
+            <div class="inline-flex p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 gap-1">
             <button id="accSubBtn-expenses" onclick="switchAccountsSubTab('expenses')" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5">
               <span>🧾</span> <span>a) Expenses</span>
             </button>
@@ -663,6 +675,7 @@
               <span>🏛️</span> <span>c) Claims</span>
               <span id="navBadge-pendingClaims" class="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-200 text-amber-900 font-extrabold">0</span>
             </button>
+            </div>
           </div>
         </div>
 
@@ -1158,6 +1171,70 @@
           </div>
         </div>
       </div>
+
+      <!-- PART C: PRODUCTION DATA ARCHITECTURE (10-TABLE SUPABASE) & GOOGLE SHEETS DAILY ARCHIVE -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-4 border-t border-slate-200/70">
+        <!-- Card 1: Supabase 10-Table Normalized Architecture -->
+        <div class="lg:col-span-6 glass-card rounded-2xl border border-emerald-200/90 shadow-xs overflow-hidden">
+          <div class="p-5 bg-gradient-to-r from-emerald-50/90 to-teal-50/60 border-b border-emerald-100 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Enterprise Database Engine</div>
+              <h3 class="text-base font-extrabold text-slate-900 mt-0.5">☁️ Supabase 10-Table Granular Sync</h3>
+            </div>
+            <span id="settingsDbModeBadge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300">
+              Checking...
+            </span>
+          </div>
+          <div class="p-5 space-y-4 text-xs text-slate-600">
+            <p class="leading-relaxed">
+              Instead of sending the entire dashboard inside one giant JSON row on every click, <strong>Normalized 10-Table Mode</strong> stores each domain in its own dedicated PostgreSQL table (<code>kitchen_ingredients</code>, <code>kitchen_recipes</code>, <code>kitchen_departments</code>, <code>kitchen_calendar_days</code>, <code>kitchen_daily_plans</code>, <code>kitchen_history</code>, <code>kitchen_expenses</code>, <code>kitchen_claims</code>, <code>kitchen_manual_revenue</code>, <code>kitchen_settings</code>) and only syncs the single row you edited.
+            </p>
+            <div id="settingsDbTelemetryBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 font-mono text-[11px] text-slate-700">
+              Last Sync: Ready
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 pt-1">
+              <button onclick="openSupabaseModal()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs hover-lift cursor-pointer">
+                ⚙️ Open 10-Table SQL Setup & Migration
+              </button>
+              <button onclick="migrateStateToNormalizedTables(true)" class="px-3.5 py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs transition cursor-pointer">
+                🚀 Push All Data to 10 Tables Now
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Automated Daily Google Sheets Archive Backup -->
+        <div class="lg:col-span-6 glass-card rounded-2xl border border-teal-200/90 shadow-xs overflow-hidden">
+          <div class="p-5 bg-gradient-to-r from-teal-50/90 to-cyan-50/60 border-b border-teal-100 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-teal-700">Permanent Disaster-Recovery Archive</div>
+              <h3 class="text-base font-extrabold text-slate-900 mt-0.5">📊 Daily Google Sheets Backup (History & Accounts)</h3>
+            </div>
+            <span id="settingsGsheetBadge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-teal-100 text-teal-900 border border-teal-300">
+              Not Configured
+            </span>
+          </div>
+          <div class="p-5 space-y-4 text-xs text-slate-600">
+            <p class="leading-relaxed">
+              Automatically backs up your <strong>History</strong> and <strong>Accounts</strong> (<code>Expenses</code>, <code>Claims</code>, <code>Revenue</code>) once every day (and whenever <em>"Update History"</em> is clicked) into 4 permanent tabs inside your Google Sheet. New rows are appended forever and old rows are never deleted.
+            </p>
+            <div id="settingsGsheetLastSyncBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 font-mono text-[11px] text-slate-700">
+              Last Google Sheet Backup: Never
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 pt-1">
+              <button onclick="openGoogleSheetModal()" class="px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-xs hover-lift cursor-pointer">
+                📊 Configure Google Sheet Auto-Backup
+              </button>
+              <button onclick="backupToGoogleSheetNow(true)" class="px-3.5 py-2.5 rounded-xl bg-white hover:bg-teal-50 text-teal-800 border border-teal-200 font-bold text-xs transition cursor-pointer">
+                📤 Backup Now
+              </button>
+              <button onclick="exportHistoryAndAccountsCSV()" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                📥 Download CSV Archive
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -1467,40 +1544,182 @@
     </div>
   </div>
 
-  <!-- 5. Supabase Cloud Sync Setup Modal -->
-  <div id="supabaseModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden animate-modal-in">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+  <!-- 5. Supabase Production 10-Table Cloud Sync & Migration Modal -->
+  <div id="supabaseModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-5 no-print" onclick="if(event.target===this) closeSupabaseModal()">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-modal-in">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50">
         <div>
-          <h3 class="text-base font-bold text-slate-900">☁️ Connect Supabase Cloud Database</h3>
-          <p class="text-xs text-slate-500">Syncs ingredients, recipes, calendar & daily plans across all phones and laptops.</p>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">☁️ Production Supabase Cloud Database Architecture</h3>
+            <span id="sbModalModeBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300">Active</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-0.5">Hardcoded with your Srimati Radharani ki Rasoi Supabase credentials & 10-table row-level sync engine.</p>
         </div>
         <button onclick="closeSupabaseModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
       </div>
-      <div class="p-6 space-y-4">
-        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
-          <div class="font-bold">Where to find these 2 values in Supabase:</div>
-          <div>1. Open your Supabase project dashboard and click the <strong>Connect</strong> button at the top (or go to <strong>Project Settings ⚙️ → API</strong>).</div>
-          <div>2. Copy your <strong>Project URL</strong> and <strong>anon public</strong> key and paste them below.</div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <!-- Architecture Status Banner -->
+        <div id="sbModalArchExplainer" class="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-emerald-950 space-y-2">
+          <div class="font-extrabold text-sm flex items-center justify-between">
+            <span>🚀 Why 10 Normalized Tables vs. 1 Single JSON Row?</span>
+            <span id="sbLastGranularSyncLabel" class="font-mono text-[11px] bg-white px-2.5 py-0.5 rounded-lg border border-emerald-200 text-emerald-800">Ready</span>
+          </div>
+          <p class="text-emerald-900 leading-relaxed">
+            In production apps with thousands of ingredients, hundreds of recipes, and years of History & Accounts, storing everything in 1 row (<code>kitchen_state</code>) re-uploads megabytes of data on every single click.
+            Our <strong>10-Table Production Engine</strong> splits your data into 10 dedicated tables so editing 1 ingredient or adding 1 expense only sends <strong>that single row (~150 bytes)</strong>!
+          </p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">1. Supabase Project URL</label>
-          <input id="sbUrlInput" type="text" placeholder="https://your-project-id.supabase.co" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono" />
+
+        <!-- Step 1: 1-Click SQL Schema Copy & Migration -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="font-extrabold text-slate-900 text-xs sm:text-sm">Step 1: Create the 10 Production Tables in Supabase (One-Time Setup)</div>
+              <div class="text-slate-500">Copy the SQL below → Open <strong>Supabase Dashboard → SQL Editor → New Query</strong> → Paste & click <strong>Run</strong>.</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="copyNormalizedSupabaseSQL()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition cursor-pointer">
+                📋 Copy 10-Table SQL Script
+              </button>
+              <button type="button" onclick="migrateStateToNormalizedTables(true)" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer">
+                🚀 Migrate & Activate 10 Tables
+              </button>
+            </div>
+          </div>
+          <details class="group">
+            <summary class="cursor-pointer font-bold text-emerald-700 hover:underline select-none">
+              ▾ View 10-Table PostgreSQL Schema (kitchen_ingredients, kitchen_recipes, kitchen_history, kitchen_expenses, kitchen_claims, etc.)
+            </summary>
+            <pre id="sbSqlCodePreview" class="mt-2 p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono text-[11px] overflow-x-auto max-h-48 leading-relaxed"></pre>
+          </details>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">2. Supabase Anon Public Key</label>
-          <input id="sbKeyInput" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono" />
+
+        <!-- Step 2: Hardcoded Credentials (Pre-filled permanently) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">1. Supabase Project URL (Hardcoded Default)</label>
+            <input id="sbUrlInput" type="text" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono bg-slate-50" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">2. Supabase Anon Public Key (Hardcoded Default)</label>
+            <input id="sbKeyInput" type="text" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono bg-slate-50" />
+          </div>
         </div>
-        <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
-          <span id="sbConnectionHint">Table required: <code>kitchen_state</code> (columns: <code>id</code> text, <code>data</code> jsonb)</span>
-          <button type="button" onclick="pullFromSupabaseNow()" class="text-blue-600 hover:underline font-semibold">⬇️ Pull Latest from Cloud</button>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+          <span id="sbConnectionHint">Auto-detects 10 normalized tables (with automatic fallback to <code>kitchen_state</code>)</span>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="pullFromSupabaseNow()" class="text-blue-600 hover:underline font-bold cursor-pointer">⬇️ Pull Latest from Cloud</button>
+            <button type="button" onclick="resetToHardcodedSupabaseDefaults()" class="text-emerald-700 hover:underline font-bold cursor-pointer">🔄 Restore Default Keys</button>
+          </div>
         </div>
       </div>
-      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-        <button onclick="disconnectSupabase()" class="px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition">Disconnect</button>
+
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2">
+        <button onclick="disconnectSupabase()" class="px-3 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition cursor-pointer">Disconnect</button>
         <div class="flex items-center gap-2">
-          <button onclick="closeSupabaseModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition">Close</button>
-          <button onclick="saveSupabaseConfig()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition">Save & Sync Now</button>
+          <button onclick="closeSupabaseModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer">Close</button>
+          <button onclick="saveSupabaseConfig()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer">Save & Sync Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Automated Daily Google Sheets Archive Backup Modal -->
+  <div id="googleSheetModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-5 no-print" onclick="if(event.target===this) closeGoogleSheetModal()">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-modal-in">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-teal-50 to-cyan-50">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">📊 Google Sheets Daily Archive Backup (History & Accounts)</h3>
+            <span id="gsModalStatusPill" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-teal-100 text-teal-900 border border-teal-300">Archive</span>
+          </div>
+          <p class="text-xs text-slate-600 mt-0.5">Permanently appends new History, Expenses, Claims & Revenue records into your Google Sheet once a day.</p>
+        </div>
+        <button onclick="closeGoogleSheetModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <!-- How it works banner -->
+        <div class="p-4 rounded-2xl bg-teal-50/90 border border-teal-200 text-teal-950 space-y-1.5">
+          <div class="font-extrabold text-sm">🛡️ Permanent Append-Only Google Sheet Archive</div>
+          <p class="text-teal-900 leading-relaxed">
+            Even if anything ever happens to Supabase tomorrow, your Google Sheet holds a permanent, human-readable archive across 4 tabs:
+            <strong>1) History_Archive</strong>, <strong>2) Expenses_Archive</strong>, <strong>3) Claims_Archive</strong>, and <strong>4) Revenue_Archive</strong>.
+            New rows are appended daily and historical rows are <strong>never deleted</strong>.
+          </p>
+        </div>
+
+        <!-- Step 1: Copy Google Apps Script -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="font-extrabold text-slate-900 text-xs sm:text-sm">One-Time Setup (Takes 2 Minutes in Google Sheets):</div>
+              <ol class="list-decimal list-inside text-slate-600 space-y-0.5 mt-1">
+                <li>Create a new blank Google Sheet (<a href="https://sheets.new" target="_blank" rel="noopener" class="text-teal-700 font-bold underline">sheets.new</a>) and name it <strong>Srimati Radharani ki Rasoi — Archive</strong>.</li>
+                <li>In the top menu, click <strong>Extensions → Apps Script</strong>, delete any existing code, and paste the script below.</li>
+                <li>Click <strong>Deploy → New deployment</strong> → Select type: <strong>Web app</strong> → Set <em>"Who has access"</em> to <strong>Anyone</strong> → Click <strong>Deploy</strong>.</li>
+                <li>Copy the generated <strong>Web App URL</strong> (ends with <code>/exec</code>) and paste it below!</li>
+              </ol>
+            </div>
+            <button type="button" onclick="copyGoogleAppsScriptCode()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition cursor-pointer shrink-0">
+              📋 Copy Google Apps Script Code
+            </button>
+          </div>
+          <details class="group">
+            <summary class="cursor-pointer font-bold text-teal-700 hover:underline select-none">
+              ▾ View Google Apps Script Code (Paste into Extensions → Apps Script)
+            </summary>
+            <pre id="gsAppsScriptPreview" class="mt-2 p-3 rounded-xl bg-slate-900 text-teal-300 font-mono text-[11px] overflow-x-auto max-h-48 leading-relaxed"></pre>
+          </details>
+        </div>
+
+        <!-- Step 2: Webhook URL & Auto-Schedule Options -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Google Apps Script Web App URL (ends with <code>/exec</code>)</label>
+            <input id="gsWebhookUrlInput" type="url" placeholder="https://script.google.com/macros/s/AKfycb.../exec" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono bg-white" />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <input id="gsAutoDailyToggle" type="checkbox" checked class="mt-0.5 w-4 h-4 accent-teal-600 rounded" />
+              <div>
+                <div class="font-extrabold text-slate-900">Automatic Once-a-Day Backup</div>
+                <div class="text-[11px] text-slate-500">Automatically pushes any new or updated History & Accounts records once every day when the dashboard is opened.</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <input id="gsAutoOnHistoryToggle" type="checkbox" checked class="mt-0.5 w-4 h-4 accent-teal-600 rounded" />
+              <div>
+                <div class="font-extrabold text-slate-900">Auto-Backup on "Update History"</div>
+                <div class="text-[11px] text-slate-500">Immediately appends to Google Sheets whenever you click "Update History" in the Daily Kitchen tab.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Live Backup Telemetry -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <span class="font-bold text-slate-700">Backup Status:</span>
+            <span id="gsModalLastBackupInfo" class="text-slate-600 ml-1">Not backed up yet</span>
+          </div>
+          <button type="button" onclick="exportHistoryAndAccountsCSV()" class="text-teal-700 hover:underline font-bold cursor-pointer">
+            📥 Download Local CSV Backup
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2">
+        <button type="button" onclick="backupToGoogleSheetNow(true)" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-teal-100 hover:bg-teal-200 text-teal-900 border border-teal-300 transition cursor-pointer">
+          📤 Save & Backup to Google Sheet Now
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeGoogleSheetModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer">Close</button>
+          <button type="button" onclick="saveGoogleSheetConfig()" class="px-5 py-2 rounded-xl text-xs font-bold bg-teal-700 hover:bg-teal-800 text-white transition cursor-pointer">Save Backup Settings</button>
         </div>
       </div>
     </div>
@@ -1520,9 +1739,13 @@
     // OPTIONAL: PASTE YOUR SUPABASE URL & ANON KEY HERE BEFORE DEPLOYING TO VERCEL
     // (Or simply paste them using the "☁️ Connect Cloud DB" button in the top bar!)
     // =========================================================================
-    const DEFAULT_SUPABASE_URL = 'https://qkjshpomuzjalhcoxtvt.supabase.co';      // e.g. 'https://xyzcompany.supabase.co'
-    const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFranNocG9tdXpqYWxoY294dHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NTE2NDMsImV4cCI6MjEwODMyNzY0M30.X4vR38D-JIO6etEA4rJOXBnFFpb_KOCQpeQsi3eLc-s'; // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+    const DEFAULT_SUPABASE_URL = 'https://qkjshpomuzjalhcoxtvt.supabase.co';
+    const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFranNocG9tdXpqYWxoY294dHZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI3NTE2NDMsImV4cCI6MjEwODMyNzY0M30.X4vR38D-JIO6etEA4rJOXBnFFpb_KOCQpeQsi3eLc-s';
+    const GSHEET_CONFIG_KEY = 'iskcon_radharani_gsheet_cfg';
     let supabaseClient = null;
+    let dbArchitectureMode = 'AUTO_DETECT'; // 'NORMALIZED_10_TABLES' | 'LEGACY_SINGLE_JSONB'
+    let cloudRowSignatures = null;
+    let lastGranularSyncTelemetry = 'Ready (Connected to qkjshpomuzjalhcoxtvt)';
 
     // Tracks which generated daily recipe accordions are open (Closed by default!)
     let openDailyRecipeAccordions = {};
@@ -2038,6 +2261,17 @@
           manualRevenue: [
             { id: 'mrev_1', date: '2026-10-03', deptId: 'dept_temple', deptName: 'Temple', menu: 'Srila Prabhupada Arrival Festival Sponsorship', amount: 5100.00 }
           ]
+        },
+
+        // 7. AUTOMATED GOOGLE SHEETS ARCHIVE BACKUP CONFIG
+        googleSheetConfig: {
+          webhookUrl: '',
+          autoDaily: true,
+          autoOnHistoryUpdate: true,
+          lastBackupDate: '',
+          lastBackupTimestamp: '',
+          lastBackedUpSignature: '',
+          totalRowsArchived: 0
         }
       };
     }
@@ -2229,17 +2463,260 @@
     let state = loadState();
     let modalRecipeDraft = null;
 
+    // =========================================================================
+    // PRODUCTION 10-TABLE POSTGRESQL SCHEMA FOR SUPABASE
+    // =========================================================================
+    const NORMALIZED_SUPABASE_SQL = `-- SRIMATI RADHARANI KI RASOI: 10-TABLE PRODUCTION SCHEMA
+-- Paste in Supabase Dashboard -> SQL Editor -> New Query -> Click Run
+
+CREATE TABLE IF NOT EXISTS public.kitchen_settings (
+  id text PRIMARY KEY,
+  multiplier numeric DEFAULT 1.2,
+  bg_opacity integer DEFAULT 16,
+  standard_timings jsonb DEFAULT '{}'::jsonb,
+  google_sheet_config jsonb DEFAULT '{}'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_ingredients (
+  id text PRIMARY KEY,
+  name text NOT NULL,
+  unit text NOT NULL,
+  price numeric NOT NULL DEFAULT 0,
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_recipes (
+  id text PRIMARY KEY,
+  name text NOT NULL,
+  std_yield numeric NOT NULL DEFAULT 1,
+  target_yield numeric NOT NULL DEFAULT 1,
+  yield_unit text NOT NULL DEFAULT 'L',
+  serving_qty numeric NOT NULL DEFAULT 100,
+  serving_unit text NOT NULL DEFAULT 'ml',
+  steps jsonb NOT NULL DEFAULT '[]'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_departments (
+  id text PRIMARY KEY,
+  name text NOT NULL,
+  count integer NOT NULL DEFAULT 0,
+  chargeable boolean NOT NULL DEFAULT false,
+  profit_multiplier numeric NOT NULL DEFAULT 1.0,
+  icon text DEFAULT '🏛️',
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_calendar_days (
+  date text PRIMARY KEY,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_daily_plans (
+  date text PRIMARY KEY,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_history (
+  date text PRIMARY KEY,
+  total_dishes_cooked integer DEFAULT 0,
+  total_calc_cost numeric DEFAULT 0,
+  total_adj_cost numeric DEFAULT 0,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_expenses (
+  id text PRIMARY KEY,
+  date text NOT NULL,
+  type text NOT NULL,
+  particulars text NOT NULL,
+  debit numeric NOT NULL DEFAULT 0,
+  updated_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_kitchen_expenses_date ON public.kitchen_expenses(date);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_claims (
+  id text PRIMARY KEY,
+  date text NOT NULL,
+  dept_id text NOT NULL,
+  dept_name text NOT NULL,
+  calculated_cost numeric NOT NULL DEFAULT 0,
+  final_cost numeric NOT NULL DEFAULT 0,
+  status text NOT NULL DEFAULT 'pending',
+  paid_amount numeric NOT NULL DEFAULT 0,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_kitchen_claims_date ON public.kitchen_claims(date);
+
+CREATE TABLE IF NOT EXISTS public.kitchen_manual_revenue (
+  id text PRIMARY KEY,
+  date text NOT NULL,
+  dept_id text NOT NULL,
+  dept_name text NOT NULL,
+  menu text NOT NULL,
+  amount numeric NOT NULL DEFAULT 0,
+  updated_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_kitchen_manual_revenue_date ON public.kitchen_manual_revenue(date);
+
+ALTER TABLE public.kitchen_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_ingredients DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_recipes DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_departments DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_calendar_days DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_daily_plans DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_expenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_claims DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_manual_revenue DISABLE ROW LEVEL SECURITY;`;
+
+    // =========================================================================
+    // GOOGLE APPS SCRIPT WEBHOOK CODE (FOR PERMANENT GOOGLE SHEETS ARCHIVE)
+    // =========================================================================
+    const GOOGLE_APPS_SCRIPT_CODE = `// ============================================================================
+// SRIMATI RADHARANI KI RASOI — AUTOMATED GOOGLE SHEETS ARCHIVE BACKUP SCRIPT
+// 1. Open your Google Sheet -> Extensions -> Apps Script
+// 2. Paste this code -> Click Deploy -> New deployment -> Web app (Access: Anyone)
+// 3. Copy the Web App URL (.../exec) and paste it into the Kitchen Web App!
+// ============================================================================
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(25000);
+  try {
+    var payload = JSON.parse(e.postData.contents);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var stats = {};
+
+    if (payload.historyRows) {
+      stats.history = upsertSheetRows(ss, 'History_Archive', [
+        'Record Key (Date__Meal__Dish)', 'Date', 'Archived At', 'Meal', 'Dish Name',
+        'Yield Unit', 'Std Serving', 'Department Allocations', 'Calculated Qty',
+        'Cooked Yield', 'Kitchen Multiplier', 'Frozen Calculated Cost (₹)', 'Frozen Adjusted Cost (₹)'
+      ], payload.historyRows);
+    }
+
+    if (payload.expenseRows) {
+      stats.expenses = upsertSheetRows(ss, 'Expenses_Archive', [
+        'Expense ID', 'Date', 'Expense Type', 'Particulars', 'Debit Amount (₹)', 'Synced At'
+      ], payload.expenseRows);
+    }
+
+    if (payload.claimRows) {
+      stats.claims = upsertSheetRows(ss, 'Claims_Archive', [
+        'Claim ID (Date__Dept)', 'Date', 'Department Name', 'Profit Multiplier',
+        'Menu & Quantities Provided', 'Base Adjusted Cost (₹)', 'Calculated Chargeable Cost (₹)',
+        'Final Chargeable Cost (₹)', 'Payment Status', 'Paid Amount (₹)', 'Pending Balance (₹)', 'Synced At'
+      ], payload.claimRows);
+    }
+
+    if (payload.revenueRows) {
+      stats.revenue = upsertSheetRows(ss, 'Revenue_Archive', [
+        'Revenue ID', 'Date', 'Department Name', 'Source (CLAIM/MANUAL)',
+        'Payment Status', 'Menu / Particulars', 'Realized Amount (₹)', 'Synced At'
+      ], payload.revenueRows);
+    }
+
+    var logSheet = ss.getSheetByName('Backup_Log');
+    if (!logSheet) {
+      logSheet = ss.insertSheet('Backup_Log');
+      logSheet.appendRow(['Backup Timestamp', 'Backup Trigger', 'History Rows', 'Expense Rows', 'Claim Rows', 'Revenue Rows']);
+      logSheet.getRange(1, 1, 1, 6).setFontWeight('bold').setBackground('#fff7ed');
+      logSheet.setFrozenRows(1);
+    }
+    logSheet.appendRow([
+      new Date().toISOString(),
+      payload.trigger || 'Auto Daily Backup',
+      (payload.historyRows || []).length,
+      (payload.expenseRows || []).length,
+      (payload.claimRows || []).length,
+      (payload.revenueRows || []).length
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok', stats: stats }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Appends new rows permanently and updates modified rows in place (NEVER deletes old rows!)
+function upsertSheetRows(ss, sheetName, headers, incomingRows) {
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow(headers);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#ffedd5');
+    sheet.setFrozenRows(1);
+  }
+
+  var lastRow = sheet.getLastRow();
+  var keyToRowIndex = {};
+  if (lastRow > 1) {
+    var existingKeys = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < existingKeys.length; i++) {
+      var k = String(existingKeys[i][0] || '').trim();
+      if (k) keyToRowIndex[k] = i + 2;
+    }
+  }
+
+  var appended = 0;
+  var updated = 0;
+  var rowsToAppend = [];
+
+  for (var r = 0; r < incomingRows.length; r++) {
+    var rowData = incomingRows[r];
+    var key = String(rowData[0] || '').trim();
+    if (!key) continue;
+    if (keyToRowIndex[key]) {
+      sheet.getRange(keyToRowIndex[key], 1, 1, rowData.length).setValues([rowData]);
+      updated++;
+    } else {
+      rowsToAppend.push(rowData);
+      appended++;
+    }
+  }
+
+  if (rowsToAppend.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAppend.length, rowsToAppend[0].length).setValues(rowsToAppend);
+  }
+
+  return { appended: appended, updated: updated };
+}`;
+
     function getSupabaseCredentials() {
       let url = DEFAULT_SUPABASE_URL.trim();
       let key = DEFAULT_SUPABASE_ANON_KEY.trim();
       try {
         const saved = JSON.parse(localStorage.getItem(SB_CONFIG_KEY) || '{}');
-        if (saved.url && saved.key) {
+        if (saved && typeof saved.url === 'string' && saved.url.trim().startsWith('http') &&
+            typeof saved.key === 'string' && saved.key.trim().length > 20) {
           url = saved.url.trim();
           key = saved.key.trim();
         }
       } catch (e) {}
       return { url, key };
+    }
+
+    function resetToHardcodedSupabaseDefaults() {
+      try {
+        localStorage.removeItem(SB_CONFIG_KEY);
+      } catch (e) {}
+      const urlEl = document.getElementById('sbUrlInput');
+      const keyEl = document.getElementById('sbKeyInput');
+      if (urlEl) urlEl.value = DEFAULT_SUPABASE_URL;
+      if (keyEl) keyEl.value = DEFAULT_SUPABASE_ANON_KEY;
+      initSupabaseClient();
+      loadStateFromCloud(true);
+      showToast('Restored default hardcoded Srimati Radharani ki Rasoi Supabase credentials!');
     }
 
     function initSupabaseClient() {
@@ -2249,7 +2726,11 @@
       if (url && key && window.supabase && typeof window.supabase.createClient === 'function') {
         try {
           supabaseClient = window.supabase.createClient(url, key);
-          if (statusText) statusText.textContent = 'Cloud Sync Active';
+          if (statusText) {
+            statusText.textContent = dbArchitectureMode === 'NORMALIZED_10_TABLES'
+              ? '10-Table Cloud Sync ✓'
+              : 'Cloud Sync Active';
+          }
           if (statusBtn) {
             statusBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition cursor-pointer';
           }
@@ -2305,6 +2786,18 @@
         if (!Array.isArray(s.accounts.manualRevenue)) s.accounts.manualRevenue = def.accounts.manualRevenue;
       }
       if (!s.accountsSubTab) s.accountsSubTab = 'expenses';
+
+      // Merge Google Sheet backup config from localStorage if present
+      if (!s.googleSheetConfig || typeof s.googleSheetConfig !== 'object') {
+        s.googleSheetConfig = def.googleSheetConfig;
+      }
+      try {
+        const localGs = JSON.parse(localStorage.getItem(GSHEET_CONFIG_KEY) || '{}');
+        if (localGs && localGs.webhookUrl && !s.googleSheetConfig.webhookUrl) {
+          s.googleSheetConfig = { ...s.googleSheetConfig, ...localGs };
+        }
+      } catch (e) {}
+
       return s;
     }
 
@@ -2323,40 +2816,555 @@
       return s;
     }
 
+    // Builds per-row JSON signatures across all 10 domains so saveStateToCloud only syncs changed rows!
+    function buildRowSignatures(st) {
+      const sig = {
+        settings: JSON.stringify({
+          multiplier: st.multiplier,
+          bgOpacity: st.bgOpacity,
+          standardTimings: st.standardTimings,
+          googleSheetConfig: st.googleSheetConfig
+        }),
+        ingredients: {},
+        recipes: {},
+        departments: {},
+        calendarDays: {},
+        dailyPlans: {},
+        history: {},
+        expenses: {},
+        claims: {},
+        manualRevenue: {}
+      };
+      (st.ingredients || []).forEach(x => { sig.ingredients[x.id] = JSON.stringify(x); });
+      (st.recipes || []).forEach(x => { sig.recipes[x.id] = JSON.stringify(x); });
+      (st.departments || []).forEach(x => { sig.departments[x.id] = JSON.stringify(x); });
+      Object.keys(st.calendarDays || {}).forEach(d => { sig.calendarDays[d] = JSON.stringify(st.calendarDays[d]); });
+      Object.keys(st.dailyPlans || {}).forEach(d => { sig.dailyPlans[d] = JSON.stringify(st.dailyPlans[d]); });
+      Object.keys(st.history || {}).forEach(d => { sig.history[d] = JSON.stringify(st.history[d]); });
+      ((st.accounts && st.accounts.expenses) || []).forEach(x => { sig.expenses[x.id] = JSON.stringify(x); });
+      Object.keys((st.accounts && st.accounts.claims) || {}).forEach(id => { sig.claims[id] = JSON.stringify(st.accounts.claims[id]); });
+      ((st.accounts && st.accounts.manualRevenue) || []).forEach(x => { sig.manualRevenue[x.id] = JSON.stringify(x); });
+      return sig;
+    }
+
+    function updateDatabaseAndBackupStatusUI() {
+      const statusText = document.getElementById('cloudSyncStatusText');
+      const modalBadge = document.getElementById('sbModalModeBadge');
+      const settingsBadge = document.getElementById('settingsDbModeBadge');
+      const settingsTelemetry = document.getElementById('settingsDbTelemetryBox');
+      const modalTelemetry = document.getElementById('sbLastGranularSyncLabel');
+
+      const isNormalized = dbArchitectureMode === 'NORMALIZED_10_TABLES';
+      if (statusText && supabaseClient) {
+        statusText.textContent = isNormalized ? '10-Table Cloud Sync ✓' : 'Cloud Sync (Legacy 1-Row)';
+      }
+      if (modalBadge) {
+        modalBadge.textContent = isNormalized ? '10-Table Granular Mode ✓' : 'Legacy 1-Table Mode (Ready to Upgrade)';
+        modalBadge.className = isNormalized
+          ? 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300'
+          : 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
+      }
+      if (settingsBadge) {
+        settingsBadge.textContent = isNormalized ? '10-Table Granular Mode ✓' : 'Legacy 1-Table Mode';
+        settingsBadge.className = isNormalized
+          ? 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300'
+          : 'px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
+      }
+      if (settingsTelemetry) settingsTelemetry.textContent = lastGranularSyncTelemetry;
+      if (modalTelemetry) modalTelemetry.textContent = lastGranularSyncTelemetry;
+
+      // Also update Google Sheet Backup badges
+      const gsCfg = state.googleSheetConfig || {};
+      const hasUrl = Boolean(gsCfg.webhookUrl && gsCfg.webhookUrl.trim());
+      const gsHeaderBtn = document.getElementById('gsheetBackupStatusBtn');
+      const gsHeaderTxt = document.getElementById('gsheetBackupStatusText');
+      const gsSettingsBadge = document.getElementById('settingsGsheetBadge');
+      const gsSettingsBox = document.getElementById('settingsGsheetLastSyncBox');
+      const gsModalInfo = document.getElementById('gsModalLastBackupInfo');
+      const gsModalPill = document.getElementById('gsModalStatusPill');
+
+      if (gsHeaderTxt) {
+        gsHeaderTxt.textContent = hasUrl
+          ? (gsCfg.lastBackupDate ? `G-Sheet Synced (${gsCfg.lastBackupDate}) ✓` : 'G-Sheet Auto-Backup Active')
+          : 'G-Sheet Backup';
+      }
+      if (gsHeaderBtn && hasUrl) {
+        gsHeaderBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-900 border border-teal-300 hover:bg-teal-200 transition cursor-pointer';
+      }
+      if (gsSettingsBadge) {
+        gsSettingsBadge.textContent = hasUrl ? (gsCfg.autoDaily ? 'Auto-Daily Active ✓' : 'Webhook Configured ✓') : 'Setup Needed';
+      }
+      const infoStr = gsCfg.lastBackupTimestamp
+        ? `Last Backed Up: ${new Date(gsCfg.lastBackupTimestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })} (${gsCfg.totalRowsArchived || 0} rows archived)`
+        : (hasUrl ? 'Webhook URL connected — Click "Backup Now" to run first sync' : 'Not backed up yet — Paste Google Apps Script URL to enable');
+      if (gsSettingsBox) gsSettingsBox.textContent = infoStr;
+      if (gsModalInfo) gsModalInfo.textContent = infoStr;
+      if (gsModalPill) gsModalPill.textContent = hasUrl ? 'Connected ✓' : 'Setup Guide';
+    }
+
     async function loadStateFromCloud(notify = false) {
       if (!supabaseClient) return;
       try {
+        // Step 1: Probe whether the 10 Normalized Production Tables exist in Supabase
+        const { data: settingsRow, error: settingsErr } = await supabaseClient
+          .from('kitchen_settings')
+          .select('*')
+          .eq('id', 'main')
+          .maybeSingle();
+
+        if (!settingsErr) {
+          dbArchitectureMode = 'NORMALIZED_10_TABLES';
+
+          if (settingsRow) {
+            // Fetch all 10 normalized tables in parallel!
+            const [
+              ingRes, recRes, deptRes, calRes, planRes, histRes, expRes, claimRes, revRes
+            ] = await Promise.all([
+              supabaseClient.from('kitchen_ingredients').select('*'),
+              supabaseClient.from('kitchen_recipes').select('*'),
+              supabaseClient.from('kitchen_departments').select('*'),
+              supabaseClient.from('kitchen_calendar_days').select('*'),
+              supabaseClient.from('kitchen_daily_plans').select('*'),
+              supabaseClient.from('kitchen_history').select('*'),
+              supabaseClient.from('kitchen_expenses').select('*'),
+              supabaseClient.from('kitchen_claims').select('*'),
+              supabaseClient.from('kitchen_manual_revenue').select('*')
+            ]);
+
+            const assembled = JSON.parse(JSON.stringify(state));
+            if (settingsRow.multiplier !== undefined && settingsRow.multiplier !== null) {
+              assembled.multiplier = Number(settingsRow.multiplier);
+            }
+            if (settingsRow.bg_opacity !== undefined && settingsRow.bg_opacity !== null) {
+              assembled.bgOpacity = Number(settingsRow.bg_opacity);
+            }
+            if (settingsRow.standard_timings && Object.keys(settingsRow.standard_timings).length > 0) {
+              assembled.standardTimings = settingsRow.standard_timings;
+            }
+            if (settingsRow.google_sheet_config && Object.keys(settingsRow.google_sheet_config).length > 0) {
+              assembled.googleSheetConfig = { ...assembled.googleSheetConfig, ...settingsRow.google_sheet_config };
+            }
+
+            if (Array.isArray(ingRes.data) && ingRes.data.length > 0) {
+              assembled.ingredients = ingRes.data.map(r => ({ id: r.id, name: r.name, unit: r.unit, price: Number(r.price) }));
+            }
+            if (Array.isArray(recRes.data) && recRes.data.length > 0) {
+              assembled.recipes = recRes.data.map(r => ({
+                id: r.id,
+                name: r.name,
+                stdYield: Number(r.std_yield),
+                targetYield: Number(r.target_yield),
+                yieldUnit: r.yield_unit,
+                servingQty: Number(r.serving_qty),
+                servingUnit: r.serving_unit,
+                steps: r.steps || []
+              }));
+            }
+            if (Array.isArray(deptRes.data) && deptRes.data.length > 0) {
+              assembled.departments = deptRes.data.map(r => ({
+                id: r.id,
+                name: r.name,
+                count: Number(r.count),
+                chargeable: Boolean(r.chargeable),
+                profitMultiplier: Number(r.profit_multiplier || 1.0),
+                icon: r.icon || '🏛️'
+              }));
+            }
+            if (Array.isArray(calRes.data) && calRes.data.length > 0) {
+              assembled.calendarDays = {};
+              calRes.data.forEach(r => { assembled.calendarDays[r.date] = r.data; });
+            }
+            if (Array.isArray(planRes.data) && planRes.data.length > 0) {
+              assembled.dailyPlans = {};
+              planRes.data.forEach(r => { assembled.dailyPlans[r.date] = r.data; });
+            }
+            if (Array.isArray(histRes.data) && histRes.data.length > 0) {
+              assembled.history = {};
+              histRes.data.forEach(r => { assembled.history[r.date] = r.data; });
+            }
+            if (Array.isArray(expRes.data)) {
+              assembled.accounts.expenses = expRes.data.map(r => ({
+                id: r.id,
+                date: r.date,
+                type: r.type,
+                particulars: r.particulars,
+                debit: Number(r.debit)
+              }));
+            }
+            if (Array.isArray(claimRes.data)) {
+              assembled.accounts.claims = {};
+              claimRes.data.forEach(r => {
+                assembled.accounts.claims[r.id] = {
+                  ...(r.data || {}),
+                  id: r.id,
+                  date: r.date,
+                  deptId: r.dept_id,
+                  deptName: r.dept_name,
+                  calculatedChargeableCost: Number(r.calculated_cost),
+                  finalChargeableCost: Number(r.final_cost),
+                  status: r.status,
+                  paidAmount: Number(r.paid_amount)
+                };
+              });
+            }
+            if (Array.isArray(revRes.data)) {
+              assembled.accounts.manualRevenue = revRes.data.map(r => ({
+                id: r.id,
+                date: r.date,
+                deptId: r.dept_id,
+                deptName: r.dept_name,
+                menu: r.menu,
+                amount: Number(r.amount)
+              }));
+            }
+
+            state = normalizeAndUpgradeState(assembled);
+            ensureInitialHistorySnapshots();
+            cloudRowSignatures = buildRowSignatures(state);
+            lastGranularSyncTelemetry = `Loaded 10 Normalized Tables (${state.ingredients.length} ing, ${state.recipes.length} rec, ${Object.keys(state.history).length} history days)`;
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+            updateNavCounts();
+            updateDatabaseAndBackupStatusUI();
+            switchTab(state.activeTab || 'ingredients');
+            if (notify) showToast('Loaded kitchen data from 10 Normalized Supabase Tables!');
+            checkAndRunDailyGoogleSheetAutoBackup();
+            return;
+          } else {
+            // The 10 tables exist, but kitchen_settings is empty! Check if legacy kitchen_state has data first, then auto-migrate!
+            const { data: legData } = await supabaseClient
+              .from('kitchen_state')
+              .select('data')
+              .eq('id', 'main')
+              .maybeSingle();
+            if (legData && legData.data && legData.data.ingredients) {
+              state = normalizeAndUpgradeState(legData.data);
+              ensureInitialHistorySnapshots();
+            }
+            await migrateStateToNormalizedTables(notify);
+            checkAndRunDailyGoogleSheetAutoBackup();
+            return;
+          }
+        }
+
+        // Step 2: Fallback to Legacy Single-Row kitchen_state if 10 tables haven't been created yet
+        dbArchitectureMode = 'LEGACY_SINGLE_JSONB';
         const { data, error } = await supabaseClient
           .from('kitchen_state')
           .select('data')
           .eq('id', 'main')
           .maybeSingle();
+
         if (error) {
           if (notify) showToast('Supabase error: ' + error.message, 'error');
+          updateDatabaseAndBackupStatusUI();
           return;
         }
         if (data && data.data && data.data.ingredients && data.data.recipes) {
           state = normalizeAndUpgradeState(data.data);
           ensureInitialHistorySnapshots();
+          cloudRowSignatures = buildRowSignatures(state);
+          lastGranularSyncTelemetry = 'Synced via Legacy kitchen_state (Run 10-Table SQL in Settings to upgrade)';
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
           } catch (e) {}
           updateNavCounts();
+          updateDatabaseAndBackupStatusUI();
           switchTab(state.activeTab || 'ingredients');
           if (notify) showToast('Loaded latest kitchen data from Supabase Cloud!');
         } else if (data === null) {
           await saveStateToCloud(true);
         }
+        checkAndRunDailyGoogleSheetAutoBackup();
       } catch (err) {
         if (notify) showToast('Could not reach Supabase cloud', 'error');
       }
     }
 
+    // One-Click Full Migration from current state / kitchen_state into the 10 Normalized Tables
+    async function migrateStateToNormalizedTables(notify = true) {
+      if (!supabaseClient) {
+        if (notify) showToast('Supabase client not connected', 'error');
+        return;
+      }
+      try {
+        const statusText = document.getElementById('cloudSyncStatusText');
+        if (statusText) statusText.textContent = 'Migrating to 10 Tables...';
+        const nowIso = new Date().toISOString();
+
+        // 1. Settings row
+        const { error: setErr } = await supabaseClient.from('kitchen_settings').upsert({
+          id: 'main',
+          multiplier: Number(state.multiplier) || 1.2,
+          bg_opacity: Number(state.bgOpacity ?? 16),
+          standard_timings: state.standardTimings || {},
+          google_sheet_config: state.googleSheetConfig || {},
+          updated_at: nowIso
+        });
+
+        if (setErr) {
+          if (notify) {
+            showToast('Please run the 10-Table SQL Script in Supabase SQL Editor first! (' + setErr.message + ')', 'error');
+          }
+          return;
+        }
+
+        // 2. Push all 9 other tables in parallel batches
+        const ingRows = (state.ingredients || []).map(x => ({
+          id: x.id, name: x.name, unit: x.unit, price: Number(x.price) || 0, updated_at: nowIso
+        }));
+        const recRows = (state.recipes || []).map(r => ({
+          id: r.id, name: r.name, std_yield: Number(r.stdYield) || 1, target_yield: Number(r.targetYield) || 1,
+          yield_unit: r.yieldUnit || 'L', serving_qty: Number(r.servingQty) || 100,
+          serving_unit: r.servingUnit || 'ml', steps: r.steps || [], updated_at: nowIso
+        }));
+        const deptRows = (state.departments || []).map(d => ({
+          id: d.id, name: d.name, count: Number(d.count) || 0, chargeable: Boolean(d.chargeable),
+          profit_multiplier: Number(d.profitMultiplier || 1.0), icon: d.icon || '🏛️', updated_at: nowIso
+        }));
+        const calRows = Object.keys(state.calendarDays || {}).map(d => ({
+          date: d, data: state.calendarDays[d], updated_at: nowIso
+        }));
+        const planRows = Object.keys(state.dailyPlans || {}).map(d => ({
+          date: d, data: state.dailyPlans[d], updated_at: nowIso
+        }));
+        const histRows = Object.keys(state.history || {}).map(d => {
+          const h = state.history[d];
+          return {
+            date: d,
+            total_dishes_cooked: Number(h.totalDishesCooked || 0),
+            total_calc_cost: Number(h.totalCalcCost || 0),
+            total_adj_cost: Number(h.totalAdjCost || 0),
+            data: h,
+            updated_at: nowIso
+          };
+        });
+        const expRows = ((state.accounts && state.accounts.expenses) || []).map(e => ({
+          id: e.id, date: e.date, type: e.type, particulars: e.particulars, debit: Number(e.debit) || 0, updated_at: nowIso
+        }));
+        const claimRows = Object.values((state.accounts && state.accounts.claims) || {}).map(c => ({
+          id: c.id, date: c.date, dept_id: c.deptId, dept_name: c.deptName,
+          calculated_cost: Number(c.calculatedChargeableCost) || 0,
+          final_cost: Number(c.finalChargeableCost) || 0,
+          status: c.status || 'pending',
+          paid_amount: Number(c.paidAmount) || 0,
+          data: c,
+          updated_at: nowIso
+        }));
+        const revRows = ((state.accounts && state.accounts.manualRevenue) || []).map(r => ({
+          id: r.id, date: r.date, dept_id: r.deptId, dept_name: r.deptName, menu: r.menu, amount: Number(r.amount) || 0, updated_at: nowIso
+        }));
+
+        const tasks = [];
+        if (ingRows.length) tasks.push(supabaseClient.from('kitchen_ingredients').upsert(ingRows));
+        if (recRows.length) tasks.push(supabaseClient.from('kitchen_recipes').upsert(recRows));
+        if (deptRows.length) tasks.push(supabaseClient.from('kitchen_departments').upsert(deptRows));
+        if (calRows.length) tasks.push(supabaseClient.from('kitchen_calendar_days').upsert(calRows));
+        if (planRows.length) tasks.push(supabaseClient.from('kitchen_daily_plans').upsert(planRows));
+        if (histRows.length) tasks.push(supabaseClient.from('kitchen_history').upsert(histRows));
+        if (expRows.length) tasks.push(supabaseClient.from('kitchen_expenses').upsert(expRows));
+        if (claimRows.length) tasks.push(supabaseClient.from('kitchen_claims').upsert(claimRows));
+        if (revRows.length) tasks.push(supabaseClient.from('kitchen_manual_revenue').upsert(revRows));
+
+        await Promise.all(tasks);
+
+        dbArchitectureMode = 'NORMALIZED_10_TABLES';
+        cloudRowSignatures = buildRowSignatures(state);
+        lastGranularSyncTelemetry = `Migrated & Active: 10 Normalized Tables (${ingRows.length} ing, ${recRows.length} rec, ${histRows.length} hist, ${expRows.length} exp, ${claimRows.length} claims)`;
+        updateDatabaseAndBackupStatusUI();
+        if (notify) {
+          showToast('Migrated all kitchen data to 10 Normalized Supabase Tables! Granular row-level sync is now active.');
+        }
+      } catch (err) {
+        if (notify) showToast('Migration error: ' + err.message, 'error');
+      }
+    }
+
+    // Granular Row-Level Diff Sync Engine: Only pushes the specific row(s) that were added/edited/deleted!
     async function saveStateToCloud(notify = false) {
       if (!supabaseClient) return;
       try {
         const statusText = document.getElementById('cloudSyncStatusText');
         if (statusText) statusText.textContent = 'Syncing...';
+
+        if (dbArchitectureMode === 'NORMALIZED_10_TABLES') {
+          const prevSig = cloudRowSignatures || {
+            settings: '', ingredients: {}, recipes: {}, departments: {},
+            calendarDays: {}, dailyPlans: {}, history: {}, expenses: {}, claims: {}, manualRevenue: {}
+          };
+          const nextSig = buildRowSignatures(state);
+          const nowIso = new Date().toISOString();
+          const ops = [];
+          const touchedTables = [];
+          let rowCountSynced = 0;
+
+          // 1. Settings diff
+          if (nextSig.settings !== prevSig.settings) {
+            ops.push(supabaseClient.from('kitchen_settings').upsert({
+              id: 'main',
+              multiplier: Number(state.multiplier) || 1.2,
+              bg_opacity: Number(state.bgOpacity ?? 16),
+              standard_timings: state.standardTimings || {},
+              google_sheet_config: state.googleSheetConfig || {},
+              updated_at: nowIso
+            }));
+            touchedTables.push('kitchen_settings');
+            rowCountSynced++;
+          }
+
+          // 2. Ingredients diff (Upsert changed + Delete removed)
+          const changedIngs = (state.ingredients || []).filter(x => prevSig.ingredients[x.id] !== nextSig.ingredients[x.id])
+            .map(x => ({ id: x.id, name: x.name, unit: x.unit, price: Number(x.price) || 0, updated_at: nowIso }));
+          if (changedIngs.length > 0) {
+            ops.push(supabaseClient.from('kitchen_ingredients').upsert(changedIngs));
+            touchedTables.push('kitchen_ingredients');
+            rowCountSynced += changedIngs.length;
+          }
+          const deletedIngIds = Object.keys(prevSig.ingredients).filter(id => !nextSig.ingredients[id]);
+          if (deletedIngIds.length > 0) {
+            ops.push(supabaseClient.from('kitchen_ingredients').delete().in('id', deletedIngIds));
+            touchedTables.push('kitchen_ingredients(del)');
+            rowCountSynced += deletedIngIds.length;
+          }
+
+          // 3. Recipes diff
+          const changedRecs = (state.recipes || []).filter(r => prevSig.recipes[r.id] !== nextSig.recipes[r.id])
+            .map(r => ({
+              id: r.id, name: r.name, std_yield: Number(r.stdYield) || 1, target_yield: Number(r.targetYield) || 1,
+              yield_unit: r.yieldUnit || 'L', serving_qty: Number(r.servingQty) || 100,
+              serving_unit: r.servingUnit || 'ml', steps: r.steps || [], updated_at: nowIso
+            }));
+          if (changedRecs.length > 0) {
+            ops.push(supabaseClient.from('kitchen_recipes').upsert(changedRecs));
+            touchedTables.push('kitchen_recipes');
+            rowCountSynced += changedRecs.length;
+          }
+          const deletedRecIds = Object.keys(prevSig.recipes).filter(id => !nextSig.recipes[id]);
+          if (deletedRecIds.length > 0) {
+            ops.push(supabaseClient.from('kitchen_recipes').delete().in('id', deletedRecIds));
+            touchedTables.push('kitchen_recipes(del)');
+            rowCountSynced += deletedRecIds.length;
+          }
+
+          // 4. Departments diff
+          const changedDepts = (state.departments || []).filter(d => prevSig.departments[d.id] !== nextSig.departments[d.id])
+            .map(d => ({
+              id: d.id, name: d.name, count: Number(d.count) || 0, chargeable: Boolean(d.chargeable),
+              profit_multiplier: Number(d.profitMultiplier || 1.0), icon: d.icon || '🏛️', updated_at: nowIso
+            }));
+          if (changedDepts.length > 0) {
+            ops.push(supabaseClient.from('kitchen_departments').upsert(changedDepts));
+            touchedTables.push('kitchen_departments');
+            rowCountSynced += changedDepts.length;
+          }
+          const deletedDeptIds = Object.keys(prevSig.departments).filter(id => !nextSig.departments[id]);
+          if (deletedDeptIds.length > 0) {
+            ops.push(supabaseClient.from('kitchen_departments').delete().in('id', deletedDeptIds));
+            touchedTables.push('kitchen_departments(del)');
+            rowCountSynced += deletedDeptIds.length;
+          }
+
+          // 5. Calendar Days diff
+          const changedCalDays = Object.keys(state.calendarDays || {})
+            .filter(d => prevSig.calendarDays[d] !== nextSig.calendarDays[d])
+            .map(d => ({ date: d, data: state.calendarDays[d], updated_at: nowIso }));
+          if (changedCalDays.length > 0) {
+            ops.push(supabaseClient.from('kitchen_calendar_days').upsert(changedCalDays));
+            touchedTables.push('kitchen_calendar_days');
+            rowCountSynced += changedCalDays.length;
+          }
+
+          // 6. Daily Kitchen Plans diff
+          const changedPlans = Object.keys(state.dailyPlans || {})
+            .filter(d => prevSig.dailyPlans[d] !== nextSig.dailyPlans[d])
+            .map(d => ({ date: d, data: state.dailyPlans[d], updated_at: nowIso }));
+          if (changedPlans.length > 0) {
+            ops.push(supabaseClient.from('kitchen_daily_plans').upsert(changedPlans));
+            touchedTables.push('kitchen_daily_plans');
+            rowCountSynced += changedPlans.length;
+          }
+
+          // 7. History Archive diff
+          const changedHist = Object.keys(state.history || {})
+            .filter(d => prevSig.history[d] !== nextSig.history[d])
+            .map(d => {
+              const h = state.history[d];
+              return {
+                date: d,
+                total_dishes_cooked: Number(h.totalDishesCooked || 0),
+                total_calc_cost: Number(h.totalCalcCost || 0),
+                total_adj_cost: Number(h.totalAdjCost || 0),
+                data: h,
+                updated_at: nowIso
+              };
+            });
+          if (changedHist.length > 0) {
+            ops.push(supabaseClient.from('kitchen_history').upsert(changedHist));
+            touchedTables.push('kitchen_history');
+            rowCountSynced += changedHist.length;
+          }
+
+          // 8. Expenses diff
+          const changedExps = ((state.accounts && state.accounts.expenses) || [])
+            .filter(e => prevSig.expenses[e.id] !== nextSig.expenses[e.id])
+            .map(e => ({ id: e.id, date: e.date, type: e.type, particulars: e.particulars, debit: Number(e.debit) || 0, updated_at: nowIso }));
+          if (changedExps.length > 0) {
+            ops.push(supabaseClient.from('kitchen_expenses').upsert(changedExps));
+            touchedTables.push('kitchen_expenses');
+            rowCountSynced += changedExps.length;
+          }
+          const deletedExpIds = Object.keys(prevSig.expenses).filter(id => !nextSig.expenses[id]);
+          if (deletedExpIds.length > 0) {
+            ops.push(supabaseClient.from('kitchen_expenses').delete().in('id', deletedExpIds));
+            touchedTables.push('kitchen_expenses(del)');
+            rowCountSynced += deletedExpIds.length;
+          }
+
+          // 9. Claims diff
+          const changedClaims = Object.values((state.accounts && state.accounts.claims) || {})
+            .filter(c => prevSig.claims[c.id] !== nextSig.claims[c.id])
+            .map(c => ({
+              id: c.id, date: c.date, dept_id: c.deptId, dept_name: c.deptName,
+              calculated_cost: Number(c.calculatedChargeableCost) || 0,
+              final_cost: Number(c.finalChargeableCost) || 0,
+              status: c.status || 'pending',
+              paid_amount: Number(c.paidAmount) || 0,
+              data: c,
+              updated_at: nowIso
+            }));
+          if (changedClaims.length > 0) {
+            ops.push(supabaseClient.from('kitchen_claims').upsert(changedClaims));
+            touchedTables.push('kitchen_claims');
+            rowCountSynced += changedClaims.length;
+          }
+
+          // 10. Manual Revenue diff
+          const changedRevs = ((state.accounts && state.accounts.manualRevenue) || [])
+            .filter(r => prevSig.manualRevenue[r.id] !== nextSig.manualRevenue[r.id])
+            .map(r => ({ id: r.id, date: r.date, dept_id: r.deptId, dept_name: r.deptName, menu: r.menu, amount: Number(r.amount) || 0, updated_at: nowIso }));
+          if (changedRevs.length > 0) {
+            ops.push(supabaseClient.from('kitchen_manual_revenue').upsert(changedRevs));
+            touchedTables.push('kitchen_manual_revenue');
+            rowCountSynced += changedRevs.length;
+          }
+          const deletedRevIds = Object.keys(prevSig.manualRevenue).filter(id => !nextSig.manualRevenue[id]);
+          if (deletedRevIds.length > 0) {
+            ops.push(supabaseClient.from('kitchen_manual_revenue').delete().in('id', deletedRevIds));
+            touchedTables.push('kitchen_manual_revenue(del)');
+            rowCountSynced += deletedRevIds.length;
+          }
+
+          if (ops.length > 0) {
+            await Promise.all(ops);
+            cloudRowSignatures = nextSig;
+            lastGranularSyncTelemetry = `Granular Sync: ${rowCountSynced} row(s) -> [${touchedTables.join(', ')}] at ${new Date().toLocaleTimeString()}`;
+          }
+          if (statusText) statusText.textContent = '10-Table Synced ✓';
+          updateDatabaseAndBackupStatusUI();
+          if (notify) showToast(`Synced ${rowCountSynced || 'all'} changed row(s) to Supabase 10-Table Cloud!`);
+          return;
+        }
+
+        // Legacy fallback: single-row kitchen_state
         const { error } = await supabaseClient
           .from('kitchen_state')
           .upsert({ id: 'main', data: state });
@@ -2365,6 +3373,8 @@
           if (notify) showToast('Cloud Save Error: ' + error.message, 'error');
         } else {
           if (statusText) statusText.textContent = 'Cloud Synced ✓';
+          lastGranularSyncTelemetry = `Legacy 1-Row Sync at ${new Date().toLocaleTimeString()}`;
+          updateDatabaseAndBackupStatusUI();
           if (notify) showToast('Saved kitchen data to Supabase Cloud!');
         }
       } catch (e) {}
@@ -2373,6 +3383,9 @@
     function saveState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        if (state.googleSheetConfig) {
+          localStorage.setItem(GSHEET_CONFIG_KEY, JSON.stringify(state.googleSheetConfig));
+        }
       } catch (e) {}
       updateNavCounts();
       if (supabaseClient) {
@@ -2395,8 +3408,11 @@
       const { url, key } = getSupabaseCredentials();
       const urlEl = document.getElementById('sbUrlInput');
       const keyEl = document.getElementById('sbKeyInput');
+      const sqlEl = document.getElementById('sbSqlCodePreview');
       if (urlEl) urlEl.value = url;
       if (keyEl) keyEl.value = key;
+      if (sqlEl) sqlEl.textContent = NORMALIZED_SUPABASE_SQL;
+      updateDatabaseAndBackupStatusUI();
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     }
@@ -2407,13 +3423,17 @@
       modal.classList.remove('flex');
     }
 
-    async function saveSupabaseConfig() {
-      const url = (document.getElementById('sbUrlInput')?.value || '').trim();
-      const key = (document.getElementById('sbKeyInput')?.value || '').trim();
-      if (!url || !key) {
-        showToast('Please paste both your Project URL and Anon Public Key', 'error');
-        return;
+    function copyNormalizedSupabaseSQL() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(NORMALIZED_SUPABASE_SQL).then(() => {
+          showToast('Copied 10-Table PostgreSQL Script! Paste it in Supabase SQL Editor and click Run.');
+        });
       }
+    }
+
+    async function saveSupabaseConfig() {
+      const url = (document.getElementById('sbUrlInput')?.value || '').trim() || DEFAULT_SUPABASE_URL;
+      const key = (document.getElementById('sbKeyInput')?.value || '').trim() || DEFAULT_SUPABASE_ANON_KEY;
       try {
         localStorage.setItem(SB_CONFIG_KEY, JSON.stringify({ url, key }));
       } catch (e) {}
@@ -2441,9 +3461,311 @@
       } catch (e) {}
       supabaseClient = null;
       const statusText = document.getElementById('cloudSyncStatusText');
-      if (statusText) statusText.textContent = 'Connect Cloud DB';
+      if (statusText) statusText.textContent = 'Offline Mode';
       closeSupabaseModal();
-      showToast('Disconnected Supabase Cloud Sync (using local browser storage)');
+      showToast('Paused Cloud Sync (hardcoded keys remain safe — click Restore Default Keys anytime)');
+    }
+
+    // =========================================================================
+    // AUTOMATED DAILY GOOGLE SHEETS ARCHIVE BACKUP ENGINE (HISTORY & ACCOUNTS)
+    // =========================================================================
+    function buildGoogleSheetArchivePayload(triggerLabel = 'Manual / Daily Auto Backup') {
+      const nowStr = new Date().toISOString();
+      const historyRows = [];
+      const historyDates = Object.keys(state.history || {}).sort();
+
+      historyDates.forEach(dateStr => {
+        const rec = state.history[dateStr];
+        if (!rec || !rec.mealsSnapshot) return;
+        const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
+        mealKeys.forEach(mKey => {
+          const mPlan = rec.mealsSnapshot[mKey];
+          if (!mPlan || !mPlan.enabled) return;
+          if (mPlan.fasting) {
+            historyRows.push([
+              `${dateStr}__${mKey}__FASTING`,
+              dateStr,
+              rec.updatedAt || nowStr,
+              mKey.toUpperCase(),
+              'FASTING OBSERVED (NO COOKING)',
+              '-',
+              0,
+              'All Departments Fasting',
+              0,
+              0,
+              Number(rec.kitchenMultiplierSnapshot || 1.2),
+              0,
+              0
+            ]);
+            return;
+          }
+          const deptCols = mPlan.deptCols || [];
+          (mPlan.rows || []).forEach(row => {
+            const rSnap = (rec.recipeSnapshots && rec.recipeSnapshots[row.recipeId]) || getRecipeById(row.recipeId);
+            const dishName = rSnap ? rSnap.name : row.recipeId;
+            const yieldUnit = rSnap ? rSnap.yieldUnit : 'L';
+            const servingStr = `${row.servingQty} ${rSnap ? rSnap.servingUnit : 'ml'}`;
+            const deptBreakdowns = deptCols.map(c => {
+              const q = (row.frozenDeptQtys && row.frozenDeptQtys[c.colId] !== undefined)
+                ? row.frozenDeptQtys[c.colId]
+                : computeDeptDishQty(rSnap, row.servingQty, c.count);
+              return `${c.customLabel || c.deptId}: ${formatNum(q, 2)}${yieldUnit}`;
+            }).join(' | ');
+
+            historyRows.push([
+              `${dateStr}__${mKey}__${row.recipeId}`,
+              dateStr,
+              rec.updatedAt || nowStr,
+              mKey.toUpperCase(),
+              dishName,
+              yieldUnit,
+              servingStr,
+              deptBreakdowns,
+              Number((row.frozenCalcTotal ?? 0).toFixed(2)),
+              Number((row.frozenCookQty ?? row.adjustedQty ?? 0).toFixed(2)),
+              Number(rec.kitchenMultiplierSnapshot || 1.2),
+              Number((row.frozenRowCalcCost ?? 0).toFixed(2)),
+              Number((row.frozenRowAdjCost ?? 0).toFixed(2))
+            ]);
+          });
+        });
+      });
+
+      const expenseRows = ((state.accounts && state.accounts.expenses) || [])
+        .slice()
+        .sort((a, b) => (a.date > b.date ? 1 : -1))
+        .map(e => [
+          e.id,
+          e.date,
+          e.type,
+          e.particulars,
+          Number(e.debit) || 0,
+          nowStr
+        ]);
+
+      const claimRows = Object.values((state.accounts && state.accounts.claims) || {})
+        .slice()
+        .sort((a, b) => (a.date > b.date ? 1 : -1))
+        .map(c => {
+          const finalCost = Number(c.finalChargeableCost) || 0;
+          const paidAmt = c.status === 'paid' ? finalCost : (c.status === 'partial' ? (Number(c.paidAmount) || 0) : 0);
+          const pendingBal = Math.max(0, finalCost - paidAmt);
+          return [
+            c.id,
+            c.date,
+            c.deptName,
+            Number(c.profitMultiplierSnapshot || 1.2),
+            c.menuText || '',
+            Number((c.adjustedCostBase || 0).toFixed(2)),
+            Number((c.calculatedChargeableCost || 0).toFixed(2)),
+            finalCost,
+            (c.status || 'pending').toUpperCase(),
+            paidAmt,
+            pendingBal,
+            nowStr
+          ];
+        });
+
+      const revenueRows = [];
+      Object.values((state.accounts && state.accounts.claims) || {}).forEach(c => {
+        if (c.status === 'paid' || c.status === 'partial') {
+          const amt = c.status === 'paid' ? (Number(c.finalChargeableCost) || 0) : (Number(c.paidAmount) || 0);
+          if (amt > 0) {
+            revenueRows.push([
+              `claimrev_${c.id}`,
+              c.date,
+              c.deptName,
+              'CLAIM',
+              c.status.toUpperCase(),
+              c.menuText || '',
+              amt,
+              nowStr
+            ]);
+          }
+        }
+      });
+      ((state.accounts && state.accounts.manualRevenue) || []).forEach(m => {
+        revenueRows.push([
+          m.id,
+          m.date,
+          m.deptName || 'Department',
+          'MANUAL',
+          'PAID',
+          m.menu,
+          Number(m.amount) || 0,
+          nowStr
+        ]);
+      });
+      revenueRows.sort((a, b) => (a[1] > b[1] ? 1 : -1));
+
+      return {
+        trigger: triggerLabel,
+        historyRows,
+        expenseRows,
+        claimRows,
+        revenueRows
+      };
+    }
+
+    function openGoogleSheetModal() {
+      const modal = document.getElementById('googleSheetModal');
+      if (!state.googleSheetConfig) state.googleSheetConfig = getDefaultState().googleSheetConfig;
+      const urlInp = document.getElementById('gsWebhookUrlInput');
+      const dailyChk = document.getElementById('gsAutoDailyToggle');
+      const histChk = document.getElementById('gsAutoOnHistoryToggle');
+      const scriptPre = document.getElementById('gsAppsScriptPreview');
+
+      if (urlInp) urlInp.value = state.googleSheetConfig.webhookUrl || '';
+      if (dailyChk) dailyChk.checked = state.googleSheetConfig.autoDaily !== false;
+      if (histChk) histChk.checked = state.googleSheetConfig.autoOnHistoryUpdate !== false;
+      if (scriptPre) scriptPre.textContent = GOOGLE_APPS_SCRIPT_CODE;
+
+      updateDatabaseAndBackupStatusUI();
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeGoogleSheetModal() {
+      const modal = document.getElementById('googleSheetModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function copyGoogleAppsScriptCode() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(GOOGLE_APPS_SCRIPT_CODE).then(() => {
+          showToast('Copied Google Apps Script! Paste it in your Google Sheet -> Extensions -> Apps Script.');
+        });
+      }
+    }
+
+    function saveGoogleSheetConfig() {
+      if (!state.googleSheetConfig) state.googleSheetConfig = {};
+      const urlVal = (document.getElementById('gsWebhookUrlInput')?.value || '').trim();
+      const autoDaily = Boolean(document.getElementById('gsAutoDailyToggle')?.checked);
+      const autoOnHistory = Boolean(document.getElementById('gsAutoOnHistoryToggle')?.checked);
+
+      state.googleSheetConfig.webhookUrl = urlVal;
+      state.googleSheetConfig.autoDaily = autoDaily;
+      state.googleSheetConfig.autoOnHistoryUpdate = autoOnHistory;
+      saveState();
+      updateDatabaseAndBackupStatusUI();
+      closeGoogleSheetModal();
+      showToast(urlVal ? 'Saved Google Sheet Auto-Backup Settings!' : 'Saved settings (Add Webhook URL anytime to enable sync)');
+    }
+
+    function triggerGoogleSheetBackupOrModal() {
+      const url = state.googleSheetConfig?.webhookUrl?.trim();
+      if (!url) {
+        openGoogleSheetModal();
+      } else {
+        backupToGoogleSheetNow(true);
+      }
+    }
+
+    async function backupToGoogleSheetNow(notify = true, triggerReason = 'Manual Backup') {
+      if (!state.googleSheetConfig) state.googleSheetConfig = {};
+      const modalUrlInput = document.getElementById('gsWebhookUrlInput');
+      if (modalUrlInput && modalUrlInput.value.trim()) {
+        state.googleSheetConfig.webhookUrl = modalUrlInput.value.trim();
+        state.googleSheetConfig.autoDaily = Boolean(document.getElementById('gsAutoDailyToggle')?.checked);
+        state.googleSheetConfig.autoOnHistoryUpdate = Boolean(document.getElementById('gsAutoOnHistoryToggle')?.checked);
+      }
+
+      const webhookUrl = (state.googleSheetConfig.webhookUrl || '').trim();
+      if (!webhookUrl) {
+        if (notify) {
+          openGoogleSheetModal();
+          showToast('Please paste your Google Apps Script Web App URL (.../exec) first', 'error');
+        }
+        return false;
+      }
+
+      const payload = buildGoogleSheetArchivePayload(triggerReason);
+      const totalRows = payload.historyRows.length + payload.expenseRows.length + payload.claimRows.length + payload.revenueRows.length;
+      const gsHeaderTxt = document.getElementById('gsheetBackupStatusText');
+      if (gsHeaderTxt) gsHeaderTxt.textContent = 'Backing up to G-Sheet...';
+
+      try {
+        // Send as text/plain so browsers do not trigger CORS OPTIONS preflight against script.google.com
+        await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const todayIso = new Date().toISOString().slice(0, 10);
+        state.googleSheetConfig.lastBackupDate = todayIso;
+        state.googleSheetConfig.lastBackupTimestamp = new Date().toISOString();
+        state.googleSheetConfig.totalRowsArchived = totalRows;
+        state.googleSheetConfig.lastBackedUpSignature = JSON.stringify([
+          payload.historyRows.length,
+          payload.expenseRows.length,
+          payload.claimRows.length,
+          payload.revenueRows.length
+        ]);
+        saveState();
+        updateDatabaseAndBackupStatusUI();
+        if (notify) {
+          showToast(`Backed up ${totalRows} History & Accounts records to Google Sheet Archive!`);
+        }
+        return true;
+      } catch (err) {
+        if (gsHeaderTxt) gsHeaderTxt.textContent = 'G-Sheet Backup Error';
+        if (notify) showToast('Could not reach Google Sheet Webhook URL: ' + err.message, 'error');
+        return false;
+      }
+    }
+
+    function checkAndRunDailyGoogleSheetAutoBackup() {
+      const cfg = state.googleSheetConfig;
+      if (!cfg || !cfg.webhookUrl || !cfg.webhookUrl.trim() || cfg.autoDaily === false) {
+        updateDatabaseAndBackupStatusUI();
+        return;
+      }
+      const todayIso = new Date().toISOString().slice(0, 10);
+      if (cfg.lastBackupDate !== todayIso) {
+        backupToGoogleSheetNow(false, 'Scheduled Daily Auto-Backup (' + todayIso + ')');
+      } else {
+        updateDatabaseAndBackupStatusUI();
+      }
+    }
+
+    function exportHistoryAndAccountsCSV() {
+      const payload = buildGoogleSheetArchivePayload('Local CSV Export');
+      const lines = [];
+      const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+      lines.push('=== 1. HISTORY ARCHIVE ===');
+      lines.push(['Record Key', 'Date', 'Archived At', 'Meal', 'Dish Name', 'Yield Unit', 'Std Serving', 'Department Allocations', 'Calculated Qty', 'Cooked Yield', 'Kitchen Multiplier', 'Frozen Calculated Cost (INR)', 'Frozen Adjusted Cost (INR)'].map(esc).join(','));
+      payload.historyRows.forEach(r => lines.push(r.map(esc).join(',')));
+
+      lines.push('');
+      lines.push('=== 2. EXPENSES ARCHIVE ===');
+      lines.push(['Expense ID', 'Date', 'Expense Type', 'Particulars', 'Debit Amount (INR)', 'Exported At'].map(esc).join(','));
+      payload.expenseRows.forEach(r => lines.push(r.map(esc).join(',')));
+
+      lines.push('');
+      lines.push('=== 3. CLAIMS ARCHIVE ===');
+      lines.push(['Claim ID', 'Date', 'Department Name', 'Profit Multiplier', 'Menu & Quantities Provided', 'Base Adjusted Cost (INR)', 'Calculated Chargeable Cost (INR)', 'Final Chargeable Cost (INR)', 'Payment Status', 'Paid Amount (INR)', 'Pending Balance (INR)', 'Exported At'].map(esc).join(','));
+      payload.claimRows.forEach(r => lines.push(r.map(esc).join(',')));
+
+      lines.push('');
+      lines.push('=== 4. REVENUE ARCHIVE ===');
+      lines.push(['Revenue ID', 'Date', 'Department Name', 'Source', 'Payment Status', 'Menu / Particulars', 'Realized Amount (INR)', 'Exported At'].map(esc).join(','));
+      payload.revenueRows.forEach(r => lines.push(r.map(esc).join(',')));
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Srimati_Radharani_Ki_Rasoi_History_Accounts_Archive_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Downloaded complete History & Accounts CSV Archive!');
     }
 
     function showToast(msg, type = 'success') {
@@ -3843,6 +5165,7 @@
     function renderSettingsTab() {
       renderDepartmentsSection();
       renderMultiplierAndTimingsSection();
+      updateDatabaseAndBackupStatusUI();
     }
 
     function renderDepartmentsSection() {
@@ -5300,7 +6623,12 @@
       state.selectedHistoryDate = dateStr;
       saveState();
       renderDailyKitchenTab();
-      showToast(`Recorded ${dateStr} cooking in History & updated Chargeable Department Claims!`);
+      if (state.googleSheetConfig && state.googleSheetConfig.webhookUrl && state.googleSheetConfig.autoOnHistoryUpdate !== false) {
+        backupToGoogleSheetNow(false, `Update History (${dateStr})`);
+        showToast(`Recorded ${dateStr} in History, updated Claims & backed up to Google Sheet!`);
+      } else {
+        showToast(`Recorded ${dateStr} cooking in History & updated Chargeable Department Claims!`);
+      }
     }
 
     function onHistoryDateSelect(dateStr) {
@@ -6246,6 +7574,7 @@
     // Initialize App on Load
     window.addEventListener('DOMContentLoaded', () => {
       ensureInitialHistorySnapshots();
+      cloudRowSignatures = buildRowSignatures(state);
       if (state.bgOpacity !== undefined) {
         const slider = document.getElementById('bgOpacitySlider');
         if (slider) slider.value = state.bgOpacity;
@@ -6253,10 +7582,15 @@
         if (wrap) wrap.style.opacity = (Number(state.bgOpacity) / 100).toFixed(2);
       }
       updateNavCounts();
+      updateDatabaseAndBackupStatusUI();
       switchTab(state.activeTab || 'ingredients');
       if (initSupabaseClient()) {
         loadStateFromCloud(false);
       }
+      // Periodic background check (every 15 mins) so if dashboard stays open overnight, the daily Google Sheet backup fires automatically
+      setInterval(() => {
+        checkAndRunDailyGoogleSheetAutoBackup();
+      }, 15 * 60 * 1000);
     });
   </script>
 </body>
