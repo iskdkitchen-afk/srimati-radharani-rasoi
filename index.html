@@ -2360,8 +2360,8 @@ function doPost(e) {
     if (payload.historyRows) {
       stats.history = upsertSheetRows(ss, 'History_Archive', [
         'Record Key (Date__Meal__Dish)', 'Date', 'Archived At', 'Meal', 'Dish Name',
-        'Yield Unit', 'Std Serving', 'Department Allocations', 'Total Qty',
-        'Cooked Qty', 'Kitchen Multiplier', 'Frozen Calculated Cost (₹)', 'Frozen Adjusted Cost (₹)'
+        'Yield Unit', 'Std Serving', 'Department Allocations', 'Calculated Qty',
+        'Cooked Yield', 'Kitchen Multiplier', 'Frozen Calculated Cost (₹)', 'Frozen Adjusted Cost (₹)'
       ], payload.historyRows);
     }
 
@@ -3262,17 +3262,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       }
     }
 
-    let isCloudSyncInFlight = false;
-    let hasPendingCloudSync = false;
-
     // Granular Row-Level Diff Sync Engine: Only pushes the specific row(s) that were added/edited/deleted!
     async function saveStateToCloud(notify = false) {
       if (!supabaseClient || !hasCompletedInitialCloudLoad) return;
-      if (isCloudSyncInFlight) {
-        hasPendingCloudSync = true;
-        return;
-      }
-      isCloudSyncInFlight = true;
       try {
         const statusText = document.getElementById('cloudSyncStatusText');
         if (statusText) statusText.textContent = 'Syncing...';
@@ -3458,14 +3450,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           if (notify) showToast(`Synced ${rowCountSynced || 'all'} changed row(s) to Supabase!`);
           return;
         }
-      } catch (e) {
-      } finally {
-        isCloudSyncInFlight = false;
-        if (hasPendingCloudSync) {
-          hasPendingCloudSync = false;
-          saveStateToCloud(false);
-        }
-      }
+      } catch (e) {}
     }
 
     function saveState() {
@@ -3824,7 +3809,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 
       lines.push('=== 1. HISTORY ARCHIVE ===');
-      lines.push(['Record Key', 'Date', 'Archived At', 'Meal', 'Dish Name', 'Yield Unit', 'Std Serving', 'Department Allocations', 'Total Qty', 'Cooked Qty', 'Kitchen Multiplier', 'Frozen Calculated Cost (INR)', 'Frozen Adjusted Cost (INR)'].map(esc).join(','));
+      lines.push(['Record Key', 'Date', 'Archived At', 'Meal', 'Dish Name', 'Yield Unit', 'Std Serving', 'Department Allocations', 'Calculated Qty', 'Cooked Yield', 'Kitchen Multiplier', 'Frozen Calculated Cost (INR)', 'Frozen Adjusted Cost (INR)'].map(esc).join(','));
       payload.historyRows.forEach(r => lines.push(r.map(esc).join(',')));
 
       lines.push('');
@@ -5510,10 +5495,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function syncUnarchivedDailyPlanFromCalendar(dateStr) {
+      if (state.history && state.history[dateStr]) return; // Never overwrite a date already saved in History!
       if (state.dailyPlans[dateStr]) {
         delete state.dailyPlans[dateStr];
       }
-      ensureDailyPlanForDate(dateStr, true);
     }
 
     function renderCalRecipeSearchOptionsHtml(dateStr, mealKey, dishIdx, selectedRecId, queryStr = '') {
@@ -5943,7 +5928,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (!state.dailyPlans || typeof state.dailyPlans !== 'object') return;
       const validDeptMap = new Map((state.departments || []).map(d => [d.id, d]));
       Object.keys(state.dailyPlans).forEach(dateStr => {
-        // Note: state.dailyPlans[dateStr] is the live Daily Kitchen workspace; state.history[dateStr] is a separate frozen snapshot.
+        if (state.history && state.history[dateStr]) return; // Never mutate frozen History snapshots
         const dp = state.dailyPlans[dateStr];
         if (!dp || !dp.meals) return;
         ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mKey => {
@@ -5977,11 +5962,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     // TAB 4: DAILY KITCHEN PLANNING & COLLAPSIBLE A4 RECIPE GENERATOR
     // =========================================================================
     function ensureDailyPlanForDate(dateStr, forceResync = false) {
-      // 1. If History was already recorded for this date and forceResync is not requested, seed from archived History snapshot
-      if (!forceResync && !state.dailyPlans[dateStr] && state.history && state.history[dateStr] && state.history[dateStr].mealsSnapshot) {
+      // 1. If History was already recorded for this date, load from the archived History snapshot
+      if (!state.dailyPlans[dateStr] && state.history && state.history[dateStr] && state.history[dateStr].mealsSnapshot) {
         state.dailyPlans[dateStr] = {
-          meals: JSON.parse(JSON.stringify(state.history[dateStr].mealsSnapshot)),
-          userModified: true
+          meals: JSON.parse(JSON.stringify(state.history[dateStr].mealsSnapshot))
         };
         return state.dailyPlans[dateStr];
       }
@@ -6234,7 +6218,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         const deptCountCells = deptCols.map((col, cIdx) => `
           <th class="bg-amber-50/50 text-center p-2">
             <div class="flex items-center justify-center gap-1">
-              <input id="dailyDeptCountInput_${meta.key}_${cIdx}" type="number" step="1" min="0" value="${col.count}" oninput="onDailyDeptCountEdit('${dateStr}', '${meta.key}', ${cIdx}, this.value)" class="w-20 px-2.5 py-1 text-center text-sm font-extrabold bg-white border border-amber-300 rounded-xl text-slate-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-orange-400" title="Editable Department Headcount" />
+              <input type="number" step="1" min="0" value="${col.count}" oninput="onDailyDeptCountEdit('${dateStr}', '${meta.key}', ${cIdx}, this.value)" class="w-20 px-2.5 py-1 text-center text-sm font-extrabold bg-white border border-amber-300 rounded-xl text-slate-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-orange-400" title="Editable Department Headcount" />
             </div>
             <div class="text-[10px] font-semibold text-slate-400 mt-0.5">headcount</div>
           </th>
@@ -6255,14 +6239,16 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             const displayVal = isOverridden ? ov : formatNum(autoVal, 2);
 
             return `
-              <td id="dailyCellTd_${meta.key}_${rIdx}_${col.colId}" class="${isOverridden ? 'bg-orange-50/50' : ''} text-center p-2">
+              <td class="${isOverridden ? 'bg-orange-50/50' : ''} text-center p-2">
                 <div class="flex items-center justify-center gap-1">
-                  <input id="dailyCellInput_${meta.key}_${rIdx}_${col.colId}" type="number" step="0.25" min="0" value="${displayVal}"
-                    oninput="onDailyCellOverride('${dateStr}', '${meta.key}', ${rIdx}, '${col.colId}', this.value)"
+                  <input type="number" step="0.25" min="0" value="${displayVal}"
+                    onchange="onDailyCellOverride('${dateStr}', '${meta.key}', ${rIdx}, '${col.colId}', this.value)"
                     class="w-20 px-2 py-1 text-center text-sm font-bold border ${isOverridden ? 'border-orange-400 bg-orange-50 text-orange-950' : 'border-slate-200/90 bg-white text-slate-800'} rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition"
                     title="${isOverridden ? 'Manually overridden! Click ↺ to restore auto formula.' : `Auto: ${row.servingQty} ${servingUnit} × ${col.count} = ${formatNum(autoVal, 2)} ${yieldUnit}`}" />
                   <span class="text-[11px] font-medium text-slate-400">${yieldUnit}</span>
-                  <button id="dailyCellReset_${meta.key}_${rIdx}_${col.colId}" onclick="clearDailyCellOverride('${dateStr}', '${meta.key}', ${rIdx}, '${col.colId}')" class="${isOverridden ? '' : 'hidden'} text-xs font-bold text-orange-600 hover:text-orange-800 px-1" title="Restore auto multiplication (${formatNum(autoVal, 2)} ${yieldUnit})">↺</button>
+                  ${isOverridden ? `
+                    <button onclick="clearDailyCellOverride('${dateStr}', '${meta.key}', ${rIdx}, '${col.colId}')" class="text-xs font-bold text-orange-600 hover:text-orange-800 px-1" title="Restore auto multiplication (${formatNum(autoVal, 2)} ${yieldUnit})">↺</button>
+                  ` : ''}
                 </div>
               </td>
             `;
@@ -6283,8 +6269,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               <!-- Col 2: Standard Serving Quantity (Editable) -->
               <td class="text-center p-2">
                 <div class="flex items-center justify-center gap-1">
-                  <input id="dailyServingInput_${meta.key}_${rIdx}" type="number" step="1" min="0" value="${row.servingQty}"
-                    oninput="onDailyRowServingQtyChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
+                  <input type="number" step="1" min="0" value="${row.servingQty}"
+                    onchange="onDailyRowServingQtyChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
                     class="w-20 px-2 py-1 text-center text-sm font-bold bg-white border border-slate-200/90 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     title="Editable Standard Serving Quantity per person (${servingUnit})" />
                   <span class="text-xs font-medium text-slate-400">${servingUnit}</span>
@@ -6294,25 +6280,27 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               <!-- Dynamic Department Columns -->
               ${deptCellsHtml}
 
-              <!-- Second-to-last Col: Total Qty -->
+              <!-- Second-to-last Col: Calculated Quantity (Total) -->
               <td class="bg-amber-50/45 text-center p-2">
                 <div class="flex items-center justify-center gap-1">
-                  <input id="dailyCalcInput_${meta.key}_${rIdx}" type="number" step="0.25" min="0" value="${formatNum(calcTotal, 2)}"
-                    oninput="onDailyRowCalcOverride('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
+                  <input type="number" step="0.25" min="0" value="${formatNum(calcTotal, 2)}"
+                    onchange="onDailyRowCalcOverride('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
                     class="w-20 px-2 py-1 text-center text-sm font-extrabold ${hasCalcOverride ? 'bg-orange-100 border-2 border-orange-500' : 'bg-white border border-amber-300'} rounded-xl text-amber-950 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                    title="Total Qty across departments (Editable)" />
+                    title="Calculated Total across departments (Editable)" />
                   <span class="text-xs font-bold text-amber-800">${yieldUnit}</span>
-                  <button id="dailyCalcReset_${meta.key}_${rIdx}" onclick="clearDailyRowCalcOverride('${dateStr}', '${meta.key}', ${rIdx})" class="${hasCalcOverride ? '' : 'hidden'} text-xs font-bold text-orange-700 px-1" title="Restore automatic sum">↺</button>
+                  ${hasCalcOverride ? `
+                    <button onclick="clearDailyRowCalcOverride('${dateStr}', '${meta.key}', ${rIdx})" class="text-xs font-bold text-orange-700 px-1" title="Restore automatic sum">↺</button>
+                  ` : ''}
                 </div>
               </td>
 
-              <!-- Last Col: Cooked Qty -->
+              <!-- Last Col: Adjusted Quantity (Ideal / Final Cook Qty) -->
               <td class="bg-emerald-50/55 text-center p-2">
                 <div class="flex items-center justify-center gap-1">
-                  <input id="dailyCookInput_${meta.key}_${rIdx}" type="number" step="0.5" min="0" value="${formatNum(row.adjustedQty, 2)}"
-                    oninput="onDailyRowAdjustedQtyChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
+                  <input type="number" step="0.5" min="0" value="${formatNum(row.adjustedQty, 2)}"
+                    onchange="onDailyRowAdjustedQtyChange('${dateStr}', '${meta.key}', ${rIdx}, this.value)"
                     class="w-24 px-2.5 py-1 text-center text-sm font-extrabold bg-white border-2 border-emerald-400 rounded-xl text-emerald-950 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    title="Cooked Qty (Used to generate recipes)" />
+                    title="Final Adjusted Quantity to Cook (Used to generate recipes)" />
                   <span class="text-xs font-extrabold text-emerald-800">${yieldUnit}</span>
                 </div>
               </td>
@@ -6370,10 +6358,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                         </th>
                         ${deptHeaderCells}
                         <th class="bg-amber-50/70 text-center font-bold text-xs uppercase tracking-wider text-amber-900 w-36" title="Sum of all department quantities for each dish">
-                          Total Qty
+                          Calculated Qty<br/><span class="text-[10px] font-medium text-amber-700">(total)</span>
                         </th>
                         <th class="bg-emerald-50/75 text-center font-bold text-xs uppercase tracking-wider text-emerald-950 w-40" title="Manually rounded or adjusted final quantity to cook">
-                          Cooked Qty
+                          Adjusted Qty<br/><span class="text-[10px] font-medium text-emerald-700">(ideal / final cook)</span>
                         </th>
                       </tr>
                       <tr class="bg-slate-50/40">
@@ -6384,7 +6372,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                           ml or pcs / person
                         </th>
                         ${deptCountCells}
-                        <th id="dailyTotalHeadcount_${meta.key}" class="bg-amber-50/50 text-center font-extrabold text-amber-950 text-base">
+                        <th class="bg-amber-50/50 text-center font-extrabold text-amber-950 text-base">
                           ${totalHeadcount} <span class="text-[10px] font-semibold text-amber-700 block">total people</span>
                         </th>
                         <th class="bg-emerald-50/60 text-center font-bold text-emerald-800 text-xs">
@@ -6431,68 +6419,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       generateDailyRecipesSection(false);
     }
 
-    // Updates dependent cells in the active meal table in-place so typing multi-digit numbers NEVER loses focus!
-    function syncDailyMealTableDOMInPlace(dateStr, mealKey) {
-      const plan = ensureDailyPlanForDate(dateStr);
-      const mPlan = plan.meals && plan.meals[mealKey];
-      if (!mPlan) return;
-
-      const deptCols = mPlan.deptCols || [];
-      const totalHeadcount = deptCols.reduce((acc, c) => acc + (Number(c.count) || 0), 0);
-      const hcEl = document.getElementById(`dailyTotalHeadcount_${mealKey}`);
-      if (hcEl) {
-        hcEl.innerHTML = `${totalHeadcount} <span class="text-[10px] font-semibold text-amber-700 block">total people</span>`;
-      }
-
-      (mPlan.rows || []).forEach((row, rIdx) => {
-        const rec = getRecipeById(row.recipeId);
-        deptCols.forEach(col => {
-          const ov = row.overrides && row.overrides[col.colId];
-          const isOverridden = ov !== undefined && ov !== null && ov !== '';
-          const autoVal = computeDeptDishQty(rec, row.servingQty, col.count);
-          const displayVal = isOverridden ? ov : formatNum(autoVal, 2);
-
-          const cellInp = document.getElementById(`dailyCellInput_${mealKey}_${rIdx}_${col.colId}`);
-          if (cellInp) {
-            if (document.activeElement !== cellInp) {
-              cellInp.value = displayVal;
-            }
-            cellInp.className = `w-20 px-2 py-1 text-center text-sm font-bold border ${isOverridden ? 'border-orange-400 bg-orange-50 text-orange-950' : 'border-slate-200/90 bg-white text-slate-800'} rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition`;
-          }
-          const cellTd = document.getElementById(`dailyCellTd_${mealKey}_${rIdx}_${col.colId}`);
-          if (cellTd) {
-            cellTd.className = `${isOverridden ? 'bg-orange-50/50' : ''} text-center p-2`;
-          }
-          const cellReset = document.getElementById(`dailyCellReset_${mealKey}_${rIdx}_${col.colId}`);
-          if (cellReset) {
-            cellReset.classList.toggle('hidden', !isOverridden);
-          }
-        });
-
-        const calcTotal = computeRowCalculatedTotal(mPlan, row);
-        const hasCalcOverride = row.calcOverride !== null && row.calcOverride !== undefined && row.calcOverride !== '';
-        const calcInp = document.getElementById(`dailyCalcInput_${mealKey}_${rIdx}`);
-        if (calcInp) {
-          if (document.activeElement !== calcInp) {
-            calcInp.value = formatNum(calcTotal, 2);
-          }
-          calcInp.className = `w-20 px-2 py-1 text-center text-sm font-extrabold ${hasCalcOverride ? 'bg-orange-100 border-2 border-orange-500' : 'bg-white border border-amber-300'} rounded-xl text-amber-950 focus:outline-none focus:ring-2 focus:ring-orange-400`;
-        }
-        const calcReset = document.getElementById(`dailyCalcReset_${mealKey}_${rIdx}`);
-        if (calcReset) {
-          calcReset.classList.toggle('hidden', !hasCalcOverride);
-        }
-
-        const cookInp = document.getElementById(`dailyCookInput_${mealKey}_${rIdx}`);
-        if (cookInp && document.activeElement !== cookInp) {
-          cookInp.value = formatNum(row.adjustedQty, 2);
-        }
-      });
-
-      saveState();
-      generateDailyRecipesSection(false);
-    }
-
     function onDailyDeptSelect(dateStr, mealKey, colIdx, newDeptId) {
       const plan = ensureDailyPlanForDate(dateStr);
       plan.userModified = true;
@@ -6507,11 +6433,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         col.customLabel = '';
         col.count = 0;
       }
-      (plan.meals[mealKey].rows || []).forEach(r => {
-        if (r.overrides) delete r.overrides[col.colId];
-        r.calcOverride = null;
-        r.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], r));
-      });
       saveState();
       renderDailyKitchenTab();
     }
@@ -6532,12 +6453,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.count = Math.max(0, parseFloat(newCount) || 0);
-      (plan.meals[mealKey].rows || []).forEach(r => {
-        if (r.overrides) delete r.overrides[col.colId];
-        r.calcOverride = null;
-        r.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], r));
-      });
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     function addDailyDeptCol(dateStr, mealKey) {
@@ -6553,10 +6470,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         customLabel: nextDept ? nextDept.name : '',
         count: nextDept ? nextDept.count : 0
       });
-      (plan.meals[mealKey].rows || []).forEach(r => {
-        r.calcOverride = null;
-        r.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], r));
-      });
       saveState();
       renderDailyKitchenTab();
     }
@@ -6570,8 +6483,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (removed) {
         plan.meals[mealKey].rows.forEach(r => {
           if (r.overrides) delete r.overrides[removed.colId];
-          r.calcOverride = null;
-          r.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], r));
         });
       }
       saveState();
@@ -6626,10 +6537,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.servingQty = Math.max(0, parseFloat(newVal) || 0);
-      row.overrides = {};
-      row.calcOverride = null;
-      row.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], row));
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     function onDailyCellOverride(dateStr, mealKey, rowIdx, colId, newVal) {
@@ -6639,9 +6548,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (!row) return;
       if (!row.overrides) row.overrides = {};
       row.overrides[colId] = Math.max(0, parseFloat(newVal) || 0);
-      row.calcOverride = null;
-      row.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], row));
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     function clearDailyCellOverride(dateStr, mealKey, rowIdx, colId) {
@@ -6650,9 +6558,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row || !row.overrides) return;
       delete row.overrides[colId];
-      row.calcOverride = null;
-      row.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], row));
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     function onDailyRowCalcOverride(dateStr, mealKey, rowIdx, newVal) {
@@ -6661,8 +6568,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.calcOverride = Math.max(0, parseFloat(newVal) || 0);
-      row.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], row));
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     function clearDailyRowCalcOverride(dateStr, mealKey, rowIdx) {
@@ -6671,8 +6578,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.calcOverride = null;
-      row.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], row));
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     function onDailyRowAdjustedQtyChange(dateStr, mealKey, rowIdx, newVal) {
@@ -6681,7 +6588,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.adjustedQty = Math.max(0, parseFloat(newVal) || 0);
-      syncDailyMealTableDOMInPlace(dateStr, mealKey);
+      saveState();
+      renderDailyKitchenTab();
     }
 
     // =========================================================================
@@ -7088,25 +6996,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             const cleanVal = Number(val) || 0;
             row.frozenDeptQtys[col.colId] = cleanVal;
             rowSum += cleanVal;
-          });
 
-          row.frozenCalcTotal = (row.calcOverride !== null && row.calcOverride !== undefined && row.calcOverride !== '')
-            ? (Number(row.calcOverride) || 0)
-            : rowSum;
-
-          const cookQty = Number(row.adjustedQty) || 0;
-          row.frozenCookQty = cookQty;
-
-          // Scale chargeable department quantities if Total Qty or Cooked Qty was adjusted so Accounts always matches History!
-          const scaleFactor = (rowSum > 0 && cookQty > 0) ? (cookQty / rowSum) : 1;
-
-          deptCols.forEach(col => {
-            const rawVal = row.frozenDeptQtys[col.colId] || 0;
-            const effectiveVal = (cookQty > 0)
-              ? (rowSum > 0 ? rawVal * scaleFactor : (deptCols.length === 1 ? cookQty : 0))
-              : 0;
+            // Check if this column belongs to a chargeable department
             const dSnap = deptSnapshots[col.deptId];
-            if (dSnap && dSnap.chargeable && effectiveVal > 0) {
+            if (dSnap && dSnap.chargeable && cleanVal > 0) {
               if (!chargeableDeptAgg[dSnap.id]) {
                 chargeableDeptAgg[dSnap.id] = {
                   deptSnap: dSnap,
@@ -7126,13 +7019,19 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                 };
               }
               const dishEntry = agg.dishesMap[recSnap.id];
-              dishEntry.totalQty += effectiveVal;
-              const dishAdjCost = effectiveVal * recSnap.adjCostPerYieldUnit;
+              dishEntry.totalQty += cleanVal;
+              const dishAdjCost = cleanVal * recSnap.adjCostPerYieldUnit;
               dishEntry.totalAdjCost += dishAdjCost;
               agg.totalAdjCost += dishAdjCost;
             }
           });
 
+          row.frozenCalcTotal = (row.calcOverride !== null && row.calcOverride !== undefined && row.calcOverride !== '')
+            ? (Number(row.calcOverride) || 0)
+            : rowSum;
+
+          const cookQty = Number(row.adjustedQty) || 0;
+          row.frozenCookQty = cookQty;
           if (cookQty > 0) {
             totalDishesCooked++;
             const rowCalcCost = cookQty * recSnap.calcCostPerYieldUnit;
@@ -7188,11 +7087,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         } else if (existingClaim) {
           status = existingClaim.status || 'pending';
           paidAmount = Number(existingClaim.paidAmount) || 0;
-          // Always update finalChargeableCost to the newly calculated History cost whenever History is updated!
-          finalCost = roundedFinalCost;
+          if (existingClaim.finalCostManuallyEdited) {
+            finalCost = Number(existingClaim.finalChargeableCost) || roundedFinalCost;
+          } else {
+            finalCost = roundedFinalCost;
+          }
           if (status === 'paid') {
-            paidAmount = finalCost;
-          } else if (status === 'partial' && paidAmount > finalCost) {
             paidAmount = finalCost;
           }
         }
@@ -7210,10 +7110,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           adjustedCostBase: agg.totalAdjCost,
           calculatedChargeableCost: calcChargeableCost,
           finalChargeableCost: finalCost,
-          finalCostManuallyEdited: false,
+          finalCostManuallyEdited: existingClaim ? Boolean(existingClaim.finalCostManuallyEdited) : false,
           status: status, // 'pending' | 'partial' | 'paid'
-          paidAmount: paidAmount,
-          updatedAt: new Date().toISOString()
+          paidAmount: paidAmount
         };
       });
 
@@ -7252,14 +7151,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
       const dateStr = state.selectedDailyDate || getTomorrowDateISO();
       const plan = ensureDailyPlanForDate(dateStr, false);
-      const record = pruneHistoryRecord(buildHistoryRecordForDate(dateStr, plan));
+      const record = buildHistoryRecordForDate(dateStr, plan);
       if (!state.history) state.history = {};
       state.history[dateStr] = record;
       state.selectedHistoryDate = dateStr;
       saveState();
-      renderHistoryTab();
-      renderAccountsTab();
-      showToast(`Updated History & Accounts for ${dateStr}!`);
 
       if (state.googleSheetConfig && state.googleSheetConfig.webhookUrl && state.googleSheetConfig.autoOnHistoryUpdate !== false) {
         backupToGoogleSheetNow(false, `Update History (${dateStr})`);
@@ -7478,7 +7374,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                         <span class="font-extrabold text-slate-900 text-sm sm:text-base">${escapeHtml(recName)}</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${meta.pillCls}">${escapeHtml(meta.title)}</span>
                       </div>
-                      <div class="text-xs text-slate-500">Cooked Qty: <strong>${formatNum(cookQty, 2)} ${yieldUnit}</strong> • Frozen Adjusted Cost: <strong class="text-orange-600">${formatCurrency(rowAdjCost)}</strong></div>
+                      <div class="text-xs text-slate-500">Cooked Yield: <strong>${formatNum(cookQty, 2)} ${yieldUnit}</strong> • Frozen Adjusted Cost: <strong class="text-orange-600">${formatCurrency(rowAdjCost)}</strong></div>
                     </div>
                   </div>
                   <span id="histAccIcon-${accKey}" class="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold transition-transform" style="transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};">▼</span>
@@ -7537,8 +7433,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                         <th class="text-left font-extrabold text-slate-800 min-w-[180px]">Dish (${escapeHtml(meta.shortCode)})</th>
                         <th class="text-center font-bold text-xs uppercase text-slate-500 w-28">Std Serving</th>
                         ${deptHeaderCells}
-                        <th class="bg-amber-50/70 text-center font-bold text-xs uppercase text-amber-900 w-32">Total Qty</th>
-                        <th class="bg-emerald-50/75 text-center font-bold text-xs uppercase text-emerald-950 w-36">Cooked Qty</th>
+                        <th class="bg-amber-50/70 text-center font-bold text-xs uppercase text-amber-900 w-32">Calculated Qty</th>
+                        <th class="bg-emerald-50/75 text-center font-bold text-xs uppercase text-emerald-950 w-36">Cooked Yield</th>
                         <th class="bg-orange-50/60 text-right font-bold text-xs uppercase text-orange-900 w-36">Frozen Adj. Cost</th>
                       </tr>
                       <tr class="bg-slate-50/40">
