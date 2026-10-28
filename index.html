@@ -82,7 +82,7 @@
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: none;
       }
     }
     .animate-tab-in {
@@ -96,7 +96,7 @@
       }
       100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
       }
     }
     .animate-row-in {
@@ -567,6 +567,9 @@
               <h3 id="calEditorDateTitle" class="text-base font-extrabold text-slate-900 mt-0.5">Sunday, Oct 4, 2026</h3>
             </div>
             <div class="flex flex-wrap items-center gap-1.5">
+              <button type="button" id="calHeaderUpdateBtn" onclick="updateSelectedCalendarDayMenu()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold hover-lift shadow-xs transition cursor-pointer flex items-center gap-1" title="Save & update this day's menu in the Calendar block and Supabase">
+                <span>✓</span> <span>Update</span>
+              </button>
               <button type="button" onclick="openCopyDayMenuModal()" class="px-3 py-2 rounded-xl border border-orange-200 bg-orange-50/90 hover:bg-orange-100 text-orange-900 text-xs font-bold hover-lift transition cursor-pointer flex items-center gap-1" title="Copy this day's menu to another date of any month">
                 <span>📋</span> <span>Copy Day Menu</span>
               </button>
@@ -1250,7 +1253,7 @@
           </div>
           <div class="p-5 space-y-4 text-xs text-slate-600">
             <p class="leading-relaxed">
-              Instead of sending the entire dashboard inside one giant JSON row on every click, <strong>Normalized 11-Table Mode</strong> stores each domain in its own dedicated PostgreSQL table (<code>kitchen_ingredients</code>, <code>kitchen_recipes</code>, <code>kitchen_departments</code>, <code>kitchen_calendar_days</code>, <code>kitchen_daily_plans</code>, <code>kitchen_history</code>, <code>kitchen_expenses</code>, <code>kitchen_claims</code>, <code>kitchen_manual_revenue</code>, <code>kitchen_settings</code>) and only syncs the single row you edited.
+              Instead of sending the entire dashboard inside one giant JSON row on every click, <strong>Normalized 11-Table Mode</strong> stores each domain in its own dedicated PostgreSQL table (<code>kitchen_ingredients</code>, <code>kitchen_recipes</code>, <code>kitchen_departments</code>, <code>kitchen_calendar_days</code>, <code>kitchen_history</code>, <code>kitchen_history_items</code>, <code>kitchen_expenses</code>, <code>kitchen_claims</code>, <code>kitchen_manual_revenue</code>, <code>kitchen_settings</code>) and only syncs the single row you edited.
             </p>
             <div id="settingsDbTelemetryBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 font-mono text-[11px] text-slate-700">
               Last Sync: Ready
@@ -1400,9 +1403,12 @@
         </div>
 
         <!-- Quick Jump Footer -->
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-          <button type="button" onclick="selectCustomDateAndClose('2026-10-23')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-            Jump to Oct 23, 2026
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <button type="button" onclick="jumpDatePickerToToday()" class="flex-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+            Jump to Today
+          </button>
+          <button type="button" onclick="jumpDatePickerToTomorrow()" class="flex-1 px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold transition shadow-2xs cursor-pointer">
+            Jump to Tomorrow
           </button>
         </div>
       </div>
@@ -1908,8 +1914,16 @@
   <!-- APPLICATION JAVASCRIPT                                            -->
   <!-- ================================================================= -->
   <script>
-    const STORAGE_KEY = 'iskcon_radharani_rasoi_v1';
+    const STORAGE_KEY = 'iskcon_radharani_rasoi_v4_clean';
+    try {
+      localStorage.removeItem('iskcon_dhanbad_rasoi_v5');
+      localStorage.removeItem('iskcon_radharani_rasoi_v3_clean');
+    } catch (e) {}
     const SB_CONFIG_KEY = 'iskcon_radharani_supabase_cfg';
+    let hasCompletedInitialCloudLoad = false;
+    let calEditorDraft = null;
+    let calEditorDraftDate = null;
+    let calEditorDirty = false;
 
     // =========================================================================
     // OPTIONAL: PASTE YOUR SUPABASE URL & ANON KEY HERE BEFORE DEPLOYING TO VERCEL
@@ -2089,10 +2103,35 @@
       return v.fastMeals.includes(mealKey);
     }
 
+    // Legacy hardcoded recipe IDs from earlier prototype versions that must never be auto-inserted
+    const LEGACY_HARDCODED_RECIPE_IDS = new Set([
+      'rec_alu_bagan_badi', 'rec_dal_fry', 'rec_jeera_rice', 'rec_sambhar',
+      'rec_idli', 'rec_pav', 'rec_bhaji', 'rec_pasta', 'rec_lemon_juice'
+    ]);
+
+    function getTodayDateISO() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function getTomorrowDateISO() {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
     function getDefaultState() {
+      const tomorrowIso = getTomorrowDateISO();
+      const [tmY, tmM] = tomorrowIso.split('-').map(Number);
       return {
         activeTab: 'daily',
-        selectedRecipeId: 'rec_alu_bagan_badi',
+        selectedRecipeId: 'rec_test',
         multiplier: 1.2,
         bgOpacity: 35,
         standardTimings: {
@@ -2100,346 +2139,61 @@
           lunch:     { bhoga: '12:00', serving: '13:00' },
           dinner:    { bhoga: '19:30', serving: '20:15' }
         },
-        calendarYear: 2026,
-        calendarMonth: 9, // 0-indexed: 9 = October 2026
-        selectedCalendarDate: '2026-10-04',
-        selectedDailyDate: '2026-10-04',
+        calendarYear: tmY || 2026,
+        calendarMonth: (tmM ? tmM - 1 : 9),
+        selectedCalendarDate: tomorrowIso,
+        selectedDailyDate: tomorrowIso,
         dailyMealFilter: 'ALL',
         printShowCosts: true,
 
-        // 1. INGREDIENTS LIST (5 units: Kg, g, mg, ml, L)
+        // 1. INGREDIENTS LIST (Only 1 default Test Ingredient — no hardcoded ingredients)
         ingredients: [
-          { id: 'ing_alu', name: 'Alu (Potato)', unit: 'L', price: 30 },
-          { id: 'ing_bagan', name: 'Bagan (Eggplant)', unit: 'L', price: 40 },
-          { id: 'ing_badi', name: 'Badi', unit: 'Kg', price: 120 },
-          { id: 'ing_tomato', name: 'Tomato Chopped', unit: 'L', price: 35 },
-          { id: 'ing_sarso_tel', name: 'Sarso Tel', unit: 'L', price: 160 },
-          { id: 'ing_tejpatta', name: 'Tejpatta', unit: 'Kg', price: 200 },
-          { id: 'ing_sukha_mircha', name: 'Sukha Mircha', unit: 'Kg', price: 260 },
-          { id: 'ing_panchforan', name: 'Panchforan', unit: 'Kg', price: 300 },
-          { id: 'ing_hing', name: 'Hing', unit: 'Kg', price: 1200 },
-          { id: 'ing_g_chilli', name: 'G Chilli', unit: 'Kg', price: 80 },
-          { id: 'ing_ginger', name: 'Ginger', unit: 'Kg', price: 120 },
-          { id: 'ing_gota_jeera', name: 'Gota Jeera', unit: 'Kg', price: 400 },
-          { id: 'ing_golki', name: 'Golki', unit: 'Kg', price: 700 },
-          { id: 'ing_haldi', name: 'Haldi', unit: 'Kg', price: 220 },
-          { id: 'ing_k_red_chilli', name: 'K Red Chilli', unit: 'Kg', price: 450 },
-          { id: 'ing_gota_sarso', name: 'Gota Sarso', unit: 'Kg', price: 150 },
-          { id: 'ing_garam_masala', name: 'Everest Garam Masala', unit: 'Kg', price: 800 },
-          { id: 'ing_dhaniya_patta', name: 'Dhaniya Patta', unit: 'L', price: 25 },
-          { id: 'ing_salt', name: 'Salt (Sendha)', unit: 'Kg', price: 20 },
-          { id: 'ing_toor_dal', name: 'Toor / Arhar Dal', unit: 'Kg', price: 140 },
-          { id: 'ing_rice', name: 'Basmati / Govindobhog Rice', unit: 'Kg', price: 65 },
-          { id: 'ing_ghee', name: 'Pure Cow Ghee', unit: 'L', price: 600 },
-          { id: 'ing_idli_rava', name: 'Idli Rava & Urad Batter', unit: 'L', price: 55 },
-          { id: 'ing_coconut', name: 'Fresh Grated Coconut', unit: 'Kg', price: 90 },
-          { id: 'ing_tamarind', name: 'Imli (Tamarind Pulp)', unit: 'Kg', price: 130 },
-          { id: 'ing_sambhar_masala', name: 'Sambhar Masala', unit: 'Kg', price: 500 },
-          { id: 'ing_pav_bread', name: 'Soft Butter Pav (Fresh)', unit: 'Kg', price: 80 },
-          { id: 'ing_mixed_veg', name: 'Mixed Chopped Vegetables', unit: 'L', price: 38 },
-          { id: 'ing_pasta_raw', name: 'Durum Wheat Pasta', unit: 'Kg', price: 110 },
-          { id: 'ing_lemon', name: 'Fresh Lemon Juice & Sugar Mix', unit: 'L', price: 45 }
+          { id: 'ing_test', name: 'Test Ingredient', unit: 'Kg', price: 1 }
         ],
 
-        // 2. RECIPES
+        // 2. RECIPES (Only 1 default Test Recipe with Test Ingredient & Test Step — no hardcoded recipes)
         recipes: [
           {
-            id: 'rec_alu_bagan_badi',
-            name: 'Alu Bagan Badi',
-            stdYield: 30,
-            targetYield: 20,
+            id: 'rec_test',
+            name: 'Test Recipe',
+            stdYield: 1,
+            targetYield: 1,
             yieldUnit: 'L',
-            servingQty: 200,
+            servingQty: 1,
             servingUnit: 'ml',
             steps: [
               {
-                process: 'सबसे पहले हम आलू को तेल में रोस्ट करेंगे। ab बचे हुए तेल में बड़ी को रोस्ट करके निकाल लेंगे।',
+                process: 'Test Step',
                 items: [
-                  { ingId: 'ing_alu', stdQty: 15, unit: 'L' },
-                  { ingId: 'ing_bagan', stdQty: 45, unit: 'L' },
-                  { ingId: 'ing_badi', stdQty: 1, unit: 'Kg' }
-                ]
-              },
-              {
-                process: 'टमाटर को धोकर बारीक काटकर अलग रख लेंगे।',
-                items: [
-                  { ingId: 'ing_tomato', stdQty: 2, unit: 'L' }
-                ]
-              },
-              {
-                process: 'बचे हुए तेल में तेल और डालेंगे। इसके बाद तेजपत्ता, सूखी मिर्च, फोड़न और हींग डालेंगे।',
-                items: [
-                  { ingId: 'ing_sarso_tel', stdQty: 0.8, unit: 'L' },
-                  { ingId: 'ing_tejpatta', stdQty: 6, unit: 'g' },
-                  { ingId: 'ing_sukha_mircha', stdQty: 10, unit: 'g' },
-                  { ingId: 'ing_panchforan', stdQty: 40, unit: 'g' },
-                  { ingId: 'ing_hing', stdQty: 20, unit: 'g' }
-                ]
-              },
-              {
-                process: 'इन सभी मसालों को मिक्सी जार में डालकर पीसकर पेस्ट बना लेंगे। ऊपर दिए गए छौंक में इस पेस्ट को डालकर 10 मिनट तक धीमी आँच पर पकाएँगे। जब मसाला तेल छोड़ देगा, तब इसमें कटे हुए बैंगन और टमाटर डाल देंगे।',
-                items: [
-                  { ingId: 'ing_g_chilli', stdQty: 90, unit: 'g' },
-                  { ingId: 'ing_ginger', stdQty: 150, unit: 'g' },
-                  { ingId: 'ing_gota_jeera', stdQty: 30, unit: 'g' },
-                  { ingId: 'ing_golki', stdQty: 20, unit: 'g' },
-                  { ingId: 'ing_haldi', stdQty: 40, unit: 'g' },
-                  { ingId: 'ing_k_red_chilli', stdQty: 30, unit: 'g' },
-                  { ingId: 'ing_gota_sarso', stdQty: 15, unit: 'g' },
-                  { ingId: 'ing_salt', stdQty: 200, unit: 'g' }
-                ]
-              },
-              {
-                process: 'अंत में रोस्ट किए हुए आलू और क्रश की हुई बड़ी डालेंगे। इसके बाद गरम मसाला और धनिया पत्ता डालकर अच्छी तरह मिलाएँगे और 5 मिनट तक पकाएँगे।',
-                items: [
-                  { ingId: 'ing_garam_masala', stdQty: 40, unit: 'g' },
-                  { ingId: 'ing_dhaniya_patta', stdQty: 2, unit: 'L' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_dal_fry',
-            name: 'Dal Fry',
-            stdYield: 30,
-            targetYield: 30,
-            yieldUnit: 'L',
-            servingQty: 200,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'तूर दाल को अच्छी तरह धोकर हल्दी और नमक के साथ प्रेशर कुकर या स्टीम केटल में नरम होने तक उबालें।',
-                items: [
-                  { ingId: 'ing_toor_dal', stdQty: 6, unit: 'Kg' },
-                  { ingId: 'ing_haldi', stdQty: 50, unit: 'g' },
-                  { ingId: 'ing_salt', stdQty: 250, unit: 'g' }
-                ]
-              },
-              {
-                process: 'कड़ाही में शुद्ध घी गरम करें, जीरा, तेजपत्ता, सूखी मिर्च, हींग और अदरक-हरी मिर्च डालकर भूनें, फिर कटे टमाटर और धनिया पत्ता मिलाकर दाल में तड़का लगाएँ।',
-                items: [
-                  { ingId: 'ing_ghee', stdQty: 500, unit: 'ml' },
-                  { ingId: 'ing_gota_jeera', stdQty: 40, unit: 'g' },
-                  { ingId: 'ing_hing', stdQty: 15, unit: 'g' },
-                  { ingId: 'ing_ginger', stdQty: 100, unit: 'g' },
-                  { ingId: 'ing_tomato', stdQty: 2.5, unit: 'L' },
-                  { ingId: 'ing_dhaniya_patta', stdQty: 1, unit: 'L' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_jeera_rice',
-            name: 'Jeera Rice',
-            stdYield: 25,
-            targetYield: 25,
-            yieldUnit: 'L',
-            servingQty: 250,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'चावल को 20 मिनट भिगोकर रखें। घी में जीरा और तेजपत्ता चटकाएँ और चावल व नमक डालकर पकाएँ।',
-                items: [
-                  { ingId: 'ing_rice', stdQty: 8, unit: 'Kg' },
-                  { ingId: 'ing_ghee', stdQty: 400, unit: 'ml' },
-                  { ingId: 'ing_gota_jeera', stdQty: 60, unit: 'g' },
-                  { ingId: 'ing_tejpatta', stdQty: 10, unit: 'g' },
-                  { ingId: 'ing_salt', stdQty: 150, unit: 'g' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_sambhar',
-            name: 'Sambhar',
-            stdYield: 45,
-            targetYield: 45,
-            yieldUnit: 'L',
-            servingQty: 250,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'तूर दाल और कटी सब्जियों को हल्दी व नमक के साथ उबालें।',
-                items: [
-                  { ingId: 'ing_toor_dal', stdQty: 5, unit: 'Kg' },
-                  { ingId: 'ing_mixed_veg', stdQty: 8, unit: 'L' },
-                  { ingId: 'ing_haldi', stdQty: 60, unit: 'g' },
-                  { ingId: 'ing_salt', stdQty: 350, unit: 'g' }
-                ]
-              },
-              {
-                process: 'इमली का पल्प और सांभर मसाला डालें, फिर सरसों, सूखी मिर्च और हींग का छौंक लगाएँ।',
-                items: [
-                  { ingId: 'ing_tamarind', stdQty: 800, unit: 'g' },
-                  { ingId: 'ing_sambhar_masala', stdQty: 400, unit: 'g' },
-                  { ingId: 'ing_sarso_tel', stdQty: 600, unit: 'ml' },
-                  { ingId: 'ing_gota_sarso', stdQty: 50, unit: 'g' },
-                  { ingId: 'ing_hing', stdQty: 20, unit: 'g' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_idli',
-            name: 'Idli',
-            stdYield: 600,
-            targetYield: 600,
-            yieldUnit: 'pcs',
-            servingQty: 3,
-            servingUnit: 'pcs',
-            steps: [
-              {
-                process: 'इडली बैटर में स्वादानुसार सेंधा नमक मिलाएँ, साँचों में हल्का तेल लगाकर 12-15 मिनट भाप (स्टीम) में पकाएँ।',
-                items: [
-                  { ingId: 'ing_idli_rava', stdQty: 32, unit: 'L' },
-                  { ingId: 'ing_salt', stdQty: 300, unit: 'g' },
-                  { ingId: 'ing_sarso_tel', stdQty: 250, unit: 'ml' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_coconut_catani',
-            name: 'Coconut Catani',
-            stdYield: 20,
-            targetYield: 20,
-            yieldUnit: 'L',
-            servingQty: 100,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'ताजा नारियल, हरी मिर्च, अदरक और नमक पीसकर राई व सूखी लाल मिर्च का तड़का लगाएँ।',
-                items: [
-                  { ingId: 'ing_coconut', stdQty: 8, unit: 'Kg' },
-                  { ingId: 'ing_g_chilli', stdQty: 150, unit: 'g' },
-                  { ingId: 'ing_ginger', stdQty: 100, unit: 'g' },
-                  { ingId: 'ing_salt', stdQty: 180, unit: 'g' },
-                  { ingId: 'ing_sarso_tel', stdQty: 250, unit: 'ml' },
-                  { ingId: 'ing_gota_sarso', stdQty: 40, unit: 'g' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_pav',
-            name: 'Pav',
-            stdYield: 220,
-            targetYield: 220,
-            yieldUnit: 'pcs',
-            servingQty: 2,
-            servingUnit: 'pcs',
-            steps: [
-              {
-                process: 'पाव को तवे पर शुद्ध घी लगाकर दोनों तरफ से हल्का सुनहरा सेकें।',
-                items: [
-                  { ingId: 'ing_pav_bread', stdQty: 11, unit: 'Kg' },
-                  { ingId: 'ing_ghee', stdQty: 400, unit: 'ml' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_bhaji',
-            name: 'Bhaji',
-            stdYield: 20,
-            targetYield: 20,
-            yieldUnit: 'L',
-            servingQty: 150,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'आलू और मिक्स सब्जियों को उबालकर मैश करें, टमाटर व मसालों के साथ मक्खन/घी में पकाएँ।',
-                items: [
-                  { ingId: 'ing_alu', stdQty: 8, unit: 'L' },
-                  { ingId: 'ing_mixed_veg', stdQty: 8, unit: 'L' },
-                  { ingId: 'ing_tomato', stdQty: 4, unit: 'L' },
-                  { ingId: 'ing_ghee', stdQty: 500, unit: 'ml' },
-                  { ingId: 'ing_garam_masala', stdQty: 80, unit: 'g' },
-                  { ingId: 'ing_salt', stdQty: 200, unit: 'g' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_pasta',
-            name: 'Pasta',
-            stdYield: 35,
-            targetYield: 35,
-            yieldUnit: 'L',
-            servingQty: 300,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'पास्ता उबालकर टमाटर सॉस, सब्जियों और मसालों के साथ टॉस करें।',
-                items: [
-                  { ingId: 'ing_pasta_raw', stdQty: 9, unit: 'Kg' },
-                  { ingId: 'ing_tomato', stdQty: 6, unit: 'L' },
-                  { ingId: 'ing_mixed_veg', stdQty: 5, unit: 'L' },
-                  { ingId: 'ing_salt', stdQty: 200, unit: 'g' }
-                ]
-              }
-            ]
-          },
-          {
-            id: 'rec_lemon_juice',
-            name: 'Lemon Juice',
-            stdYield: 25,
-            targetYield: 25,
-            yieldUnit: 'L',
-            servingQty: 200,
-            servingUnit: 'ml',
-            steps: [
-              {
-                process: 'ताजा नींबू रस, ठंडा जल और सेंधा नमक मिलाकर तैयार करें।',
-                items: [
-                  { ingId: 'ing_lemon', stdQty: 4, unit: 'L' },
-                  { ingId: 'ing_salt', stdQty: 100, unit: 'g' }
+                  { ingId: 'ing_test', stdQty: 1, unit: 'Kg' }
                 ]
               }
             ]
           }
         ],
 
-        // 3. MONTHLY MENU CALENDAR
-        calendarDays: buildDefaultOctoberCalendar(),
+        // 3. MONTHLY MENU CALENDAR (Strictly empty by default — populated only from Supabase or via "Update" button)
+        calendarDays: {},
 
-        // 5. DEPARTMENTS (Merged into Settings Tab, with Profit Multiplier for Chargeable Depts)
-        departments: [
-          { id: 'dept_temple', name: 'Temple', count: 60, chargeable: false, profitMultiplier: 1.0, icon: '🏛️' },
-          { id: 'dept_abhay', name: 'Abhay Hostel', count: 35, chargeable: true, profitMultiplier: 1.20, icon: '🏢' },
-          { id: 'dept_bit', name: 'BIT Voice', count: 7, chargeable: true, profitMultiplier: 1.25, icon: '🎓' },
-          { id: 'dept_cong', name: 'Congregation', count: 45, chargeable: true, profitMultiplier: 1.15, icon: '🙏' },
-          { id: 'dept_kh', name: 'KH Devotees', count: 10, chargeable: false, profitMultiplier: 1.0, icon: '🏠' },
-          { id: 'dept_annadan', name: 'Daily Annadan Hall', count: 350, chargeable: false, profitMultiplier: 1.0, icon: '🍛' }
-        ],
+        // 4. DEPARTMENTS (Strictly empty by default — fetched only from Departments section / Supabase)
+        departments: [],
 
-        // 4. DAILY KITCHEN PLANS
-        dailyPlans: {
-          '2026-10-04': buildOct4SamplePlan(),
-          '2026-10-03': buildOct3SamplePlan()
-        },
+        // 5. IN-MEMORY DAILY KITCHEN WORKSPACE (Fetched from Calendar block or History)
+        dailyPlans: {},
 
-        // 5. HISTORY ARCHIVE (Populated by updateDailyHistory; initialized with Oct 4 & Oct 3)
-        selectedHistoryDate: '2026-10-04',
+        // 6. HISTORY ARCHIVE (Populated strictly when "Update History" is clicked or loaded from Supabase)
+        selectedHistoryDate: '',
         history: {},
 
-        // 6. ACCOUNTS (Expenses, Claims, Revenue)
+        // 7. ACCOUNTS (Expenses, Claims, Revenue — no hardcoded sample rows)
         accountsSubTab: 'expenses',
         accounts: {
-          expenses: [
-            { id: 'exp_1', date: '2026-10-07', type: 'Bulk - Grocery', particulars: 'Monthly grocery Purchasing - Sept', debit: 25000.00 },
-            { id: 'exp_2', date: '2026-10-08', type: 'Petty - Vegetable', particulars: 'Tomatoes', debit: 120.00 },
-            { id: 'exp_3', date: '2026-10-10', type: 'Fruits', particulars: 'Apple', debit: 600.00 },
-            { id: 'exp_4', date: '2026-10-10', type: 'Salaries', particulars: 'Salaries', debit: 45000.00 },
-            { id: 'exp_5', date: '2026-10-15', type: 'Gas Cylinders', particulars: 'Cylinder', debit: 4400.00 }
-          ],
+          expenses: [],
           claims: {},
-          manualRevenue: [
-            { id: 'mrev_1', date: '2026-10-03', deptId: 'dept_temple', deptName: 'Temple', menu: 'Srila Prabhupada Arrival Festival Sponsorship', amount: 5100.00 }
-          ]
+          manualRevenue: []
         },
 
-        // 7. AUTOMATED GOOGLE SHEETS ARCHIVE BACKUP CONFIG
+        // 8. AUTOMATED GOOGLE SHEETS ARCHIVE BACKUP CONFIG
         googleSheetConfig: {
           webhookUrl: '',
           autoDaily: true,
@@ -2452,206 +2206,23 @@
       };
     }
 
-    function buildDefaultOctoberCalendar() {
-      const days = {};
-      for (let d = 1; d <= 31; d++) {
-        const dateStr = `2026-10-${String(d).padStart(2, '0')}`;
-        const isEven = d % 2 === 0;
-        days[dateStr] = {
-          breakfast: {
-            enabled: true,
-            fasting: getDefaultFastingForDateMeal(dateStr, 'breakfast'),
-            bhogaTime: '07:15',
-            servingTime: '08:00',
-            dishes: ['rec_dal_fry']
-          },
-          lunch: {
-            enabled: true,
-            fasting: getDefaultFastingForDateMeal(dateStr, 'lunch'),
-            bhogaTime: '12:00',
-            servingTime: '13:00',
-            dishes: isEven
-              ? ['rec_sambhar', 'rec_jeera_rice', 'rec_alu_bagan_badi']
-              : ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry']
-          },
-          dinner: {
-            enabled: true,
-            fasting: getDefaultFastingForDateMeal(dateStr, 'dinner'),
-            bhogaTime: '19:30',
-            servingTime: '20:15',
-            dishes: d === 5
-              ? ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry']
-              : ['rec_alu_bagan_badi', 'rec_jeera_rice']
-          },
-          order: {
-            enabled: false,
-            bhogaTime: '11:00',
-            servingTime: '11:30',
-            dishes: []
-          },
-          journey: {
-            enabled: false,
-            bhogaTime: '06:00',
-            servingTime: '06:30',
-            dishes: []
-          }
-        };
-      }
-      days['2026-10-04'].breakfast.dishes = [
-        'rec_idli',
-        'rec_sambhar',
-        'rec_coconut_catani',
-        'rec_pav',
-        'rec_bhaji',
-        'rec_pasta',
-        'rec_lemon_juice',
-        'rec_jeera_rice'
-      ];
-      return days;
-    }
-
-    function buildOct4SamplePlan() {
-      return {
-        meals: {
-          breakfast: {
-            enabled: true,
-            bhogaTime: '07:15',
-            servingTime: '08:00',
-            deptCols: [
-              { colId: 'col_1', deptId: 'dept_temple', customLabel: 'Temple+KH(10)', count: 60 },
-              { colId: 'col_2', deptId: 'dept_abhay', customLabel: 'Abhay hostel', count: 35 }
-            ],
-            rows: [
-              { recipeId: 'rec_idli', servingQty: 3, overrides: {}, calcOverride: null, adjustedQty: 600 },
-              { recipeId: 'rec_sambhar', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 45 },
-              { recipeId: 'rec_coconut_catani', servingQty: 100, overrides: {}, calcOverride: null, adjustedQty: 20 },
-              { recipeId: 'rec_pav', servingQty: 2, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 220 },
-              { recipeId: 'rec_bhaji', servingQty: 150, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 20 },
-              { recipeId: 'rec_pasta', servingQty: 300, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 35 },
-              { recipeId: 'rec_lemon_juice', servingQty: 200, overrides: { 'col_1': 0, 'col_2': 0 }, calcOverride: null, adjustedQty: 25 },
-              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: { 'col_1': 15, 'col_2': 10 }, calcOverride: null, adjustedQty: 25 }
-            ]
-          },
-          lunch: {
-            enabled: true,
-            bhogaTime: '12:00',
-            servingTime: '13:00',
-            deptCols: [
-              { colId: 'col_l1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
-              { colId: 'col_l2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 },
-              { colId: 'col_l3', deptId: 'dept_cong', customLabel: 'Congregation', count: 45 }
-            ],
-            rows: [
-              { recipeId: 'rec_sambhar', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 35 },
-              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 35 },
-              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 30 }
-            ]
-          },
-          dinner: {
-            enabled: true,
-            bhogaTime: '19:30',
-            servingTime: '20:15',
-            deptCols: [
-              { colId: 'col_d1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 }
-            ],
-            rows: [
-              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 15 },
-              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 15 }
-            ]
-          },
-          order: {
-            enabled: false,
-            bhogaTime: '11:00',
-            servingTime: '11:30',
-            deptCols: [
-              { colId: 'col_o1', deptId: 'dept_cong', customLabel: 'Congregation', count: 45 }
-            ],
-            rows: []
-          },
-          journey: {
-            enabled: false,
-            bhogaTime: '06:00',
-            servingTime: '06:30',
-            deptCols: [
-              { colId: 'col_j1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 }
-            ],
-            rows: []
-          }
-        }
-      };
-    }
-
-
-    function buildOct3SamplePlan() {
-      return {
-        meals: {
-          breakfast: {
-            enabled: true,
-            fasting: false,
-            bhogaTime: '07:15',
-            servingTime: '08:00',
-            deptCols: [
-              { colId: 'col_3b1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
-              { colId: 'col_3b2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 },
-              { colId: 'col_3b3', deptId: 'dept_bit', customLabel: 'BIT Voice', count: 7 }
-            ],
-            rows: [
-              { recipeId: 'rec_idli', servingQty: 3, overrides: {}, calcOverride: null, adjustedQty: 310 },
-              { recipeId: 'rec_sambhar', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 26 }
-            ]
-          },
-          lunch: {
-            enabled: true,
-            fasting: false,
-            bhogaTime: '12:00',
-            servingTime: '13:00',
-            deptCols: [
-              { colId: 'col_3l1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
-              { colId: 'col_3l2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 },
-              { colId: 'col_3l3', deptId: 'dept_bit', customLabel: 'BIT Voice', count: 7 }
-            ],
-            rows: [
-              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 22 },
-              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 26 },
-              { recipeId: 'rec_dal_fry', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 22 }
-            ]
-          },
-          dinner: {
-            enabled: true,
-            fasting: false,
-            bhogaTime: '19:30',
-            servingTime: '20:15',
-            deptCols: [
-              { colId: 'col_3d1', deptId: 'dept_temple', customLabel: 'Temple', count: 60 },
-              { colId: 'col_3d2', deptId: 'dept_abhay', customLabel: 'Abhay Hostel', count: 35 }
-            ],
-            rows: [
-              { recipeId: 'rec_alu_bagan_badi', servingQty: 200, overrides: {}, calcOverride: null, adjustedQty: 20 },
-              { recipeId: 'rec_jeera_rice', servingQty: 250, overrides: {}, calcOverride: null, adjustedQty: 24 }
-            ]
-          },
-          order: { enabled: false, fasting: false, bhogaTime: '11:00', servingTime: '11:30', deptCols: [], rows: [] },
-          journey: { enabled: false, fasting: false, bhogaTime: '06:00', servingTime: '06:30', deptCols: [], rows: [] }
-        }
-      };
-    }
-
     let state = loadState();
     let modalRecipeDraft = null;
 
     // =========================================================================
-    // PRODUCTION 10-TABLE POSTGRESQL SCHEMA FOR SUPABASE
+    // PRODUCTION 10-TABLE POSTGRESQL SCHEMA FOR SUPABASE (NO kitchen_daily_plans)
     // =========================================================================
-    const NORMALIZED_SUPABASE_SQL = `-- SRIMATI RADHARANI KI RASOI: 11-TABLE PRODUCTION SCHEMA (ZERO >10KB BLOBS)
+    const NORMALIZED_SUPABASE_SQL = `-- SRIMATI RADHARANI KI RASOI: 10-TABLE PRODUCTION SCHEMA (ZERO >10KB BLOBS)
 -- Paste in Supabase Dashboard -> SQL Editor -> New Query -> Click Run
--- Note: Also drops the old legacy single-row 'kitchen_state' prototype table!
+-- Drops legacy 'kitchen_state' and unnecessary 'kitchen_daily_plans' tables!
 
 DROP TABLE IF EXISTS public.kitchen_state;
+DROP TABLE IF EXISTS public.kitchen_daily_plans;
 
 CREATE TABLE IF NOT EXISTS public.kitchen_settings (
   id text PRIMARY KEY,
   multiplier numeric DEFAULT 1.2,
-  bg_opacity integer DEFAULT 16,
+  bg_opacity integer DEFAULT 35,
   standard_timings jsonb DEFAULT '{}'::jsonb,
   google_sheet_config jsonb DEFAULT '{}'::jsonb,
   updated_at timestamptz DEFAULT now()
@@ -2661,7 +2232,7 @@ CREATE TABLE IF NOT EXISTS public.kitchen_ingredients (
   id text PRIMARY KEY,
   name text NOT NULL,
   unit text NOT NULL,
-  price numeric NOT NULL DEFAULT 0,
+  price numeric NOT NULL DEFAULT 1,
   updated_at timestamptz DEFAULT now()
 );
 
@@ -2671,7 +2242,7 @@ CREATE TABLE IF NOT EXISTS public.kitchen_recipes (
   std_yield numeric NOT NULL DEFAULT 1,
   target_yield numeric NOT NULL DEFAULT 1,
   yield_unit text NOT NULL DEFAULT 'L',
-  serving_qty numeric NOT NULL DEFAULT 100,
+  serving_qty numeric NOT NULL DEFAULT 1,
   serving_unit text NOT NULL DEFAULT 'ml',
   steps jsonb NOT NULL DEFAULT '[]'::jsonb,
   updated_at timestamptz DEFAULT now()
@@ -2688,12 +2259,6 @@ CREATE TABLE IF NOT EXISTS public.kitchen_departments (
 );
 
 CREATE TABLE IF NOT EXISTS public.kitchen_calendar_days (
-  date text PRIMARY KEY,
-  data jsonb NOT NULL DEFAULT '{}'::jsonb,
-  updated_at timestamptz DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS public.kitchen_daily_plans (
   date text PRIMARY KEY,
   data jsonb NOT NULL DEFAULT '{}'::jsonb,
   updated_at timestamptz DEFAULT now()
@@ -2768,7 +2333,6 @@ ALTER TABLE public.kitchen_ingredients DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_recipes DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_departments DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_calendar_days DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.kitchen_daily_plans DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_history DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_history_items DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_expenses DISABLE ROW LEVEL SECURITY;
@@ -2928,13 +2492,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           supabaseClient = window.supabase.createClient(url, key);
           if (statusText) {
             statusText.textContent = dbArchitectureMode === 'NORMALIZED_10_TABLES'
-              ? '11-Table Cloud Sync ✓'
+              ? 'Cloud Sync ✓'
               : 'Cloud Sync Active';
           }
           if (statusBtn) {
-            statusBtn.title = dbArchitectureMode === 'NORMALIZED_10_TABLES'
-              ? '11-Table Cloud Sync Active ✓ — Click to manage in Settings'
-              : 'Cloud Sync Active — Click to manage in Settings';
+            statusBtn.title = 'Cloud Sync Active ✓ — Click to manage in Settings';
           }
           return true;
         } catch (err) {
@@ -2946,6 +2508,77 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       return false;
     }
 
+    // Cleans a single calendar day object so any invalid or legacy hardcoded recipe IDs are stripped out
+    function sanitizeCalendarDayObject(dateStr, rawDay, validRecIdSet) {
+      if (!rawDay || typeof rawDay !== 'object') return null;
+      const st = state ? state.standardTimings : {
+        breakfast: { bhoga: '07:15', serving: '08:00' },
+        lunch:     { bhoga: '12:00', serving: '13:00' },
+        dinner:    { bhoga: '19:30', serving: '20:15' }
+      };
+      const cleanDishes = (arr) => (Array.isArray(arr) ? arr : []).filter(id => Boolean(id && (!validRecIdSet || validRecIdSet.has(id))));
+      const cleaned = {
+        breakfast: {
+          enabled: true,
+          fasting: rawDay.breakfast?.fasting !== undefined ? Boolean(rawDay.breakfast.fasting) : getDefaultFastingForDateMeal(dateStr, 'breakfast'),
+          bhogaTime: rawDay.breakfast?.bhogaTime || st.breakfast.bhoga,
+          servingTime: rawDay.breakfast?.servingTime || st.breakfast.serving,
+          customTime: Boolean(rawDay.breakfast?.customTime),
+          dishes: cleanDishes(rawDay.breakfast?.dishes)
+        },
+        lunch: {
+          enabled: true,
+          fasting: rawDay.lunch?.fasting !== undefined ? Boolean(rawDay.lunch.fasting) : getDefaultFastingForDateMeal(dateStr, 'lunch'),
+          bhogaTime: rawDay.lunch?.bhogaTime || st.lunch.bhoga,
+          servingTime: rawDay.lunch?.servingTime || st.lunch.serving,
+          customTime: Boolean(rawDay.lunch?.customTime),
+          dishes: cleanDishes(rawDay.lunch?.dishes)
+        },
+        dinner: {
+          enabled: true,
+          fasting: rawDay.dinner?.fasting !== undefined ? Boolean(rawDay.dinner.fasting) : getDefaultFastingForDateMeal(dateStr, 'dinner'),
+          bhogaTime: rawDay.dinner?.bhogaTime || st.dinner.bhoga,
+          servingTime: rawDay.dinner?.servingTime || st.dinner.serving,
+          customTime: Boolean(rawDay.dinner?.customTime),
+          dishes: cleanDishes(rawDay.dinner?.dishes)
+        },
+        order: {
+          enabled: Boolean(rawDay.order?.enabled),
+          fasting: false,
+          bhogaTime: rawDay.order?.bhogaTime || '11:00',
+          servingTime: rawDay.order?.servingTime || '11:30',
+          dishes: cleanDishes(rawDay.order?.dishes)
+        },
+        journey: {
+          enabled: Boolean(rawDay.journey?.enabled),
+          fasting: false,
+          bhogaTime: rawDay.journey?.bhogaTime || '06:00',
+          servingTime: rawDay.journey?.servingTime || '06:30',
+          dishes: cleanDishes(rawDay.journey?.dishes)
+        },
+        userUpdated: Boolean(rawDay.userUpdated)
+      };
+
+      const totalValidDishes =
+        cleaned.breakfast.dishes.length +
+        cleaned.lunch.dishes.length +
+        cleaned.dinner.dishes.length +
+        cleaned.order.dishes.length +
+        cleaned.journey.dishes.length;
+
+      const hasCustomFasting =
+        cleaned.breakfast.fasting !== getDefaultFastingForDateMeal(dateStr, 'breakfast') ||
+        cleaned.lunch.fasting !== getDefaultFastingForDateMeal(dateStr, 'lunch') ||
+        cleaned.dinner.fasting !== getDefaultFastingForDateMeal(dateStr, 'dinner');
+
+      const hasExtraMeal = cleaned.order.enabled || cleaned.journey.enabled;
+
+      if (totalValidDishes === 0 && !hasCustomFasting && !hasExtraMeal && !cleaned.userUpdated) {
+        return null;
+      }
+      return cleaned;
+    }
+
     function normalizeAndUpgradeState(s) {
       const def = getDefaultState();
       if (!s || typeof s !== 'object') return def;
@@ -2953,45 +2586,83 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         s.activeTab = 'settings';
       }
       s.bgOpacity = 35;
-      if (!Array.isArray(s.departments)) s.departments = def.departments;
+
+      if (!Array.isArray(s.ingredients) || s.ingredients.length === 0) {
+        s.ingredients = def.ingredients;
+      }
+      if (!Array.isArray(s.recipes) || s.recipes.length === 0) {
+        s.recipes = def.recipes;
+      }
+      if (!s.selectedRecipeId || !s.recipes.some(r => r.id === s.selectedRecipeId)) {
+        s.selectedRecipeId = s.recipes[0]?.id || 'rec_test';
+      }
+
+      if (!Array.isArray(s.departments)) s.departments = [];
       s.departments.forEach(d => {
         if (d.profitMultiplier === undefined || d.profitMultiplier === null || isNaN(Number(d.profitMultiplier))) {
-          if (d.id === 'dept_abhay') d.profitMultiplier = 1.20;
-          else if (d.id === 'dept_bit') d.profitMultiplier = 1.25;
-          else if (d.id === 'dept_cong') d.profitMultiplier = 1.15;
-          else d.profitMultiplier = d.chargeable ? 1.20 : 1.0;
+          d.profitMultiplier = d.chargeable ? 1.20 : 1.0;
         } else {
           d.profitMultiplier = Number(d.profitMultiplier);
         }
       });
 
-      if (!s.calendarDays) s.calendarDays = def.calendarDays;
-      Object.keys(s.calendarDays).forEach(dateStr => {
-        const dayObj = s.calendarDays[dateStr];
-        ['breakfast', 'lunch', 'dinner'].forEach(mk => {
-          if (dayObj[mk] && dayObj[mk].fasting === undefined) {
-            dayObj[mk].fasting = getDefaultFastingForDateMeal(dateStr, mk);
+      const validRecIds = new Set((s.recipes || []).map(r => r.id));
+      const cleanCal = {};
+      if (s.calendarDays && typeof s.calendarDays === 'object') {
+        Object.keys(s.calendarDays).forEach(dateStr => {
+          const cleanedDay = sanitizeCalendarDayObject(dateStr, s.calendarDays[dateStr], validRecIds);
+          if (cleanedDay) {
+            cleanCal[dateStr] = cleanedDay;
+          }
+        });
+      }
+      s.calendarDays = cleanCal;
+
+      if (!s.dailyPlans || typeof s.dailyPlans !== 'object') s.dailyPlans = {};
+      const validDeptMap = new Map((s.departments || []).map(d => [d.id, d]));
+      Object.keys(s.dailyPlans).forEach(dStr => {
+        const dp = s.dailyPlans[dStr];
+        if (!dp || !dp.meals) return;
+        // Skip dates that are locked by a History snapshot
+        if (s.history && s.history[dStr]) return;
+        ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mk => {
+          const mp = dp.meals[mk];
+          if (!mp) return;
+          if (Array.isArray(mp.deptCols)) {
+            mp.deptCols = mp.deptCols.filter(col => {
+              if (!col) return false;
+              if (col.deptId) return validDeptMap.has(col.deptId);
+              // Drop any legacy hardcoded Temple / Abhay Hostel fallback columns
+              if (col.customLabel === 'Temple' || col.customLabel === 'Abhay Hostel') return false;
+              return Boolean(dp.userModified);
+            });
+          } else {
+            mp.deptCols = [];
+          }
+          if (Array.isArray(mp.rows)) {
+            mp.rows = mp.rows.filter(r => r && r.recipeId && validRecIds.has(r.recipeId));
+          } else {
+            mp.rows = [];
           }
         });
       });
 
-      if (!s.dailyPlans) s.dailyPlans = def.dailyPlans;
-      if (!s.dailyPlans['2026-10-03']) s.dailyPlans['2026-10-03'] = buildOct3SamplePlan();
-
       if (!s.history || typeof s.history !== 'object') s.history = {};
       Object.keys(s.history).forEach(d => { s.history[d] = pruneHistoryRecord(s.history[d]); });
-      if (!s.selectedHistoryDate) s.selectedHistoryDate = '2026-10-04';
+      const histDates = Object.keys(s.history).sort().reverse();
+      if (!s.selectedHistoryDate || !s.history[s.selectedHistoryDate]) {
+        s.selectedHistoryDate = histDates[0] || '';
+      }
 
       if (!s.accounts || typeof s.accounts !== 'object') {
         s.accounts = def.accounts;
       } else {
-        if (!Array.isArray(s.accounts.expenses)) s.accounts.expenses = def.accounts.expenses;
+        if (!Array.isArray(s.accounts.expenses)) s.accounts.expenses = [];
         if (!s.accounts.claims || typeof s.accounts.claims !== 'object') s.accounts.claims = {};
-        if (!Array.isArray(s.accounts.manualRevenue)) s.accounts.manualRevenue = def.accounts.manualRevenue;
+        if (!Array.isArray(s.accounts.manualRevenue)) s.accounts.manualRevenue = [];
       }
       if (!s.accountsSubTab) s.accountsSubTab = 'expenses';
 
-      // Merge Google Sheet backup config from localStorage if present
       if (!s.googleSheetConfig || typeof s.googleSheetConfig !== 'object') {
         s.googleSheetConfig = def.googleSheetConfig;
       }
@@ -3017,10 +2688,17 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         }
       } catch (e) {}
       if (!s) s = normalizeAndUpgradeState(getDefaultState());
+      // Always default Daily Kitchen date to Tomorrow whenever the app is opened
+      const tomorrowIso = getTomorrowDateISO();
+      s.selectedDailyDate = tomorrowIso;
+      s.selectedCalendarDate = tomorrowIso;
+      const [tmY, tmM] = tomorrowIso.split('-').map(Number);
+      if (tmY) s.calendarYear = tmY;
+      if (tmM) s.calendarMonth = tmM - 1;
       return s;
     }
 
-    // Prunes a history record in-place so it ONLY stores snapshots of the recipes & departments actually cooked on that day!
+    // Prunes a history record in-place so it ONLY stores compact cost metadata (NEVER full recipe steps!)
     function pruneHistoryRecord(h) {
       if (!h || typeof h !== 'object') return h;
       const usedDeptIds = new Set();
@@ -3040,19 +2718,21 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         });
         h.deptSnapshots = slimDepts;
       }
-      if (h.recipeSnapshots && usedRecIds.size > 0) {
+      if (h.recipeSnapshots) {
         const slimRecs = {};
         usedRecIds.forEach(id => {
-          if (h.recipeSnapshots[id]) slimRecs[id] = h.recipeSnapshots[id];
+          const rs = h.recipeSnapshots[id];
+          if (rs) {
+            const copy = { ...rs };
+            delete copy.steps;
+            slimRecs[id] = copy;
+          }
         });
         h.recipeSnapshots = slimRecs;
       }
       return h;
     }
 
-    // Splits a single date's History Record into:
-    //  1) Compact header row for 'kitchen_history' (< 850 chars! No recipe blobs)
-    //  2) Per-dish rows for 'kitchen_history_items' (< 1,200 chars per dish!)
     function decomposeHistoryDateForSupabase(dateStr, h, nowIso) {
       pruneHistoryRecord(h);
       const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
@@ -3072,16 +2752,26 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         if (!mp.enabled || mp.fasting) return;
         (mp.rows || []).forEach((row, rIdx) => {
           const recSnap = (h.recipeSnapshots && h.recipeSnapshots[row.recipeId]) || getRecipeById(row.recipeId) || {};
+          const slimSnap = {
+            id: recSnap.id || row.recipeId || '',
+            name: recSnap.name || 'Dish',
+            stdYield: Number(recSnap.stdYield) || 1,
+            yieldUnit: recSnap.yieldUnit || 'L',
+            servingQty: Number(recSnap.servingQty) || 1,
+            servingUnit: recSnap.servingUnit || 'ml',
+            calcCostPerYieldUnit: Number(recSnap.calcCostPerYieldUnit) || 0,
+            adjCostPerYieldUnit: Number(recSnap.adjCostPerYieldUnit) || 0
+          };
           itemRows.push({
             id: `${dateStr}__${mKey}__${rIdx}`,
             date: dateStr,
             meal: mKey,
             row_index: rIdx,
             recipe_id: row.recipeId || '',
-            recipe_name: recSnap.name || 'Dish',
+            recipe_name: slimSnap.name,
             serving_qty: Number(row.servingQty) || 0,
-            serving_unit: recSnap.servingUnit || 'ml',
-            yield_unit: recSnap.yieldUnit || 'L',
+            serving_unit: slimSnap.servingUnit,
+            yield_unit: slimSnap.yieldUnit,
             calc_total: Number(row.frozenCalcTotal ?? 0),
             cook_qty: Number(row.frozenCookQty ?? row.adjustedQty ?? 0),
             calc_cost: Number(row.frozenRowCalcCost ?? 0),
@@ -3091,7 +2781,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               overrides: row.overrides || {},
               calcOverride: row.calcOverride ?? null
             },
-            recipe_snapshot: recSnap,
+            recipe_snapshot: slimSnap,
             updated_at: nowIso
           });
         });
@@ -3116,7 +2806,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       return { headerRow, itemRows };
     }
 
-    // Reconstructs full in-memory state.history[dateStr] objects from 'kitchen_history' + 'kitchen_history_items'
     function reconstructHistoryFromSupabase(histRows, histItemRows) {
       const historyMap = {};
       const itemsByDate = {};
@@ -3133,7 +2822,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         const rawData = r.data || {};
         const dateItems = (itemsByDate[r.date] || []).sort((a, b) => (Number(a.row_index) || 0) - (Number(b.row_index) || 0));
 
-        // Case A: Split v2 format (or items present in kitchen_history_items)
         if (rawData.mealsMeta || dateItems.length > 0) {
           const mealsSnapshot = {};
           const recipeSnapshots = {};
@@ -3171,7 +2859,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               frozenRowAdjCost: Number(it.adj_cost) || 0
             });
             if (it.recipe_id && it.recipe_snapshot && Object.keys(it.recipe_snapshot).length > 0) {
-              recipeSnapshots[it.recipe_id] = it.recipe_snapshot;
+              const snapCopy = { ...it.recipe_snapshot };
+              delete snapCopy.steps;
+              recipeSnapshots[it.recipe_id] = snapCopy;
             }
           });
 
@@ -3187,7 +2877,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             totalAdjCost: Number(r.total_adj_cost ?? rawData.totalAdjCost ?? 0)
           };
         } else {
-          // Case B: Backward-compatible fallback if kitchen_history still had unsplit v1 JSON
           historyMap[r.date] = pruneHistoryRecord(rawData);
         }
       });
@@ -3195,7 +2884,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       return historyMap;
     }
 
-    // Builds per-row JSON signatures across all 11 tables so saveStateToCloud only syncs changed rows!
+    // Builds per-row JSON signatures across all 10 tables (no kitchen_daily_plans)
     function buildRowSignatures(st) {
       const sig = {
         settings: JSON.stringify({
@@ -3208,7 +2897,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         recipes: {},
         departments: {},
         calendarDays: {},
-        dailyPlans: {},
         history: {},
         expenses: {},
         claims: {},
@@ -3218,7 +2906,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       (st.recipes || []).forEach(x => { sig.recipes[x.id] = JSON.stringify(x); });
       (st.departments || []).forEach(x => { sig.departments[x.id] = JSON.stringify(x); });
       Object.keys(st.calendarDays || {}).forEach(d => { sig.calendarDays[d] = JSON.stringify(st.calendarDays[d]); });
-      Object.keys(st.dailyPlans || {}).forEach(d => { sig.dailyPlans[d] = JSON.stringify(st.dailyPlans[d]); });
       Object.keys(st.history || {}).forEach(d => { sig.history[d] = JSON.stringify(st.history[d]); });
       ((st.accounts && st.accounts.expenses) || []).forEach(x => { sig.expenses[x.id] = JSON.stringify(x); });
       Object.keys((st.accounts && st.accounts.claims) || {}).forEach(id => { sig.claims[id] = JSON.stringify(st.accounts.claims[id]); });
@@ -3237,11 +2924,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const syncBtn = document.getElementById('cloudSyncStatusBtn');
       const syncDot = document.getElementById('cloudSyncStatusDot');
       if (statusText && supabaseClient) {
-        statusText.textContent = isNormalized ? '11-Table Cloud Sync ✓' : 'Cloud Sync (Legacy 1-Row)';
+        statusText.textContent = isNormalized ? 'Cloud Sync ✓' : 'Cloud Sync (Legacy)';
       }
       if (syncBtn) {
         syncBtn.title = supabaseClient
-          ? `${isNormalized ? '11-Table Cloud Sync Active ✓' : 'Cloud Sync Active'} — Click to view Settings`
+          ? 'Cloud Sync Active ✓ — Click to view Settings'
           : 'Offline / Local Mode — Click to configure Cloud Sync in Settings';
       }
       if (syncDot) {
@@ -3250,13 +2937,13 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           : 'w-2.5 h-2.5 rounded-full bg-slate-400 ring-2 ring-white absolute -top-0.5 -right-0.5';
       }
       if (modalBadge) {
-        modalBadge.textContent = isNormalized ? '11-Table Granular Mode ✓' : 'Legacy 1-Table Mode (Ready to Upgrade)';
+        modalBadge.textContent = isNormalized ? '10-Table Granular Mode ✓' : 'Legacy 1-Table Mode';
         modalBadge.className = isNormalized
           ? 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300'
           : 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
       }
       if (settingsBadge) {
-        settingsBadge.textContent = isNormalized ? '11-Table Granular Mode ✓' : 'Legacy 1-Table Mode';
+        settingsBadge.textContent = isNormalized ? '10-Table Granular Mode ✓' : 'Legacy 1-Table Mode';
         settingsBadge.className = isNormalized
           ? 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300'
           : 'px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
@@ -3264,7 +2951,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (settingsTelemetry) settingsTelemetry.textContent = lastGranularSyncTelemetry;
       if (modalTelemetry) modalTelemetry.textContent = lastGranularSyncTelemetry;
 
-      // Also update Google Sheet Backup badges
       const gsCfg = state.googleSheetConfig || {};
       const hasUrl = Boolean(gsCfg.webhookUrl && gsCfg.webhookUrl.trim());
       const gsSettingsBadge = document.getElementById('settingsGsheetBadge');
@@ -3283,9 +2969,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     async function loadStateFromCloud(notify = false) {
-      if (!supabaseClient) return;
+      if (!supabaseClient) {
+        hasCompletedInitialCloudLoad = true;
+        return;
+      }
       try {
-        // Step 1: Probe whether the 11 Normalized Production Tables exist in Supabase
         const { data: settingsRow, error: settingsErr } = await supabaseClient
           .from('kitchen_settings')
           .select('*')
@@ -3295,39 +2983,60 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         if (!settingsErr) {
           dbArchitectureMode = 'NORMALIZED_10_TABLES';
 
-          if (settingsRow) {
-            // Fetch all 11 normalized tables in parallel!
-            const [
-              ingRes, recRes, deptRes, calRes, planRes, histRes, histItemsRes, expRes, claimRes, revRes
-            ] = await Promise.all([
-              supabaseClient.from('kitchen_ingredients').select('*'),
-              supabaseClient.from('kitchen_recipes').select('*'),
-              supabaseClient.from('kitchen_departments').select('*'),
-              supabaseClient.from('kitchen_calendar_days').select('*'),
-              supabaseClient.from('kitchen_daily_plans').select('*'),
-              supabaseClient.from('kitchen_history').select('*'),
-              supabaseClient.from('kitchen_history_items').select('*'),
-              supabaseClient.from('kitchen_expenses').select('*'),
-              supabaseClient.from('kitchen_claims').select('*'),
-              supabaseClient.from('kitchen_manual_revenue').select('*')
-            ]);
+          // Always fetch all normalized tables from Supabase (even if settingsRow is empty)
+          const [
+            ingRes, recRes, deptRes, calRes, histRes, histItemsRes, expRes, claimRes, revRes
+          ] = await Promise.all([
+            supabaseClient.from('kitchen_ingredients').select('*'),
+            supabaseClient.from('kitchen_recipes').select('*'),
+            supabaseClient.from('kitchen_departments').select('*'),
+            supabaseClient.from('kitchen_calendar_days').select('*'),
+            supabaseClient.from('kitchen_history').select('*'),
+            supabaseClient.from('kitchen_history_items').select('*'),
+            supabaseClient.from('kitchen_expenses').select('*'),
+            supabaseClient.from('kitchen_claims').select('*'),
+            supabaseClient.from('kitchen_manual_revenue').select('*')
+          ]);
 
-            const assembled = JSON.parse(JSON.stringify(state));
-            if (settingsRow.multiplier !== undefined && settingsRow.multiplier !== null) {
-              assembled.multiplier = Number(settingsRow.multiplier);
+          if (true) {
+            const assembled = getDefaultState();
+            assembled.activeTab = state.activeTab || 'daily';
+            assembled.selectedCalendarDate = state.selectedCalendarDate || getTomorrowDateISO();
+            assembled.selectedDailyDate = state.selectedDailyDate || getTomorrowDateISO();
+            const [calY, calM] = assembled.selectedCalendarDate.split('-').map(Number);
+            if (calY) assembled.calendarYear = calY;
+            if (calM) assembled.calendarMonth = calM - 1;
+
+            // Preserve in-progress Daily Kitchen edits cached in localStorage on this browser!
+            if (state && state.dailyPlans && typeof state.dailyPlans === 'object') {
+              assembled.dailyPlans = {};
+              Object.keys(state.dailyPlans).forEach(dStr => {
+                if (state.dailyPlans[dStr] && state.dailyPlans[dStr].userModified) {
+                  assembled.dailyPlans[dStr] = JSON.parse(JSON.stringify(state.dailyPlans[dStr]));
+                }
+              });
             }
-            if (settingsRow.bg_opacity !== undefined && settingsRow.bg_opacity !== null) {
-              assembled.bgOpacity = Number(settingsRow.bg_opacity);
-            }
-            if (settingsRow.standard_timings && Object.keys(settingsRow.standard_timings).length > 0) {
-              assembled.standardTimings = settingsRow.standard_timings;
-            }
-            if (settingsRow.google_sheet_config && Object.keys(settingsRow.google_sheet_config).length > 0) {
-              assembled.googleSheetConfig = { ...assembled.googleSheetConfig, ...settingsRow.google_sheet_config };
+
+            if (settingsRow) {
+              if (settingsRow.multiplier !== undefined && settingsRow.multiplier !== null) {
+                assembled.multiplier = Number(settingsRow.multiplier);
+              }
+              assembled.bgOpacity = 35;
+              if (settingsRow.standard_timings && Object.keys(settingsRow.standard_timings).length > 0) {
+                assembled.standardTimings = settingsRow.standard_timings;
+              }
+              if (settingsRow.google_sheet_config && Object.keys(settingsRow.google_sheet_config).length > 0) {
+                assembled.googleSheetConfig = { ...assembled.googleSheetConfig, ...settingsRow.google_sheet_config };
+              }
             }
 
             if (Array.isArray(ingRes.data) && ingRes.data.length > 0) {
-              assembled.ingredients = ingRes.data.map(r => ({ id: r.id, name: r.name, unit: r.unit, price: Number(r.price) }));
+              assembled.ingredients = ingRes.data.map(r => ({
+                id: r.id,
+                name: r.name,
+                unit: r.unit,
+                price: Number(r.price)
+              }));
             }
             if (Array.isArray(recRes.data) && recRes.data.length > 0) {
               assembled.recipes = recRes.data.map(r => ({
@@ -3341,7 +3050,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                 steps: r.steps || []
               }));
             }
-            if (Array.isArray(deptRes.data) && deptRes.data.length > 0) {
+            // Strictly populate departments from Supabase kitchen_departments (if table is empty, departments is [])
+            if (Array.isArray(deptRes.data)) {
               assembled.departments = deptRes.data.map(r => ({
                 id: r.id,
                 name: r.name,
@@ -3350,22 +3060,51 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                 profitMultiplier: Number(r.profit_multiplier || 1.0),
                 icon: r.icon || '🏛️'
               }));
+            } else {
+              assembled.departments = [];
             }
-            if (Array.isArray(calRes.data) && calRes.data.length > 0) {
-              assembled.calendarDays = {};
-              calRes.data.forEach(r => { assembled.calendarDays[r.date] = r.data; });
-            }
-            if (Array.isArray(planRes.data) && planRes.data.length > 0) {
-              assembled.dailyPlans = {};
-              planRes.data.forEach(r => { assembled.dailyPlans[r.date] = r.data; });
-            }
-            let needsAutoHistorySplit = false;
-            if (Array.isArray(histRes.data) && histRes.data.length > 0) {
-              assembled.history = reconstructHistoryFromSupabase(histRes.data, histItemsRes && !histItemsRes.error ? histItemsRes.data : []);
-              histRes.data.forEach(r => {
-                if (r && r.data && !r.data.splitVersion) needsAutoHistorySplit = true;
+
+            // Strictly load Calendar Days from Supabase AND purge any old hardcoded recipe IDs (like rec_alu_bagan_badi, rec_jeera_rice, rec_dal_fry)
+            const validRecIds = new Set(assembled.recipes.map(r => r.id));
+            assembled.calendarDays = {};
+            const staleCalDatesToDelete = [];
+            const cleanedCalRowsToUpsert = [];
+
+            if (Array.isArray(calRes.data)) {
+              calRes.data.forEach(r => {
+                if (!r || !r.date) return;
+                const rawJson = JSON.stringify(r.data || {});
+                const cleanedDay = sanitizeCalendarDayObject(r.date, r.data, validRecIds);
+                if (!cleanedDay) {
+                  staleCalDatesToDelete.push(r.date);
+                } else {
+                  assembled.calendarDays[r.date] = cleanedDay;
+                  if (JSON.stringify(cleanedDay) !== rawJson) {
+                    cleanedCalRowsToUpsert.push({
+                      date: r.date,
+                      data: cleanedDay,
+                      updated_at: new Date().toISOString()
+                    });
+                  }
+                }
               });
             }
+
+            // Clean up any stale auto-hardcoded rows in kitchen_calendar_days (and empty out obsolete kitchen_daily_plans) in the background
+            if (staleCalDatesToDelete.length > 0) {
+              supabaseClient.from('kitchen_calendar_days').delete().in('date', staleCalDatesToDelete).then(() => {}).catch(() => {});
+            }
+            if (cleanedCalRowsToUpsert.length > 0) {
+              supabaseClient.from('kitchen_calendar_days').upsert(cleanedCalRowsToUpsert).then(() => {}).catch(() => {});
+            }
+            supabaseClient.from('kitchen_daily_plans').delete().neq('date', '').then(() => {}).catch(() => {});
+
+            if (Array.isArray(histRes.data) && histRes.data.length > 0) {
+              assembled.history = reconstructHistoryFromSupabase(histRes.data, histItemsRes && !histItemsRes.error ? histItemsRes.data : []);
+            } else {
+              assembled.history = {};
+            }
+
             if (Array.isArray(expRes.data)) {
               assembled.accounts.expenses = expRes.data.map(r => ({
                 id: r.id,
@@ -3403,72 +3142,35 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             }
 
             state = normalizeAndUpgradeState(assembled);
-            ensureInitialHistorySnapshots();
+            calEditorDraftDate = null;
+            calEditorDraft = null;
+            calEditorDirty = false;
+            hasCompletedInitialCloudLoad = true;
             cloudRowSignatures = buildRowSignatures(state);
-            lastGranularSyncTelemetry = `Loaded 11 Normalized Tables (${state.ingredients.length} ing, ${state.recipes.length} rec, ${Object.keys(state.history).length} history days — all cells <2KB)`;
+            lastGranularSyncTelemetry = `Loaded from Supabase (${state.ingredients.length} ing, ${state.recipes.length} rec, ${Object.keys(state.calendarDays).length} calendar days, ${Object.keys(state.history).length} history days)`;
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
             updateNavCounts();
             updateDatabaseAndBackupStatusUI();
             switchTab(state.activeTab || 'daily');
-            if (needsAutoHistorySplit && histItemsRes && !histItemsRes.error) {
-              // Automatically slim down any old >10KB kitchen_history rows into kitchen_history + kitchen_history_items!
-              migrateStateToNormalizedTables(false);
-            }
-            if (notify) showToast('Loaded kitchen data from 11 Normalized Supabase Tables!');
+            if (notify) showToast('Loaded kitchen data from Supabase!');
             checkAndRunDailyGoogleSheetAutoBackup();
             return;
           } else {
-            // The 11 tables exist, but kitchen_settings is empty! Check if legacy kitchen_state has data first, then auto-migrate!
-            const { data: legData } = await supabaseClient
-              .from('kitchen_state')
-              .select('data')
-              .eq('id', 'main')
-              .maybeSingle();
-            if (legData && legData.data && legData.data.ingredients) {
-              state = normalizeAndUpgradeState(legData.data);
-              ensureInitialHistorySnapshots();
-            }
+            hasCompletedInitialCloudLoad = true;
             await migrateStateToNormalizedTables(notify);
             checkAndRunDailyGoogleSheetAutoBackup();
             return;
           }
         }
 
-        // Step 2: Fallback to Legacy Single-Row kitchen_state if 11 tables haven't been created yet
-        dbArchitectureMode = 'LEGACY_SINGLE_JSONB';
-        const { data, error } = await supabaseClient
-          .from('kitchen_state')
-          .select('data')
-          .eq('id', 'main')
-          .maybeSingle();
-
-        if (error) {
-          if (notify) showToast('Supabase error: ' + error.message, 'error');
-          updateDatabaseAndBackupStatusUI();
-          return;
-        }
-        if (data && data.data && data.data.ingredients && data.data.recipes) {
-          state = normalizeAndUpgradeState(data.data);
-          ensureInitialHistorySnapshots();
-          cloudRowSignatures = buildRowSignatures(state);
-          lastGranularSyncTelemetry = 'Synced via Legacy kitchen_state (Run 11-Table SQL in Settings to upgrade)';
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          } catch (e) {}
-          updateNavCounts();
-          updateDatabaseAndBackupStatusUI();
-          switchTab(state.activeTab || 'daily');
-          if (notify) showToast('Loaded latest kitchen data from Supabase Cloud!');
-        } else if (data === null) {
-          await saveStateToCloud(true);
-        }
-        checkAndRunDailyGoogleSheetAutoBackup();
+        hasCompletedInitialCloudLoad = true;
+        updateDatabaseAndBackupStatusUI();
       } catch (err) {
+        hasCompletedInitialCloudLoad = true;
         if (notify) showToast('Could not reach Supabase cloud', 'error');
       }
     }
 
-    // One-Click Full Migration from current state / kitchen_state into the 11 Normalized Tables
     async function migrateStateToNormalizedTables(notify = true) {
       if (!supabaseClient) {
         if (notify) showToast('Supabase client not connected', 'error');
@@ -3476,14 +3178,13 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       }
       try {
         const statusText = document.getElementById('cloudSyncStatusText');
-        if (statusText) statusText.textContent = 'Migrating to 11 Tables...';
+        if (statusText) statusText.textContent = 'Syncing Tables...';
         const nowIso = new Date().toISOString();
 
-        // 1. Settings row
         const { error: setErr } = await supabaseClient.from('kitchen_settings').upsert({
           id: 'main',
           multiplier: Number(state.multiplier) || 1.2,
-          bg_opacity: Number(state.bgOpacity ?? 16),
+          bg_opacity: 35,
           standard_timings: state.standardTimings || {},
           google_sheet_config: state.googleSheetConfig || {},
           updated_at: nowIso
@@ -3491,18 +3192,17 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
         if (setErr) {
           if (notify) {
-            showToast('Please run the 11-Table SQL Script in Supabase SQL Editor first! (' + setErr.message + ')', 'error');
+            showToast('Please run the SQL Script in Supabase SQL Editor first! (' + setErr.message + ')', 'error');
           }
           return;
         }
 
-        // 2. Push all 9 other tables in parallel batches
         const ingRows = (state.ingredients || []).map(x => ({
           id: x.id, name: x.name, unit: x.unit, price: Number(x.price) || 0, updated_at: nowIso
         }));
         const recRows = (state.recipes || []).map(r => ({
           id: r.id, name: r.name, std_yield: Number(r.stdYield) || 1, target_yield: Number(r.targetYield) || 1,
-          yield_unit: r.yieldUnit || 'L', serving_qty: Number(r.servingQty) || 100,
+          yield_unit: r.yieldUnit || 'L', serving_qty: Number(r.servingQty) || 1,
           serving_unit: r.servingUnit || 'ml', steps: r.steps || [], updated_at: nowIso
         }));
         const deptRows = (state.departments || []).map(d => ({
@@ -3511,9 +3211,6 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         }));
         const calRows = Object.keys(state.calendarDays || {}).map(d => ({
           date: d, data: state.calendarDays[d], updated_at: nowIso
-        }));
-        const planRows = Object.keys(state.dailyPlans || {}).map(d => ({
-          date: d, data: state.dailyPlans[d], updated_at: nowIso
         }));
         const histRows = [];
         const histItemRows = [];
@@ -3543,11 +3240,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         if (recRows.length) tasks.push(supabaseClient.from('kitchen_recipes').upsert(recRows));
         if (deptRows.length) tasks.push(supabaseClient.from('kitchen_departments').upsert(deptRows));
         if (calRows.length) tasks.push(supabaseClient.from('kitchen_calendar_days').upsert(calRows));
-        if (planRows.length) tasks.push(supabaseClient.from('kitchen_daily_plans').upsert(planRows));
         if (histRows.length) tasks.push(supabaseClient.from('kitchen_history').upsert(histRows));
         if (histItemRows.length) tasks.push(supabaseClient.from('kitchen_history_items').upsert(histItemRows));
-        // Also clear out any old >10KB blob sitting in legacy kitchen_state if that table still exists
         tasks.push(supabaseClient.from('kitchen_state').delete().eq('id', 'main').then(() => {}).catch(() => {}));
+        tasks.push(supabaseClient.from('kitchen_daily_plans').delete().neq('date', '').then(() => {}).catch(() => {}));
         if (expRows.length) tasks.push(supabaseClient.from('kitchen_expenses').upsert(expRows));
         if (claimRows.length) tasks.push(supabaseClient.from('kitchen_claims').upsert(claimRows));
         if (revRows.length) tasks.push(supabaseClient.from('kitchen_manual_revenue').upsert(revRows));
@@ -3556,10 +3252,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
         dbArchitectureMode = 'NORMALIZED_10_TABLES';
         cloudRowSignatures = buildRowSignatures(state);
-        lastGranularSyncTelemetry = `Migrated & Active: 11 Normalized Tables (${ingRows.length} ing, ${recRows.length} rec, ${histRows.length} hist headers, ${histItemRows.length} dish rows — zero >10KB blobs!)`;
+        lastGranularSyncTelemetry = `Synced 10 Normalized Tables (${ingRows.length} ing, ${recRows.length} rec, ${calRows.length} cal days, ${histRows.length} hist days)`;
         updateDatabaseAndBackupStatusUI();
         if (notify) {
-          showToast('Migrated & split all data into 11 Normalized Supabase Tables! Every cell is now compact (< 2 KB).');
+          showToast('Synced all data to Normalized Supabase Tables!');
         }
       } catch (err) {
         if (notify) showToast('Migration error: ' + err.message, 'error');
@@ -3568,7 +3264,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     // Granular Row-Level Diff Sync Engine: Only pushes the specific row(s) that were added/edited/deleted!
     async function saveStateToCloud(notify = false) {
-      if (!supabaseClient) return;
+      if (!supabaseClient || !hasCompletedInitialCloudLoad) return;
       try {
         const statusText = document.getElementById('cloudSyncStatusText');
         if (statusText) statusText.textContent = 'Syncing...';
@@ -3576,7 +3272,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         if (dbArchitectureMode === 'NORMALIZED_10_TABLES') {
           const prevSig = cloudRowSignatures || {
             settings: '', ingredients: {}, recipes: {}, departments: {},
-            calendarDays: {}, dailyPlans: {}, history: {}, expenses: {}, claims: {}, manualRevenue: {}
+            calendarDays: {}, history: {}, expenses: {}, claims: {}, manualRevenue: {}
           };
           const nextSig = buildRowSignatures(state);
           const nowIso = new Date().toISOString();
@@ -3589,7 +3285,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             ops.push(supabaseClient.from('kitchen_settings').upsert({
               id: 'main',
               multiplier: Number(state.multiplier) || 1.2,
-              bg_opacity: Number(state.bgOpacity ?? 16),
+              bg_opacity: 35,
               standard_timings: state.standardTimings || {},
               google_sheet_config: state.googleSheetConfig || {},
               updated_at: nowIso
@@ -3598,7 +3294,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             rowCountSynced++;
           }
 
-          // 2. Ingredients diff (Upsert changed + Delete removed)
+          // 2. Ingredients diff
           const changedIngs = (state.ingredients || []).filter(x => prevSig.ingredients[x.id] !== nextSig.ingredients[x.id])
             .map(x => ({ id: x.id, name: x.name, unit: x.unit, price: Number(x.price) || 0, updated_at: nowIso }));
           if (changedIngs.length > 0) {
@@ -3617,7 +3313,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           const changedRecs = (state.recipes || []).filter(r => prevSig.recipes[r.id] !== nextSig.recipes[r.id])
             .map(r => ({
               id: r.id, name: r.name, std_yield: Number(r.stdYield) || 1, target_yield: Number(r.targetYield) || 1,
-              yield_unit: r.yieldUnit || 'L', serving_qty: Number(r.servingQty) || 100,
+              yield_unit: r.yieldUnit || 'L', serving_qty: Number(r.servingQty) || 1,
               serving_unit: r.servingUnit || 'ml', steps: r.steps || [], updated_at: nowIso
             }));
           if (changedRecs.length > 0) {
@@ -3650,7 +3346,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             rowCountSynced += deletedDeptIds.length;
           }
 
-          // 5. Calendar Days diff
+          // 5. Calendar Days diff (Only updated when user clicks "Update" or copies a day/month menu!)
           const changedCalDays = Object.keys(state.calendarDays || {})
             .filter(d => prevSig.calendarDays[d] !== nextSig.calendarDays[d])
             .map(d => ({ date: d, data: state.calendarDays[d], updated_at: nowIso }));
@@ -3659,18 +3355,14 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             touchedTables.push('kitchen_calendar_days');
             rowCountSynced += changedCalDays.length;
           }
-
-          // 6. Daily Kitchen Plans diff
-          const changedPlans = Object.keys(state.dailyPlans || {})
-            .filter(d => prevSig.dailyPlans[d] !== nextSig.dailyPlans[d])
-            .map(d => ({ date: d, data: state.dailyPlans[d], updated_at: nowIso }));
-          if (changedPlans.length > 0) {
-            ops.push(supabaseClient.from('kitchen_daily_plans').upsert(changedPlans));
-            touchedTables.push('kitchen_daily_plans');
-            rowCountSynced += changedPlans.length;
+          const deletedCalDates = Object.keys(prevSig.calendarDays).filter(d => !nextSig.calendarDays[d]);
+          if (deletedCalDates.length > 0) {
+            ops.push(supabaseClient.from('kitchen_calendar_days').delete().in('date', deletedCalDates));
+            touchedTables.push('kitchen_calendar_days(del)');
+            rowCountSynced += deletedCalDates.length;
           }
 
-          // 7. History Archive diff (Split into compact kitchen_history header + per-dish kitchen_history_items!)
+          // 6. History Archive diff
           const changedHistDates = Object.keys(state.history || {})
             .filter(d => prevSig.history[d] !== nextSig.history[d]);
           if (changedHistDates.length > 0) {
@@ -3692,7 +3384,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             rowCountSynced += changedHistItems.length;
           }
 
-          // 8. Expenses diff
+          // 7. Expenses diff
           const changedExps = ((state.accounts && state.accounts.expenses) || [])
             .filter(e => prevSig.expenses[e.id] !== nextSig.expenses[e.id])
             .map(e => ({ id: e.id, date: e.date, type: e.type, particulars: e.particulars, debit: Number(e.debit) || 0, updated_at: nowIso }));
@@ -3708,7 +3400,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             rowCountSynced += deletedExpIds.length;
           }
 
-          // 9. Claims diff
+          // 8. Claims diff
           const changedClaims = Object.values((state.accounts && state.accounts.claims) || {})
             .filter(c => prevSig.claims[c.id] !== nextSig.claims[c.id])
             .map(c => ({
@@ -3725,8 +3417,14 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             touchedTables.push('kitchen_claims');
             rowCountSynced += changedClaims.length;
           }
+          const deletedClaimIds = Object.keys(prevSig.claims).filter(id => !nextSig.claims[id]);
+          if (deletedClaimIds.length > 0) {
+            ops.push(supabaseClient.from('kitchen_claims').delete().in('id', deletedClaimIds));
+            touchedTables.push('kitchen_claims(del)');
+            rowCountSynced += deletedClaimIds.length;
+          }
 
-          // 10. Manual Revenue diff
+          // 9. Manual Revenue diff
           const changedRevs = ((state.accounts && state.accounts.manualRevenue) || [])
             .filter(r => prevSig.manualRevenue[r.id] !== nextSig.manualRevenue[r.id])
             .map(r => ({ id: r.id, date: r.date, dept_id: r.deptId, dept_name: r.deptName, menu: r.menu, amount: Number(r.amount) || 0, updated_at: nowIso }));
@@ -3747,24 +3445,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             cloudRowSignatures = nextSig;
             lastGranularSyncTelemetry = `Granular Sync: ${rowCountSynced} row(s) -> [${touchedTables.join(', ')}] at ${new Date().toLocaleTimeString()}`;
           }
-          if (statusText) statusText.textContent = '11-Table Synced ✓';
+          if (statusText) statusText.textContent = 'Synced ✓';
           updateDatabaseAndBackupStatusUI();
-          if (notify) showToast(`Synced ${rowCountSynced || 'all'} changed row(s) to Supabase 11-Table Cloud!`);
+          if (notify) showToast(`Synced ${rowCountSynced || 'all'} changed row(s) to Supabase!`);
           return;
-        }
-
-        // Legacy fallback: single-row kitchen_state
-        const { error } = await supabaseClient
-          .from('kitchen_state')
-          .upsert({ id: 'main', data: state });
-        if (error) {
-          if (statusText) statusText.textContent = 'Sync Error';
-          if (notify) showToast('Cloud Save Error: ' + error.message, 'error');
-        } else {
-          if (statusText) statusText.textContent = 'Cloud Synced ✓';
-          lastGranularSyncTelemetry = `Legacy 1-Row Sync at ${new Date().toLocaleTimeString()}`;
-          updateDatabaseAndBackupStatusUI();
-          if (notify) showToast('Saved kitchen data to Supabase Cloud!');
         }
       } catch (e) {}
     }
@@ -3777,7 +3461,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         }
       } catch (e) {}
       updateNavCounts();
-      if (supabaseClient) {
+      if (supabaseClient && hasCompletedInitialCloudLoad) {
         saveStateToCloud(false);
       }
     }
@@ -3815,7 +3499,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     function copyNormalizedSupabaseSQL() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(NORMALIZED_SUPABASE_SQL).then(() => {
-          showToast('Copied 11-Table PostgreSQL Script! Paste it in Supabase SQL Editor and click Run.');
+          showToast('Copied 10-Table PostgreSQL Script! Paste it in Supabase SQL Editor and click Run.');
         });
       }
     }
@@ -4327,14 +4011,22 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function openCustomDatePicker(evt) {
       if (evt) evt.stopPropagation();
-      const cur = state.selectedDailyDate || '2026-10-04';
+      const cur = state.selectedDailyDate || getTomorrowDateISO();
       const [y, m] = cur.split('-').map(Number);
-      dpYear = y || 2026;
-      dpMonth = (m ? m - 1 : 9);
+      dpYear = y || new Date().getFullYear();
+      dpMonth = (m ? m - 1 : new Date().getMonth());
       renderCustomDatePickerUI();
       const modal = document.getElementById('customDatePopover');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+    }
+
+    function jumpDatePickerToToday() {
+      selectCustomDateAndClose(getTodayDateISO());
+    }
+
+    function jumpDatePickerToTomorrow() {
+      selectCustomDateAndClose(getTomorrowDateISO());
     }
 
     function closeCustomDatePicker() {
@@ -4351,7 +4043,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function renderCustomDatePickerUI() {
-      const cur = state.selectedDailyDate || '2026-10-04';
+      const cur = state.selectedDailyDate || getTomorrowDateISO();
       const curObj = new Date(cur + 'T00:00:00');
       const hdr = document.getElementById('dpHeaderSelectedText');
       if (hdr) {
@@ -5020,14 +4712,14 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         title.textContent = 'Create New Kitchen Recipe';
         idEl.value = '';
         nameEl.value = '';
-        stdYieldEl.value = 30;
+        stdYieldEl.value = 1;
         yieldUnitEl.value = 'L';
-        servingQtyEl.value = 200;
+        servingQtyEl.value = 1;
         modalRecipeDraft = [
           {
-            process: 'Step 1: Enter cooking process instructions here...',
+            process: 'Test Step',
             items: [
-              { ingId: state.ingredients[0]?.id || '', stdQty: 5, unit: 'Kg' }
+              { ingId: state.ingredients[0]?.id || '', stdQty: 1, unit: 'Kg' }
             ]
           }
         ];
@@ -5217,44 +4909,103 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     // =========================================================================
-    // TAB 3: MONTHLY MENU CALENDAR
+    // TAB 3: MONTHLY MENU CALENDAR (No Default Dishes, Draft Editor + "Update" Button)
     // =========================================================================
-    function ensureCalendarDay(dateStr) {
-      if (!state.calendarDays[dateStr]) {
-        const st = state.standardTimings;
-        state.calendarDays[dateStr] = {
-          breakfast: {
-            enabled: true,
-            fasting: getDefaultFastingForDateMeal(dateStr, 'breakfast'),
-            bhogaTime: st.breakfast.bhoga,
-            servingTime: st.breakfast.serving,
-            dishes: ['rec_dal_fry']
-          },
-          lunch: {
-            enabled: true,
-            fasting: getDefaultFastingForDateMeal(dateStr, 'lunch'),
-            bhogaTime: st.lunch.bhoga,
-            servingTime: st.lunch.serving,
-            dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice', 'rec_dal_fry']
-          },
-          dinner: {
-            enabled: true,
-            fasting: getDefaultFastingForDateMeal(dateStr, 'dinner'),
-            bhogaTime: st.dinner.bhoga,
-            servingTime: st.dinner.serving,
-            dishes: ['rec_alu_bagan_badi', 'rec_jeera_rice']
-          },
-          order:   { enabled: false, fasting: false, bhogaTime: '11:00', servingTime: '11:30', dishes: [] },
-          journey: { enabled: false, fasting: false, bhogaTime: '06:00', servingTime: '06:30', dishes: [] }
-        };
-      } else {
+    function getSavedCalendarDay(dateStr) {
+      return (state.calendarDays && state.calendarDays[dateStr]) ? state.calendarDays[dateStr] : null;
+    }
+
+    function buildBlankCalendarDayTemplate(dateStr) {
+      const st = state.standardTimings || {
+        breakfast: { bhoga: '07:15', serving: '08:00' },
+        lunch:     { bhoga: '12:00', serving: '13:00' },
+        dinner:    { bhoga: '19:30', serving: '20:15' }
+      };
+      return {
+        breakfast: {
+          enabled: true,
+          fasting: getDefaultFastingForDateMeal(dateStr, 'breakfast'),
+          bhogaTime: st.breakfast.bhoga,
+          servingTime: st.breakfast.serving,
+          dishes: ['']
+        },
+        lunch: {
+          enabled: true,
+          fasting: getDefaultFastingForDateMeal(dateStr, 'lunch'),
+          bhogaTime: st.lunch.bhoga,
+          servingTime: st.lunch.serving,
+          dishes: ['']
+        },
+        dinner: {
+          enabled: true,
+          fasting: getDefaultFastingForDateMeal(dateStr, 'dinner'),
+          bhogaTime: st.dinner.bhoga,
+          servingTime: st.dinner.serving,
+          dishes: ['']
+        },
+        order:   { enabled: false, fasting: false, bhogaTime: '11:00', servingTime: '11:30', dishes: [] },
+        journey: { enabled: false, fasting: false, bhogaTime: '06:00', servingTime: '06:30', dishes: [] }
+      };
+    }
+
+    // Initializes or returns the staging draft for the Selected Date Menu editor panel
+    function ensureCalEditorDraft(dateStr, forceReset = false) {
+      if (!forceReset && calEditorDraft && calEditorDraftDate === dateStr) {
+        return calEditorDraft;
+      }
+      calEditorDraftDate = dateStr;
+      calEditorDirty = false;
+      const savedDay = getSavedCalendarDay(dateStr);
+      if (savedDay) {
+        const clone = JSON.parse(JSON.stringify(savedDay));
         ['breakfast', 'lunch', 'dinner'].forEach(mk => {
-          if (state.calendarDays[dateStr][mk] && state.calendarDays[dateStr][mk].fasting === undefined) {
-            state.calendarDays[dateStr][mk].fasting = getDefaultFastingForDateMeal(dateStr, mk);
+          if (!clone[mk]) {
+            clone[mk] = buildBlankCalendarDayTemplate(dateStr)[mk];
+          } else {
+            if (clone[mk].fasting === undefined) {
+              clone[mk].fasting = getDefaultFastingForDateMeal(dateStr, mk);
+            }
+            if (!Array.isArray(clone[mk].dishes) || clone[mk].dishes.length === 0) {
+              clone[mk].dishes = [''];
+            }
           }
         });
+        ['order', 'journey'].forEach(mk => {
+          if (!clone[mk]) {
+            clone[mk] = { enabled: false, fasting: false, bhogaTime: mk === 'order' ? '11:00' : '06:00', servingTime: mk === 'order' ? '11:30' : '06:30', dishes: [] };
+          } else if (clone[mk].enabled && (!Array.isArray(clone[mk].dishes) || clone[mk].dishes.length === 0)) {
+            clone[mk].dishes = [''];
+          }
+        });
+        calEditorDraft = clone;
+      } else {
+        calEditorDraft = buildBlankCalendarDayTemplate(dateStr);
       }
-      return state.calendarDays[dateStr];
+      return calEditorDraft;
+    }
+
+    // Commits the staging draft into state.calendarDays[dateStr] and syncs to Supabase ONLY when "Update" is clicked!
+    function updateSelectedCalendarDayMenu() {
+      const dateStr = state.selectedCalendarDate;
+      if (!dateStr) return;
+      const draft = ensureCalEditorDraft(dateStr);
+      const validRecIds = new Set((state.recipes || []).map(r => r.id));
+
+      const toSave = JSON.parse(JSON.stringify(draft));
+      ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mk => {
+        if (toSave[mk]) {
+          toSave[mk].dishes = (toSave[mk].dishes || []).filter(id => Boolean(id && validRecIds.has(id)));
+        }
+      });
+      toSave.userUpdated = true;
+
+      state.calendarDays[dateStr] = toSave;
+      calEditorDirty = false;
+      ensureCalEditorDraft(dateStr, true);
+      syncUnarchivedDailyPlanFromCalendar(dateStr);
+      saveState();
+      renderCalendarTab();
+      showToast(`Updated ${dateStr} menu in Calendar & synced to Supabase!`);
     }
 
     function renderCalendarTab() {
@@ -5283,10 +5034,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const dayMenu = ensureCalendarDay(dateStr);
+        const dayMenu = getSavedCalendarDay(dateStr); // Strictly read-only: null if not set & updated!
         const isSelected = dateStr === state.selectedCalendarDate;
 
         const renderPills = (recIds, cls) => (recIds || []).map(rid => {
+          if (!rid) return '';
           const rec = getRecipeById(rid);
           if (!rec) return '';
           return `<div class="px-2 py-0.5 rounded-md border text-[11px] font-semibold truncate ${cls}">${escapeHtml(rec.name)}</div>`;
@@ -5308,17 +5060,21 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           `;
         }
 
-        const bfPills = dayMenu.breakfast?.fasting
+        const bfFasting = dayMenu ? Boolean(dayMenu.breakfast?.fasting) : getDefaultFastingForDateMeal(dateStr, 'breakfast');
+        const lnFasting = dayMenu ? Boolean(dayMenu.lunch?.fasting) : getDefaultFastingForDateMeal(dateStr, 'lunch');
+        const dnFasting = dayMenu ? Boolean(dayMenu.dinner?.fasting) : getDefaultFastingForDateMeal(dateStr, 'dinner');
+
+        const bfPills = bfFasting
           ? `<div class="px-2 py-0.5 rounded-md border text-[10px] font-extrabold bg-indigo-50 text-indigo-900 border-indigo-200">🌙 BF: Fasting</div>`
-          : renderPills(dayMenu.breakfast?.dishes, 'bg-amber-50/90 text-amber-900 border-amber-200');
-        const lnPills = dayMenu.lunch?.fasting
+          : (dayMenu ? renderPills(dayMenu.breakfast?.dishes, 'bg-amber-50/90 text-amber-900 border-amber-200') : '');
+        const lnPills = lnFasting
           ? `<div class="px-2 py-0.5 rounded-md border text-[10px] font-extrabold bg-indigo-50 text-indigo-900 border-indigo-200">🌙 Lunch: Fasting</div>`
-          : renderPills(dayMenu.lunch?.dishes, 'bg-emerald-50/90 text-emerald-900 border-emerald-200');
-        const dnPills = dayMenu.dinner?.fasting
+          : (dayMenu ? renderPills(dayMenu.lunch?.dishes, 'bg-emerald-50/90 text-emerald-900 border-emerald-200') : '');
+        const dnPills = dnFasting
           ? `<div class="px-2 py-0.5 rounded-md border text-[10px] font-extrabold bg-indigo-50 text-indigo-900 border-indigo-200">🌙 Dinner: Fasting</div>`
-          : renderPills(dayMenu.dinner?.dishes, 'bg-purple-50/90 text-purple-900 border-purple-200');
-        const orPills = dayMenu.order?.enabled ? renderPills(dayMenu.order.dishes, 'bg-blue-50/90 text-blue-900 border-blue-200') : '';
-        const jnPills = dayMenu.journey?.enabled ? renderPills(dayMenu.journey.dishes, 'bg-rose-50/90 text-rose-900 border-rose-200') : '';
+          : (dayMenu ? renderPills(dayMenu.dinner?.dishes, 'bg-purple-50/90 text-purple-900 border-purple-200') : '');
+        const orPills = (dayMenu && dayMenu.order?.enabled) ? renderPills(dayMenu.order.dishes, 'bg-blue-50/90 text-blue-900 border-blue-200') : '';
+        const jnPills = (dayMenu && dayMenu.journey?.enabled) ? renderPills(dayMenu.journey.dishes, 'bg-rose-50/90 text-rose-900 border-rose-200') : '';
 
         const hasHistory = Boolean(state.history && state.history[dateStr]);
 
@@ -5330,7 +5086,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-extrabold ${isSelected ? 'bg-orange-600 text-white' : 'text-slate-700'}">${d}</span>
               <div class="flex items-center gap-1">
                 ${hasHistory ? `<span class="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-800 font-extrabold" title="Cooking archived in History">✓ Hist</span>` : ''}
-                ${(dayMenu.order?.enabled || dayMenu.journey?.enabled) ? `<span class="text-[10px] px-1.5 rounded-full bg-blue-100 text-blue-800 font-bold">+Extra</span>` : ''}
+                ${(dayMenu && (dayMenu.order?.enabled || dayMenu.journey?.enabled)) ? `<span class="text-[10px] px-1.5 rounded-full bg-blue-100 text-blue-800 font-bold">+Extra</span>` : ''}
               </div>
             </div>
             <div class="space-y-1">
@@ -5357,7 +5113,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function selectCalendarDate(dateStr) {
       state.selectedCalendarDate = dateStr;
-      saveState();
+      ensureCalEditorDraft(dateStr, true);
       renderCalendarTab();
     }
 
@@ -5369,7 +5125,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       state.calendarMonth = m;
       state.calendarYear = y;
       state.selectedCalendarDate = `${y}-${String(m + 1).padStart(2, '0')}-01`;
-      saveState();
+      ensureCalEditorDraft(state.selectedCalendarDate, true);
       renderCalendarTab();
     }
 
@@ -5423,22 +5179,27 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const daysInSource = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
       const daysInTarget = new Date(targetY, targetM + 1, 0).getDate();
 
+      let copiedCount = 0;
       for (let d = 1; d <= daysInTarget; d++) {
         const srcDayNum = Math.min(d, daysInSource);
         const srcDate = `${state.calendarYear}-${String(state.calendarMonth + 1).padStart(2, '0')}-${String(srcDayNum).padStart(2, '0')}`;
         const dstDate = `${targetY}-${String(targetM + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const srcMenu = ensureCalendarDay(srcDate);
-        state.calendarDays[dstDate] = JSON.parse(JSON.stringify(srcMenu));
-        syncUnarchivedDailyPlanFromCalendar(dstDate);
+        const srcMenu = getSavedCalendarDay(srcDate);
+        if (srcMenu) {
+          state.calendarDays[dstDate] = JSON.parse(JSON.stringify(srcMenu));
+          syncUnarchivedDailyPlanFromCalendar(dstDate);
+          copiedCount++;
+        }
       }
 
       closeCopyMonthMenuModal();
       state.calendarMonth = targetM;
       state.calendarYear = targetY;
       state.selectedCalendarDate = `${targetY}-${String(targetM + 1).padStart(2, '0')}-01`;
+      ensureCalEditorDraft(state.selectedCalendarDate, true);
       saveState();
       renderCalendarTab();
-      showToast(`Copied ${srcMonthName} ${srcYearNum} menu to ${MONTH_NAMES[targetM]} ${targetY}!`);
+      showToast(`Copied ${copiedCount} configured day menu(s) from ${srcMonthName} ${srcYearNum} to ${MONTH_NAMES[targetM]} ${targetY}!`);
     }
 
     function openCopyDayMenuModal() {
@@ -5485,14 +5246,24 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         return;
       }
 
-      const srcMenu = ensureCalendarDay(srcDate);
-      state.calendarDays[dstDate] = JSON.parse(JSON.stringify(srcMenu));
+      const validRecIds = new Set((state.recipes || []).map(r => r.id));
+      const srcDraft = getSavedCalendarDay(srcDate) || ensureCalEditorDraft(srcDate);
+      const cleanedCopy = JSON.parse(JSON.stringify(srcDraft));
+      ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mk => {
+        if (cleanedCopy[mk]) {
+          cleanedCopy[mk].dishes = (cleanedCopy[mk].dishes || []).filter(id => Boolean(id && validRecIds.has(id)));
+        }
+      });
+      cleanedCopy.userUpdated = true;
+
+      state.calendarDays[dstDate] = cleanedCopy;
       syncUnarchivedDailyPlanFromCalendar(dstDate);
 
       const [ty, tm] = dstDate.split('-').map(Number);
       state.calendarYear = ty;
       state.calendarMonth = tm - 1;
       state.selectedCalendarDate = dstDate;
+      ensureCalEditorDraft(dstDate, true);
 
       closeCopyDayMenuModal();
       saveState();
@@ -5506,10 +5277,22 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (!titleEl || !bodyEl) return;
 
       const dateStr = state.selectedCalendarDate;
-      const dayMenu = ensureCalendarDay(dateStr);
+      const dayMenu = ensureCalEditorDraft(dateStr);
+      const isSavedOnCalendar = Boolean(getSavedCalendarDay(dateStr));
 
       const dateObj = new Date(dateStr + 'T00:00:00');
       titleEl.textContent = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+
+      const hdrUpdateBtn = document.getElementById('calHeaderUpdateBtn');
+      if (hdrUpdateBtn) {
+        if (calEditorDirty) {
+          hdrUpdateBtn.className = 'px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold hover-lift shadow-sm ring-2 ring-emerald-300 transition cursor-pointer flex items-center gap-1';
+          hdrUpdateBtn.innerHTML = '<span>✓</span> <span>Update*</span>';
+        } else {
+          hdrUpdateBtn.className = 'px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold hover-lift shadow-xs transition cursor-pointer flex items-center gap-1';
+          hdrUpdateBtn.innerHTML = '<span>✓</span> <span>Update</span>';
+        }
+      }
 
       const mealConfigs = [
         { key: 'breakfast', label: 'Breakfast', badgeCls: 'bg-amber-100 text-amber-900 border-amber-300', alwaysOn: true },
@@ -5521,7 +5304,22 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
       let html = '';
 
-      // Show 2026 Vaishnava Calendar Event card if present on this date
+      // Status strip showing whether this day's menu is saved in Calendar or has unsaved draft selections
+      if (calEditorDirty) {
+        html += `
+          <div class="p-3 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-950 flex items-center justify-between gap-2">
+            <span class="font-bold">⚠️ Unsaved dish selections — Click <strong>"Update"</strong> to show on Calendar &amp; sync!</span>
+            <button type="button" onclick="updateSelectedCalendarDayMenu()" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold shrink-0 cursor-pointer">✓ Update</button>
+          </div>
+        `;
+      } else if (!isSavedOnCalendar) {
+        html += `
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-500 font-medium">
+            No dishes saved for this date yet. Select dishes below and click <strong>"Update"</strong>.
+          </div>
+        `;
+      }
+
       const vEvent = getVaishnavaEvent(dateStr);
       if (vEvent && vEvent.events && vEvent.events.length > 0) {
         const isFastDay = vEvent.type === 'ekadashi' || vEvent.type === 'major_fast';
@@ -5547,28 +5345,28 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         const isFasting = Boolean(cfg.alwaysOn && mObj?.fasting);
         const dishes = mObj.dishes || [];
         const selectsHtml = dishes.map((recId, idx) => {
-          const curRec = getRecipeById(recId) || state.recipes[0];
-          const curName = curRec ? curRec.name : 'Select Recipe...';
+          const curRec = recId ? getRecipeById(recId) : null;
+          const curName = curRec ? curRec.name : 'Select Dish...';
           const curMeta = curRec ? `${formatNum(curRec.stdYield)} ${curRec.yieldUnit}` : '';
           const ddId = `calRecSearch_${dateStr}_${cfg.key}_${idx}`;
           return `
-            <div class="flex items-center gap-1.5 animate-row-in relative" data-cal-rec-dropdown="${ddId}">
+            <div class="flex items-center gap-1.5 relative" data-cal-rec-dropdown="${ddId}">
               <div class="relative flex-1">
-                <button type="button" onclick="openCalRecipeSearchDropdown(event, '${ddId}')" class="w-full px-3 py-2 text-xs sm:text-sm bg-white hover:bg-orange-50/50 border border-slate-200 rounded-xl font-semibold text-slate-800 flex items-center justify-between gap-2 shadow-2xs transition cursor-pointer text-left">
+                <button type="button" onclick="openCalRecipeSearchDropdown(event, '${ddId}')" class="w-full px-3 py-2 text-xs sm:text-sm bg-white hover:bg-orange-50/50 border ${curRec ? 'border-slate-200 text-slate-800 font-semibold' : 'border-dashed border-orange-300 text-slate-400 font-medium'} rounded-xl flex items-center justify-between gap-2 shadow-2xs transition cursor-pointer text-left">
                   <span class="truncate">${escapeHtml(curName)}</span>
                   <span class="flex items-center gap-1 shrink-0 text-[11px] text-slate-400">
                     <span>${escapeHtml(curMeta)}</span>
                     <span class="text-orange-600 font-bold">▾</span>
                   </span>
                 </button>
-                <div id="${ddId}_menu" class="cal-recipe-search-menu hidden absolute left-0 right-0 top-full mt-1 z-40 bg-white rounded-2xl border border-orange-200 shadow-xl overflow-hidden animate-popover">
-                  <div class="p-2 bg-orange-50/60 border-b border-orange-100">
+                <div id="${ddId}_menu" class="cal-recipe-search-menu hidden absolute left-0 right-0 top-full mt-1 z-[90] bg-white rounded-2xl border-2 border-orange-300 shadow-2xl overflow-hidden">
+                  <div class="p-2 bg-orange-50 border-b border-orange-200">
                     <div class="relative">
                       <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400">🔍</span>
                       <input id="${ddId}_input" type="text" placeholder="Type to search recipes..." oninput="filterCalRecipeSearchList('${ddId}', '${dateStr}', '${cfg.key}', ${idx}, this.value)" onkeydown="onCalRecipeSearchKeydown(event, '${ddId}', '${dateStr}', '${cfg.key}', ${idx})" class="w-full pl-7 pr-2.5 py-1.5 text-xs font-semibold bg-white border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-slate-900" />
                     </div>
                   </div>
-                  <div id="${ddId}_list" class="max-h-52 overflow-y-auto divide-y divide-slate-50 p-1">
+                  <div id="${ddId}_list" class="max-h-52 overflow-y-auto divide-y divide-slate-100 p-1 bg-white">
                     ${renderCalRecipeSearchOptionsHtml(dateStr, cfg.key, idx, recId, '')}
                   </div>
                 </div>
@@ -5582,7 +5380,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         const servVal = mObj.servingTime || '08:00';
 
         html += `
-          <div class="p-4 rounded-2xl border ${isFasting ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200/80 bg-white/80'} space-y-3 shadow-2xs animate-row-in">
+          <div data-cal-meal-card="${cfg.key}" class="relative p-4 rounded-2xl border ${isFasting ? 'border-indigo-200 bg-indigo-50/40' : 'border-slate-200/80 bg-white/95'} space-y-3 shadow-2xs">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold border ${cfg.badgeCls}">
@@ -5597,12 +5395,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               </div>
               <div class="flex items-center gap-1.5">
                 ${!isFasting ? `
-                  <button onclick="addCalDayDish('${dateStr}', '${cfg.key}')" class="text-xs font-bold text-orange-700 hover:bg-orange-100 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 transition">
+                  <button type="button" onclick="addCalDayDish('${dateStr}', '${cfg.key}')" class="text-xs font-bold text-orange-700 hover:bg-orange-100 px-2.5 py-1 rounded-lg bg-orange-50 border border-orange-200 transition cursor-pointer">
                     + Add Dish
                   </button>
                 ` : ''}
                 ${!cfg.alwaysOn ? `
-                  <button onclick="toggleCalExtraMeal('${dateStr}', '${cfg.key}', false)" class="text-xs font-bold text-red-600 hover:text-red-800 px-1.5 py-0.5">
+                  <button type="button" onclick="toggleCalExtraMeal('${dateStr}', '${cfg.key}', false)" class="text-xs font-bold text-red-600 hover:text-red-800 px-1.5 py-0.5 cursor-pointer">
                     Remove
                   </button>
                 ` : ''}
@@ -5622,14 +5420,14 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               <div class="grid grid-cols-2 gap-2 pt-1">
                 <div>
                   <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Bhoga Ready</label>
-                  <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'bhogaTime', '${bhogaVal}', '${cfg.label} Bhoga Ready')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition">
+                  <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'bhogaTime', '${bhogaVal}', '${cfg.label} Bhoga Ready')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition cursor-pointer">
                     <span>🔔 ${formatTime12h(bhogaVal)}</span>
                     <span class="text-[10px] text-orange-600">▾</span>
                   </button>
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Serving Time</label>
-                  <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'servingTime', '${servVal}', '${cfg.label} Serving Time')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition">
+                  <button type="button" onclick="openCalMealTimePicker(event, '${dateStr}', '${cfg.key}', 'servingTime', '${servVal}', '${cfg.label} Serving Time')" class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-50 hover:bg-orange-50 border border-slate-200 rounded-xl flex items-center justify-between transition cursor-pointer">
                     <span>🍛 ${formatTime12h(servVal)}</span>
                     <span class="text-[10px] text-orange-600">▾</span>
                   </button>
@@ -5638,7 +5436,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
               <!-- Dish Dropdowns -->
               <div class="space-y-2 pt-1">
-                ${selectsHtml || `<div class="text-xs text-slate-400 italic">No dishes added yet. Click "+ Add Dish".</div>`}
+                ${selectsHtml || `<div class="text-xs text-slate-400 italic">No dish slot. Click "+ Add Dish" above.</div>`}
               </div>
             `}
           </div>
@@ -5653,12 +5451,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             <div class="text-[11px] font-bold uppercase text-slate-400">Optional Extra Meals for This Date</div>
             <div class="flex flex-wrap gap-2">
               ${showOrderBtn ? `
-                <button onclick="toggleCalExtraMeal('${dateStr}', 'order', true)" class="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-800 text-xs font-bold transition">
+                <button type="button" onclick="toggleCalExtraMeal('${dateStr}', 'order', true)" class="px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100 text-blue-800 text-xs font-bold transition cursor-pointer">
                   + Add "Order" Meal
                 </button>
               ` : ''}
               ${showJourneyBtn ? `
-                <button onclick="toggleCalExtraMeal('${dateStr}', 'journey', true)" class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50/80 hover:bg-rose-100 text-rose-800 text-xs font-bold transition">
+                <button type="button" onclick="toggleCalExtraMeal('${dateStr}', 'journey', true)" class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50/80 hover:bg-rose-100 text-rose-800 text-xs font-bold transition cursor-pointer">
                   + Add "Journey Prasad"
                 </button>
               ` : ''}
@@ -5666,6 +5464,16 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           </div>
         `;
       }
+
+      // Bottom Full-Width "Update Day Menu" Action Button
+      html += `
+        <div class="pt-3 border-t border-slate-200/80">
+          <button type="button" onclick="updateSelectedCalendarDayMenu()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs sm:text-sm font-extrabold shadow-sm hover-lift transition cursor-pointer flex items-center justify-center gap-2">
+            <span>✓</span>
+            <span>Update Menu for ${escapeHtml(dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }))}</span>
+          </button>
+        </div>
+      `;
 
       bodyEl.innerHTML = html;
     }
@@ -5678,16 +5486,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function toggleCalMealFasting(dateStr, mealKey, isFasting) {
-      const dayMenu = ensureCalendarDay(dateStr);
-      if (dayMenu[mealKey]) {
-        dayMenu[mealKey].fasting = Boolean(isFasting);
+      const draft = ensureCalEditorDraft(dateStr);
+      if (draft[mealKey]) {
+        draft[mealKey].fasting = Boolean(isFasting);
       }
-      if (state.dailyPlans[dateStr] && state.dailyPlans[dateStr].meals && state.dailyPlans[dateStr].meals[mealKey]) {
-        state.dailyPlans[dateStr].meals[mealKey].fasting = Boolean(isFasting);
-      }
-      saveState();
-      renderCalendarTab();
-      showToast(`${mealKey.toUpperCase()} set to ${isFasting ? '🌙 Fasting' : 'Regular Prasadam Menu'} on ${dateStr}`);
+      calEditorDirty = true;
+      renderCalendarDayEditor();
     }
 
     function syncUnarchivedDailyPlanFromCalendar(dateStr) {
@@ -5700,10 +5504,18 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     function renderCalRecipeSearchOptionsHtml(dateStr, mealKey, dishIdx, selectedRecId, queryStr = '') {
       const q = (queryStr || '').trim().toLowerCase();
       const matches = (state.recipes || []).filter(r => !q || r.name.toLowerCase().includes(q) || (r.yieldUnit || '').toLowerCase().includes(q));
+      const clearOptionHtml = !q ? `
+        <button type="button" data-rec-id="" onclick="selectCalRecipeFromSearch('${dateStr}', '${mealKey}', ${dishIdx}, '')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 transition cursor-pointer ${
+          !selectedRecId ? 'bg-slate-100 text-slate-700 font-bold' : 'hover:bg-slate-50 text-slate-400 italic'
+        }">
+          <span>-- No Dish Selected (Empty) --</span>
+        </button>
+      ` : '';
+
       if (matches.length === 0) {
-        return `<div class="py-3 px-3 text-xs text-slate-400 text-center italic">No matching recipes found</div>`;
+        return clearOptionHtml + `<div class="py-3 px-3 text-xs text-slate-400 text-center italic">No matching recipes found</div>`;
       }
-      return matches.map(r => {
+      return clearOptionHtml + matches.map(r => {
         const isSel = r.id === selectedRecId;
         return `
           <button type="button" data-rec-id="${r.id}" onclick="selectCalRecipeFromSearch('${dateStr}', '${mealKey}', ${dishIdx}, '${r.id}')" class="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 transition cursor-pointer ${
@@ -5716,13 +5528,24 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       }).join('');
     }
 
+    function closeAllCalRecipeSearchDropdowns() {
+      document.querySelectorAll('.cal-recipe-search-menu').forEach(m => m.classList.add('hidden'));
+      document.querySelectorAll('[data-cal-meal-card]').forEach(c => { c.style.zIndex = ''; });
+      document.querySelectorAll('[data-cal-rec-dropdown]').forEach(r => { r.style.zIndex = ''; });
+    }
+
     function openCalRecipeSearchDropdown(evt, ddId) {
       if (evt) evt.stopPropagation();
-      const allMenus = document.querySelectorAll('.cal-recipe-search-menu');
       const targetMenu = document.getElementById(`${ddId}_menu`);
       const wasOpen = targetMenu && !targetMenu.classList.contains('hidden');
-      allMenus.forEach(m => m.classList.add('hidden'));
+      closeAllCalRecipeSearchDropdowns();
       if (targetMenu && !wasOpen) {
+        // Elevate the active dish row and active meal card so subsequent rows/cards NEVER overlap the open dropdown!
+        const rowWrap = targetMenu.closest('[data-cal-rec-dropdown]');
+        const mealCard = targetMenu.closest('[data-cal-meal-card]');
+        if (mealCard) mealCard.style.zIndex = '60';
+        if (rowWrap) rowWrap.style.zIndex = '70';
+
         targetMenu.classList.remove('hidden');
         const inp = document.getElementById(`${ddId}_input`);
         if (inp) {
@@ -5736,8 +5559,8 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     function filterCalRecipeSearchList(ddId, dateStr, mealKey, dishIdx, queryVal) {
       const listEl = document.getElementById(`${ddId}_list`);
       if (!listEl) return;
-      const dayMenu = ensureCalendarDay(dateStr);
-      const curRecId = dayMenu[mealKey]?.dishes?.[dishIdx] || '';
+      const draft = ensureCalEditorDraft(dateStr);
+      const curRecId = draft[mealKey]?.dishes?.[dishIdx] || '';
       listEl.innerHTML = renderCalRecipeSearchOptionsHtml(dateStr, mealKey, dishIdx, curRecId, queryVal);
     }
 
@@ -5745,70 +5568,65 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (evt.key === 'Enter') {
         evt.preventDefault();
         const listEl = document.getElementById(`${ddId}_list`);
-        const firstBtn = listEl ? listEl.querySelector('button[data-rec-id]') : null;
+        const firstBtn = listEl ? listEl.querySelector('button[data-rec-id]:not([data-rec-id=""])') : null;
         if (firstBtn) {
           const rid = firstBtn.getAttribute('data-rec-id');
-          if (rid) selectCalRecipeFromSearch(dateStr, mealKey, dishIdx, rid);
+          if (rid !== null) selectCalRecipeFromSearch(dateStr, mealKey, dishIdx, rid);
         }
       } else if (evt.key === 'Escape') {
-        const targetMenu = document.getElementById(`${ddId}_menu`);
-        if (targetMenu) targetMenu.classList.add('hidden');
+        closeAllCalRecipeSearchDropdowns();
       }
     }
 
     function selectCalRecipeFromSearch(dateStr, mealKey, dishIdx, newRecId) {
-      document.querySelectorAll('.cal-recipe-search-menu').forEach(m => m.classList.add('hidden'));
+      closeAllCalRecipeSearchDropdowns();
       updateCalDayDish(dateStr, mealKey, dishIdx, newRecId);
     }
 
     document.addEventListener('click', (evt) => {
       if (!evt.target.closest('[data-cal-rec-dropdown]')) {
-        document.querySelectorAll('.cal-recipe-search-menu').forEach(m => m.classList.add('hidden'));
+        closeAllCalRecipeSearchDropdowns();
       }
     });
 
     function updateCalDayDish(dateStr, mealKey, dishIdx, newRecId) {
-      const dayMenu = ensureCalendarDay(dateStr);
-      dayMenu[mealKey].dishes[dishIdx] = newRecId;
-      syncUnarchivedDailyPlanFromCalendar(dateStr);
-      saveState();
-      renderCalendarTab();
+      const draft = ensureCalEditorDraft(dateStr);
+      draft[mealKey].dishes[dishIdx] = newRecId;
+      calEditorDirty = true;
+      renderCalendarDayEditor();
     }
 
     function addCalDayDish(dateStr, mealKey) {
-      const dayMenu = ensureCalendarDay(dateStr);
-      const firstRecId = state.recipes[0]?.id || 'rec_dal_fry';
-      dayMenu[mealKey].dishes.push(firstRecId);
-      syncUnarchivedDailyPlanFromCalendar(dateStr);
-      saveState();
-      renderCalendarTab();
+      const draft = ensureCalEditorDraft(dateStr);
+      // Always push empty string '' so NO dish is pre-selected by default!
+      draft[mealKey].dishes.push('');
+      calEditorDirty = true;
+      renderCalendarDayEditor();
     }
 
     function removeCalDayDish(dateStr, mealKey, dishIdx) {
-      const dayMenu = ensureCalendarDay(dateStr);
-      dayMenu[mealKey].dishes.splice(dishIdx, 1);
-      syncUnarchivedDailyPlanFromCalendar(dateStr);
-      saveState();
-      renderCalendarTab();
+      const draft = ensureCalEditorDraft(dateStr);
+      draft[mealKey].dishes.splice(dishIdx, 1);
+      calEditorDirty = true;
+      renderCalendarDayEditor();
     }
 
     function updateCalMealTime(dateStr, mealKey, field, val) {
-      const dayMenu = ensureCalendarDay(dateStr);
-      dayMenu[mealKey][field] = val;
-      dayMenu[mealKey].customTime = true;
-      saveState();
-      showToast(`Updated ${mealKey} time for ${dateStr}`);
+      const draft = ensureCalEditorDraft(dateStr);
+      draft[mealKey][field] = val;
+      draft[mealKey].customTime = true;
+      calEditorDirty = true;
+      renderCalendarDayEditor();
     }
 
     function toggleCalExtraMeal(dateStr, mealKey, enabled) {
-      const dayMenu = ensureCalendarDay(dateStr);
-      dayMenu[mealKey].enabled = enabled;
-      if (enabled && (!dayMenu[mealKey].dishes || dayMenu[mealKey].dishes.length === 0)) {
-        dayMenu[mealKey].dishes = [state.recipes[0]?.id || 'rec_dal_fry'];
+      const draft = ensureCalEditorDraft(dateStr);
+      draft[mealKey].enabled = enabled;
+      if (enabled && (!draft[mealKey].dishes || draft[mealKey].dishes.length === 0)) {
+        draft[mealKey].dishes = [''];
       }
-      saveState();
-      renderCalendarTab();
-      showToast(`${enabled ? 'Added' : 'Removed'} ${mealKey === 'order' ? 'Order' : 'Journey Prasad'} meal on ${dateStr}`);
+      calEditorDirty = true;
+      renderCalendarDayEditor();
     }
 
     function openSelectedCalendarDateInDaily() {
@@ -6089,6 +5907,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         });
         showToast(`Added department "${name}"`);
       }
+      syncDailyPlansWithCurrentDepartments();
       closeDepartmentModal();
       saveState();
       renderDepartmentsSection();
@@ -6099,40 +5918,84 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (idx === -1) return;
       const name = state.departments[idx].name;
       state.departments.splice(idx, 1);
+      syncDailyPlansWithCurrentDepartments(deptId);
       saveState();
       renderDepartmentsSection();
       showToast(`Deleted department "${name}"`);
+    }
+
+    function syncDailyPlansWithCurrentDepartments(deletedDeptId = null) {
+      if (!state.dailyPlans || typeof state.dailyPlans !== 'object') return;
+      const validDeptMap = new Map((state.departments || []).map(d => [d.id, d]));
+      Object.keys(state.dailyPlans).forEach(dateStr => {
+        if (state.history && state.history[dateStr]) return; // Never mutate frozen History snapshots
+        const dp = state.dailyPlans[dateStr];
+        if (!dp || !dp.meals) return;
+        ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mKey => {
+          const mp = dp.meals[mKey];
+          if (!mp) return;
+          if (!Array.isArray(mp.deptCols)) mp.deptCols = [];
+          // 1. Remove any column for a deleted or non-existent department
+          mp.deptCols = mp.deptCols.filter(col => {
+            if (!col) return false;
+            if (deletedDeptId && col.deptId === deletedDeptId) return false;
+            if (col.deptId && !validDeptMap.has(col.deptId)) return false;
+            return true;
+          });
+          // 2. Ensure every department in state.departments is represented if not already present
+          (state.departments || []).forEach((d, idx) => {
+            const existing = mp.deptCols.find(c => c.deptId === d.id);
+            if (!existing) {
+              mp.deptCols.push({
+                colId: 'c_' + mKey + '_' + (idx + 1) + '_' + d.id,
+                deptId: d.id,
+                customLabel: d.name,
+                count: Number(d.count) || 0
+              });
+            }
+          });
+        });
+      });
     }
 
     // =========================================================================
     // TAB 4: DAILY KITCHEN PLANNING & COLLAPSIBLE A4 RECIPE GENERATOR
     // =========================================================================
     function ensureDailyPlanForDate(dateStr, forceResync = false) {
-      const calDay = ensureCalendarDay(dateStr);
-
-      // Requirement #7: Once History is recorded for a date, Daily Kitchen must populate from the saved History details
-      // (and never reset to the monthly calendar), while keeping it editable in Daily Kitchen!
+      // 1. If History was already recorded for this date, load from the archived History snapshot
       if (!state.dailyPlans[dateStr] && state.history && state.history[dateStr] && state.history[dateStr].mealsSnapshot) {
         state.dailyPlans[dateStr] = {
           meals: JSON.parse(JSON.stringify(state.history[dateStr].mealsSnapshot))
         };
+        return state.dailyPlans[dateStr];
       }
+
+      // 2. Otherwise fetch strictly from that day's confirmed Calendar block (state.calendarDays[dateStr]).
+      //    If no menu has been set & updated in the Calendar block for this date, load empty tables (rows: [])!
+      const calDay = getSavedCalendarDay(dateStr);
+      const st = state.standardTimings || {
+        breakfast: { bhoga: '07:15', serving: '08:00' },
+        lunch:     { bhoga: '12:00', serving: '13:00' },
+        dinner:    { bhoga: '19:30', serving: '20:15' }
+      };
 
       if (!state.dailyPlans[dateStr] || forceResync) {
         const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
         const mealsObj = {};
         mealKeys.forEach(mKey => {
-          const calMeal = calDay[mKey];
-          const defaultDepts = mKey === 'dinner'
-            ? [{ colId: 'c_' + mKey + '_1', deptId: state.departments[0]?.id || '', customLabel: state.departments[0]?.name || 'Temple', count: state.departments[0]?.count || 60 }]
-            : [
-                { colId: 'c_' + mKey + '_1', deptId: state.departments[0]?.id || '', customLabel: state.departments[0]?.name || 'Temple', count: state.departments[0]?.count || 60 },
-                { colId: 'c_' + mKey + '_2', deptId: state.departments[1]?.id || '', customLabel: state.departments[1]?.name || 'Abhay Hostel', count: state.departments[1]?.count || 35 }
-              ];
+          const calMeal = calDay ? calDay[mKey] : null;
+          // Fetch strictly from state.departments (if no departments exist, defaultDepts is [])
+          const defaultDepts = (state.departments || []).map((d, idx) => ({
+            colId: 'c_' + mKey + '_' + (idx + 1) + '_' + d.id,
+            deptId: d.id,
+            customLabel: d.name,
+            count: Number(d.count) || 0
+          }));
 
-          const rows = (calMeal?.dishes || []).map(recId => {
+          const validDishes = (calMeal?.dishes || []).filter(rid => Boolean(rid && getRecipeById(rid)));
+          const rows = validDishes.map(recId => {
             const rec = getRecipeById(recId);
-            const sQty = rec ? Number(rec.servingQty) : 200;
+            const sQty = rec ? Number(rec.servingQty) : 1;
             const totalHeadcount = defaultDepts.reduce((s, c) => s + (Number(c.count) || 0), 0);
             const autoTotal = computeDeptDishQty(rec, sQty, totalHeadcount);
             return {
@@ -6144,21 +6007,36 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             };
           });
 
+          const defaultBhoga = mKey === 'breakfast' ? st.breakfast.bhoga : (mKey === 'lunch' ? st.lunch.bhoga : (mKey === 'dinner' ? st.dinner.bhoga : (mKey === 'order' ? '11:00' : '06:00')));
+          const defaultServing = mKey === 'breakfast' ? st.breakfast.serving : (mKey === 'lunch' ? st.lunch.serving : (mKey === 'dinner' ? st.dinner.serving : (mKey === 'order' ? '11:30' : '06:30')));
+          const isFasting = calMeal ? Boolean(calMeal.fasting) : (mKey === 'breakfast' || mKey === 'lunch' || mKey === 'dinner' ? getDefaultFastingForDateMeal(dateStr, mKey) : false);
+
           mealsObj[mKey] = {
             enabled: mKey === 'breakfast' || mKey === 'lunch' || mKey === 'dinner' ? true : Boolean(calMeal?.enabled),
-            fasting: Boolean(calMeal?.fasting),
-            bhogaTime: calMeal?.bhogaTime || '07:15',
-            servingTime: calMeal?.servingTime || '08:00',
+            fasting: isFasting,
+            bhogaTime: calMeal?.bhogaTime || defaultBhoga,
+            servingTime: calMeal?.servingTime || defaultServing,
             deptCols: defaultDepts,
             rows
           };
         });
-        state.dailyPlans[dateStr] = { meals: mealsObj };
+        state.dailyPlans[dateStr] = { meals: mealsObj, userModified: false };
       } else {
-        // Keep fasting flags in sync with Calendar day
-        ['breakfast', 'lunch', 'dinner'].forEach(mKey => {
-          if (state.dailyPlans[dateStr].meals[mKey] && calDay[mKey]) {
-            state.dailyPlans[dateStr].meals[mKey].fasting = Boolean(calDay[mKey].fasting);
+        // Keep existing cached plan in sync if departments were removed
+        const validDeptMap = new Map((state.departments || []).map(d => [d.id, d]));
+        ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mKey => {
+          const mp = state.dailyPlans[dateStr].meals?.[mKey];
+          if (!mp) return;
+          if (calDay && calDay[mKey] && (mKey === 'breakfast' || mKey === 'lunch' || mKey === 'dinner')) {
+            mp.fasting = Boolean(calDay[mKey].fasting);
+          }
+          if (Array.isArray(mp.deptCols)) {
+            mp.deptCols = mp.deptCols.filter(col => {
+              if (!col) return false;
+              if (col.deptId) return validDeptMap.has(col.deptId);
+              if (col.customLabel === 'Temple' || col.customLabel === 'Abhay Hostel') return false;
+              return true;
+            });
           }
         });
       }
@@ -6223,26 +6101,16 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     function enableExtraMealInDaily(mealKey) {
       const plan = ensureDailyPlanForDate(state.selectedDailyDate);
       plan.meals[mealKey].enabled = true;
-      if (plan.meals[mealKey].rows.length === 0) {
-        const firstRec = state.recipes[0];
-        plan.meals[mealKey].rows.push({
-          recipeId: firstRec.id,
-          servingQty: firstRec.servingQty,
-          overrides: {},
-          calcOverride: null,
-          adjustedQty: firstRec.stdYield
-        });
-      }
       saveState();
       renderDailyKitchenTab();
-      showToast(`Enabled "${mealKey === 'order' ? 'Order' : 'Journey Prasad'}" meal for ${state.selectedDailyDate}`);
+      showToast(`Enabled "${mealKey === 'order' ? 'Order' : 'Journey Prasad'}" meal table for ${state.selectedDailyDate}`);
     }
 
     function renderDailyKitchenTab() {
       const container = document.getElementById('dailyPlanningTablesContainer');
       if (!container) return;
 
-      const dateStr = state.selectedDailyDate || '2026-10-04';
+      const dateStr = state.selectedDailyDate || getTomorrowDateISO();
       const picker = document.getElementById('dailyDatePicker');
       if (picker && picker.value !== dateStr) picker.value = dateStr;
 
@@ -6315,7 +6183,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                   <p class="text-xs text-indigo-800 mt-0.5">As marked in the Monthly Menu Calendar for ${escapeHtml(formattedDate)}, no regular meal table is generated for ${meta.title}.</p>
                 </div>
               </div>
-              <button onclick="toggleCalMealFasting('${dateStr}', '${meta.key}', false); renderDailyKitchenTab();" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs font-bold transition no-print cursor-pointer">
+              <button onclick="if(state.dailyPlans['${dateStr}']?.meals?.['${meta.key}']) state.dailyPlans['${dateStr}'].meals['${meta.key}'].fasting = false; if(state.calendarDays['${dateStr}']?.['${meta.key}']) state.calendarDays['${dateStr}']['${meta.key}'].fasting = false; saveState(); renderDailyKitchenTab();" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-200 text-xs font-bold transition no-print cursor-pointer">
                 Untick Fasting & Enable Table
               </button>
             </div>
@@ -6338,7 +6206,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                   </option>
                 `).join('')}
               </select>
-              ${deptCols.length > 1 ? `
+              ${deptCols.length >= 1 ? `
                 <button onclick="removeDailyDeptCol('${dateStr}', '${meta.key}', ${cIdx})" class="w-6 h-6 flex items-center justify-center text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition" title="Remove department column">✕</button>
               ` : ''}
             </div>
@@ -6540,18 +6408,20 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       });
     }
 
-    // Daily Table Edit Handlers
+    // Daily Table Edit Handlers (persisted in local browser cache via saveState)
     function onDailyMealTimeEdit(dateStr, mealKey, field, val) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       plan.meals[mealKey][field] = val;
-      const calDay = ensureCalendarDay(dateStr);
-      if (calDay[mealKey]) calDay[mealKey][field] = val;
+      const calDay = getSavedCalendarDay(dateStr);
+      if (calDay && calDay[mealKey]) calDay[mealKey][field] = val;
       saveState();
       generateDailyRecipesSection(false);
     }
 
     function onDailyDeptSelect(dateStr, mealKey, colIdx, newDeptId) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.deptId = newDeptId;
@@ -6559,6 +6429,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (dept) {
         col.customLabel = dept.name;
         col.count = dept.count;
+      } else {
+        col.customLabel = '';
+        col.count = 0;
       }
       saveState();
       renderDailyKitchenTab();
@@ -6566,6 +6439,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyDeptLabelEdit(dateStr, mealKey, colIdx, newLabel) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.customLabel = newLabel;
@@ -6575,6 +6449,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyDeptCountEdit(dateStr, mealKey, colIdx, newCount) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const col = plan.meals[mealKey].deptCols[colIdx];
       if (!col) return;
       col.count = Math.max(0, parseFloat(newCount) || 0);
@@ -6584,12 +6459,16 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function addDailyDeptCol(dateStr, mealKey) {
       const plan = ensureDailyPlanForDate(dateStr);
-      const nextDept = state.departments[plan.meals[mealKey].deptCols.length % state.departments.length] || state.departments[0];
+      plan.userModified = true;
+      const hasDepts = Array.isArray(state.departments) && state.departments.length > 0;
+      const nextDept = hasDepts
+        ? (state.departments[plan.meals[mealKey].deptCols.length % state.departments.length] || state.departments[0])
+        : null;
       plan.meals[mealKey].deptCols.push({
         colId: 'col_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
         deptId: nextDept ? nextDept.id : '',
-        customLabel: nextDept ? nextDept.name : 'New Dept',
-        count: nextDept ? nextDept.count : 30
+        customLabel: nextDept ? nextDept.name : '',
+        count: nextDept ? nextDept.count : 0
       });
       saveState();
       renderDailyKitchenTab();
@@ -6597,8 +6476,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeDailyDeptCol(dateStr, mealKey, colIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const cols = plan.meals[mealKey].deptCols;
-      if (cols.length <= 1) return;
+      if (!cols || cols.length === 0) return;
       const removed = cols.splice(colIdx, 1)[0];
       if (removed) {
         plan.meals[mealKey].rows.forEach(r => {
@@ -6611,6 +6491,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function addDailyDishRow(dateStr, mealKey) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const rec = state.recipes[0];
       if (!rec) return;
       const totalPeople = plan.meals[mealKey].deptCols.reduce((s, c) => s + (Number(c.count) || 0), 0);
@@ -6628,6 +6509,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeDailyDishRow(dateStr, mealKey, rowIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       plan.meals[mealKey].rows.splice(rowIdx, 1);
       saveState();
       renderDailyKitchenTab();
@@ -6635,6 +6517,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowRecipeChange(dateStr, mealKey, rowIdx, newRecId) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       const rec = getRecipeById(newRecId);
       if (!row || !rec) return;
@@ -6650,6 +6533,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowServingQtyChange(dateStr, mealKey, rowIdx, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.servingQty = Math.max(0, parseFloat(newVal) || 0);
@@ -6659,6 +6543,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyCellOverride(dateStr, mealKey, rowIdx, colId, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       if (!row.overrides) row.overrides = {};
@@ -6669,6 +6554,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function clearDailyCellOverride(dateStr, mealKey, rowIdx, colId) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row || !row.overrides) return;
       delete row.overrides[colId];
@@ -6678,6 +6564,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowCalcOverride(dateStr, mealKey, rowIdx, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.calcOverride = Math.max(0, parseFloat(newVal) || 0);
@@ -6687,6 +6574,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function clearDailyRowCalcOverride(dateStr, mealKey, rowIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.calcOverride = null;
@@ -6696,6 +6584,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function onDailyRowAdjustedQtyChange(dateStr, mealKey, rowIdx, newVal) {
       const plan = ensureDailyPlanForDate(dateStr);
+      plan.userModified = true;
       const row = plan.meals[mealKey].rows[rowIdx];
       if (!row) return;
       row.adjustedQty = Math.max(0, parseFloat(newVal) || 0);
@@ -6740,7 +6629,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       const wrapper = document.getElementById('dailyGeneratedRecipesWrapper');
       if (!wrapper) return;
 
-      const dateStr = state.selectedDailyDate || '2026-10-04';
+      const dateStr = state.selectedDailyDate || getTomorrowDateISO();
       const plan = ensureDailyPlanForDate(dateStr, false);
       const dateObj = new Date(dateStr + 'T00:00:00');
       const formattedDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
@@ -7021,26 +6910,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (!recipe) return null;
       const stdYield = Number(recipe.stdYield) || 1;
       let stdCalcCost = 0;
-      const stepsSnapshot = (recipe.steps || []).map(step => {
-        const itemsSnap = (step.items || []).map(it => {
+      (recipe.steps || []).forEach(step => {
+        (step.items || []).forEach(it => {
           const ing = getIngredientById(it.ingId);
           const stdQty = Number(it.stdQty) || 0;
-          const itemStdCost = calculateIngredientCost(stdQty, it.unit, ing);
-          stdCalcCost += itemStdCost;
-          return {
-            ingId: it.ingId,
-            ingName: ing ? ing.name : 'Unknown',
-            ingUnit: ing ? ing.unit : it.unit,
-            ingPrice: ing ? Number(ing.price) || 0 : 0,
-            stdQty: stdQty,
-            unit: it.unit,
-            itemStdCost: itemStdCost
-          };
+          stdCalcCost += calculateIngredientCost(stdQty, it.unit, ing);
         });
-        return {
-          process: step.process || '',
-          items: itemsSnap
-        };
       });
       const mult = Number(kitchenMultiplier) || 1;
       const stdAdjCost = stdCalcCost * mult;
@@ -7049,7 +6924,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         name: recipe.name,
         stdYield: stdYield,
         yieldUnit: recipe.yieldUnit || 'L',
-        servingQty: Number(recipe.servingQty) || 200,
+        servingQty: Number(recipe.servingQty) || 1,
         servingUnit: recipe.servingUnit || 'ml',
         stdCalcCost: stdCalcCost,
         stdAdjCost: stdAdjCost,
@@ -7255,24 +7130,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function ensureInitialHistorySnapshots() {
-      if (!state.history || Object.keys(state.history).length === 0) {
+      // No hardcoded history records — History is populated strictly from Supabase or when "Update History" is clicked!
+      if (!state.history || typeof state.history !== 'object') {
         state.history = {};
-        // Pre-populate Oct 3 & Oct 4 in History so History, Claims, and Revenue tabs have live data out of the box
-        const oct3Plan = state.dailyPlans['2026-10-03'] || buildOct3SamplePlan();
-        state.history['2026-10-03'] = buildHistoryRecordForDate('2026-10-03', oct3Plan, {
-          '2026-10-03__dept_abhay': { status: 'paid', paidAmount: Math.round(1450) },
-          '2026-10-03__dept_bit': { status: 'partial', paidAmount: 200 }
-        });
-        // Fix paidAmount for 2026-10-03__dept_abhay to match its exact finalChargeableCost
-        if (state.accounts.claims['2026-10-03__dept_abhay']) {
-          state.accounts.claims['2026-10-03__dept_abhay'].paidAmount = state.accounts.claims['2026-10-03__dept_abhay'].finalChargeableCost;
-        }
-
-        const oct4Plan = state.dailyPlans['2026-10-04'] || buildOct4SamplePlan();
-        state.history['2026-10-04'] = buildHistoryRecordForDate('2026-10-04', oct4Plan, {
-          '2026-10-04__dept_cong': { status: 'partial', paidAmount: 800 }
-        });
-        state.selectedHistoryDate = '2026-10-04';
       }
     }
 
@@ -7289,7 +7149,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         slot.innerHTML = `<svg class="w-4 h-4 animate-spin text-white" viewBox="0 0 24 24" fill="none"><circle class="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-95" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"></path></svg>`;
       }
 
-      const dateStr = state.selectedDailyDate || '2026-10-04';
+      const dateStr = state.selectedDailyDate || getTomorrowDateISO();
       const plan = ensureDailyPlanForDate(dateStr, false);
       const record = buildHistoryRecordForDate(dateStr, plan);
       if (!state.history) state.history = {};
@@ -7324,7 +7184,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function openHistoryDateInDailyKitchen() {
-      const dateStr = state.selectedHistoryDate || '2026-10-04';
+      const dateStr = state.selectedHistoryDate || getTomorrowDateISO();
       state.selectedDailyDate = dateStr;
       const picker = document.getElementById('dailyDatePicker');
       if (picker) picker.value = dateStr;
@@ -7776,7 +7636,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function addExpenseEntry() {
-      const date = document.getElementById('expAddDate')?.value || '2026-10-15';
+      const date = document.getElementById('expAddDate')?.value || getTodayDateISO();
       const type = document.getElementById('expAddType')?.value || 'Bulk - Grocery';
       const particulars = (document.getElementById('expAddParticulars')?.value || '').trim();
       const debit = parseFloat(document.getElementById('expAddDebit')?.value);
@@ -8182,7 +8042,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     }
 
     function addManualRevenueEntry() {
-      const date = document.getElementById('revAddDate')?.value || '2026-10-05';
+      const date = document.getElementById('revAddDate')?.value || getTodayDateISO();
       const deptId = document.getElementById('revAddDept')?.value || (state.departments[0]?.id || '');
       const deptObj = getDepartmentById(deptId);
       const menu = (document.getElementById('revAddMenu')?.value || '').trim();
@@ -8310,6 +8170,15 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     // Initialize App on Load
     window.addEventListener('DOMContentLoaded', () => {
       ensureInitialHistorySnapshots();
+      const todayIso = getTodayDateISO();
+      const tomorrowIso = getTomorrowDateISO();
+      state.selectedDailyDate = tomorrowIso;
+      const dailyPickerEl = document.getElementById('dailyDatePicker');
+      if (dailyPickerEl) dailyPickerEl.value = tomorrowIso;
+      const expDateEl = document.getElementById('expAddDate');
+      if (expDateEl) expDateEl.value = todayIso;
+      const revDateEl = document.getElementById('revAddDate');
+      if (revDateEl) revDateEl.value = todayIso;
       cloudRowSignatures = buildRowSignatures(state);
       state.bgOpacity = 35;
       const wrap = document.getElementById('sacredBgWrapper');
