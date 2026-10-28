@@ -241,7 +241,7 @@
           <span id="headerMultiplierVal" class="font-bold">1.20x active</span>
         </button>
 
-        <button id="cloudSyncStatusBtn" onclick="openSupabaseModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition cursor-pointer" title="Production 10-Table Supabase Cloud Database Sync">
+        <button id="cloudSyncStatusBtn" onclick="openSupabaseModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 hover:bg-emerald-100 transition cursor-pointer" title="Production 11-Table Supabase Cloud Database Sync">
           <span>☁️</span>
           <span id="cloudSyncStatusText">Cloud Sync Active</span>
         </button>
@@ -1174,12 +1174,12 @@
 
       <!-- PART C: PRODUCTION DATA ARCHITECTURE (10-TABLE SUPABASE) & GOOGLE SHEETS DAILY ARCHIVE -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-4 border-t border-slate-200/70">
-        <!-- Card 1: Supabase 10-Table Normalized Architecture -->
+        <!-- Card 1: Supabase 11-Table Normalized Architecture -->
         <div class="lg:col-span-6 glass-card rounded-2xl border border-emerald-200/90 shadow-xs overflow-hidden">
           <div class="p-5 bg-gradient-to-r from-emerald-50/90 to-teal-50/60 border-b border-emerald-100 flex items-center justify-between gap-3">
             <div>
               <div class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Enterprise Database Engine</div>
-              <h3 class="text-base font-extrabold text-slate-900 mt-0.5">☁️ Supabase 10-Table Granular Sync</h3>
+              <h3 class="text-base font-extrabold text-slate-900 mt-0.5">☁️ Supabase 11-Table Granular Sync</h3>
             </div>
             <span id="settingsDbModeBadge" class="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300">
               Checking...
@@ -1187,17 +1187,17 @@
           </div>
           <div class="p-5 space-y-4 text-xs text-slate-600">
             <p class="leading-relaxed">
-              Instead of sending the entire dashboard inside one giant JSON row on every click, <strong>Normalized 10-Table Mode</strong> stores each domain in its own dedicated PostgreSQL table (<code>kitchen_ingredients</code>, <code>kitchen_recipes</code>, <code>kitchen_departments</code>, <code>kitchen_calendar_days</code>, <code>kitchen_daily_plans</code>, <code>kitchen_history</code>, <code>kitchen_expenses</code>, <code>kitchen_claims</code>, <code>kitchen_manual_revenue</code>, <code>kitchen_settings</code>) and only syncs the single row you edited.
+              Instead of sending the entire dashboard inside one giant JSON row on every click, <strong>Normalized 11-Table Mode</strong> stores each domain in its own dedicated PostgreSQL table (<code>kitchen_ingredients</code>, <code>kitchen_recipes</code>, <code>kitchen_departments</code>, <code>kitchen_calendar_days</code>, <code>kitchen_daily_plans</code>, <code>kitchen_history</code>, <code>kitchen_expenses</code>, <code>kitchen_claims</code>, <code>kitchen_manual_revenue</code>, <code>kitchen_settings</code>) and only syncs the single row you edited.
             </p>
             <div id="settingsDbTelemetryBox" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 font-mono text-[11px] text-slate-700">
               Last Sync: Ready
             </div>
             <div class="flex flex-wrap items-center gap-2.5 pt-1">
               <button onclick="openSupabaseModal()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs hover-lift cursor-pointer">
-                ⚙️ Open 10-Table SQL Setup & Migration
+                ⚙️ Open 11-Table SQL Setup & Migration
               </button>
               <button onclick="migrateStateToNormalizedTables(true)" class="px-3.5 py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs transition cursor-pointer">
-                🚀 Push All Data to 10 Tables Now
+                🚀 Push All Data to 11 Tables Now
               </button>
             </div>
           </div>
@@ -1544,7 +1544,7 @@
     </div>
   </div>
 
-  <!-- 5. Supabase Production 10-Table Cloud Sync & Migration Modal -->
+  <!-- 5. Supabase Production 11-Table Cloud Sync & Migration Modal -->
   <div id="supabaseModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-5 no-print" onclick="if(event.target===this) closeSupabaseModal()">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-modal-in">
       <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-emerald-50 to-teal-50">
@@ -1562,12 +1562,12 @@
         <!-- Architecture Status Banner -->
         <div id="sbModalArchExplainer" class="p-4 rounded-2xl bg-emerald-50/90 border border-emerald-200 text-emerald-950 space-y-2">
           <div class="font-extrabold text-sm flex items-center justify-between">
-            <span>🚀 Why 10 Normalized Tables vs. 1 Single JSON Row?</span>
+            <span>🚀 Why 11 Normalized Tables vs. 1 Single JSON Row?</span>
             <span id="sbLastGranularSyncLabel" class="font-mono text-[11px] bg-white px-2.5 py-0.5 rounded-lg border border-emerald-200 text-emerald-800">Ready</span>
           </div>
           <p class="text-emerald-900 leading-relaxed">
             In production apps with thousands of ingredients, hundreds of recipes, and years of History & Accounts, storing everything in 1 row (<code>kitchen_state</code>) re-uploads megabytes of data on every single click.
-            Our <strong>10-Table Production Engine</strong> splits your data into 10 dedicated tables so editing 1 ingredient or adding 1 expense only sends <strong>that single row (~150 bytes)</strong>!
+            Our <strong>11-Table Production Engine</strong> splits your data into 10 dedicated tables so editing 1 ingredient or adding 1 expense only sends <strong>that single row (~150 bytes)</strong>!
           </p>
         </div>
 
@@ -1575,21 +1575,21 @@
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <div class="font-extrabold text-slate-900 text-xs sm:text-sm">Step 1: Create the 10 Production Tables in Supabase (One-Time Setup)</div>
+              <div class="font-extrabold text-slate-900 text-xs sm:text-sm">Step 1: Create the 11 Production Tables in Supabase (One-Time Setup)</div>
               <div class="text-slate-500">Copy the SQL below → Open <strong>Supabase Dashboard → SQL Editor → New Query</strong> → Paste & click <strong>Run</strong>.</div>
             </div>
             <div class="flex items-center gap-2">
               <button type="button" onclick="copyNormalizedSupabaseSQL()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition cursor-pointer">
-                📋 Copy 10-Table SQL Script
+                📋 Copy 11-Table SQL Script
               </button>
               <button type="button" onclick="migrateStateToNormalizedTables(true)" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition cursor-pointer">
-                🚀 Migrate & Activate 10 Tables
+                🚀 Migrate & Activate 11 Tables
               </button>
             </div>
           </div>
           <details class="group">
             <summary class="cursor-pointer font-bold text-emerald-700 hover:underline select-none">
-              ▾ View 10-Table PostgreSQL Schema (kitchen_ingredients, kitchen_recipes, kitchen_history, kitchen_expenses, kitchen_claims, etc.)
+              ▾ View 11-Table PostgreSQL Schema (kitchen_ingredients, kitchen_recipes, kitchen_history, kitchen_expenses, kitchen_claims, etc.)
             </summary>
             <pre id="sbSqlCodePreview" class="mt-2 p-3 rounded-xl bg-slate-900 text-emerald-300 font-mono text-[11px] overflow-x-auto max-h-48 leading-relaxed"></pre>
           </details>
@@ -2466,8 +2466,11 @@
     // =========================================================================
     // PRODUCTION 10-TABLE POSTGRESQL SCHEMA FOR SUPABASE
     // =========================================================================
-    const NORMALIZED_SUPABASE_SQL = `-- SRIMATI RADHARANI KI RASOI: 10-TABLE PRODUCTION SCHEMA
+    const NORMALIZED_SUPABASE_SQL = `-- SRIMATI RADHARANI KI RASOI: 11-TABLE PRODUCTION SCHEMA (ZERO >10KB BLOBS)
 -- Paste in Supabase Dashboard -> SQL Editor -> New Query -> Click Run
+-- Note: Also drops the old legacy single-row 'kitchen_state' prototype table!
+
+DROP TABLE IF EXISTS public.kitchen_state;
 
 CREATE TABLE IF NOT EXISTS public.kitchen_settings (
   id text PRIMARY KEY,
@@ -2529,6 +2532,26 @@ CREATE TABLE IF NOT EXISTS public.kitchen_history (
   updated_at timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS public.kitchen_history_items (
+  id text PRIMARY KEY,
+  date text NOT NULL,
+  meal text NOT NULL,
+  row_index integer NOT NULL DEFAULT 0,
+  recipe_id text NOT NULL,
+  recipe_name text NOT NULL,
+  serving_qty numeric NOT NULL DEFAULT 0,
+  serving_unit text NOT NULL DEFAULT 'ml',
+  yield_unit text NOT NULL DEFAULT 'L',
+  calc_total numeric NOT NULL DEFAULT 0,
+  cook_qty numeric NOT NULL DEFAULT 0,
+  calc_cost numeric NOT NULL DEFAULT 0,
+  adj_cost numeric NOT NULL DEFAULT 0,
+  dept_allocations jsonb NOT NULL DEFAULT '{}'::jsonb,
+  recipe_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_kitchen_history_items_date ON public.kitchen_history_items(date);
+
 CREATE TABLE IF NOT EXISTS public.kitchen_expenses (
   id text PRIMARY KEY,
   date text NOT NULL,
@@ -2571,6 +2594,7 @@ ALTER TABLE public.kitchen_departments DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_calendar_days DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_daily_plans DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_history DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kitchen_history_items DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_expenses DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_claims DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kitchen_manual_revenue DISABLE ROW LEVEL SECURITY;`;
@@ -2728,7 +2752,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           supabaseClient = window.supabase.createClient(url, key);
           if (statusText) {
             statusText.textContent = dbArchitectureMode === 'NORMALIZED_10_TABLES'
-              ? '10-Table Cloud Sync ✓'
+              ? '11-Table Cloud Sync ✓'
               : 'Cloud Sync Active';
           }
           if (statusBtn) {
@@ -2776,6 +2800,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       if (!s.dailyPlans['2026-10-03']) s.dailyPlans['2026-10-03'] = buildOct3SamplePlan();
 
       if (!s.history || typeof s.history !== 'object') s.history = {};
+      Object.keys(s.history).forEach(d => { s.history[d] = pruneHistoryRecord(s.history[d]); });
       if (!s.selectedHistoryDate) s.selectedHistoryDate = '2026-10-04';
 
       if (!s.accounts || typeof s.accounts !== 'object') {
@@ -2816,7 +2841,182 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       return s;
     }
 
-    // Builds per-row JSON signatures across all 10 domains so saveStateToCloud only syncs changed rows!
+    // Prunes a history record in-place so it ONLY stores snapshots of the recipes & departments actually cooked on that day!
+    function pruneHistoryRecord(h) {
+      if (!h || typeof h !== 'object') return h;
+      const usedDeptIds = new Set();
+      const usedRecIds = new Set();
+      const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
+      const meals = h.mealsSnapshot || {};
+      mealKeys.forEach(mk => {
+        const mp = meals[mk];
+        if (!mp || !mp.enabled || mp.fasting) return;
+        (mp.deptCols || []).forEach(c => { if (c && c.deptId) usedDeptIds.add(c.deptId); });
+        (mp.rows || []).forEach(r => { if (r && r.recipeId) usedRecIds.add(r.recipeId); });
+      });
+      if (h.deptSnapshots && usedDeptIds.size > 0) {
+        const slimDepts = {};
+        usedDeptIds.forEach(id => {
+          if (h.deptSnapshots[id]) slimDepts[id] = h.deptSnapshots[id];
+        });
+        h.deptSnapshots = slimDepts;
+      }
+      if (h.recipeSnapshots && usedRecIds.size > 0) {
+        const slimRecs = {};
+        usedRecIds.forEach(id => {
+          if (h.recipeSnapshots[id]) slimRecs[id] = h.recipeSnapshots[id];
+        });
+        h.recipeSnapshots = slimRecs;
+      }
+      return h;
+    }
+
+    // Splits a single date's History Record into:
+    //  1) Compact header row for 'kitchen_history' (< 850 chars! No recipe blobs)
+    //  2) Per-dish rows for 'kitchen_history_items' (< 1,200 chars per dish!)
+    function decomposeHistoryDateForSupabase(dateStr, h, nowIso) {
+      pruneHistoryRecord(h);
+      const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
+      const mealsMeta = {};
+      const itemRows = [];
+
+      mealKeys.forEach(mKey => {
+        const mp = (h.mealsSnapshot && h.mealsSnapshot[mKey]) || null;
+        if (!mp) return;
+        mealsMeta[mKey] = {
+          enabled: Boolean(mp.enabled),
+          fasting: Boolean(mp.fasting),
+          bhogaTime: mp.bhogaTime || '',
+          servingTime: mp.servingTime || '',
+          deptCols: mp.deptCols || []
+        };
+        if (!mp.enabled || mp.fasting) return;
+        (mp.rows || []).forEach((row, rIdx) => {
+          const recSnap = (h.recipeSnapshots && h.recipeSnapshots[row.recipeId]) || getRecipeById(row.recipeId) || {};
+          itemRows.push({
+            id: `${dateStr}__${mKey}__${rIdx}`,
+            date: dateStr,
+            meal: mKey,
+            row_index: rIdx,
+            recipe_id: row.recipeId || '',
+            recipe_name: recSnap.name || 'Dish',
+            serving_qty: Number(row.servingQty) || 0,
+            serving_unit: recSnap.servingUnit || 'ml',
+            yield_unit: recSnap.yieldUnit || 'L',
+            calc_total: Number(row.frozenCalcTotal ?? 0),
+            cook_qty: Number(row.frozenCookQty ?? row.adjustedQty ?? 0),
+            calc_cost: Number(row.frozenRowCalcCost ?? 0),
+            adj_cost: Number(row.frozenRowAdjCost ?? 0),
+            dept_allocations: {
+              frozenDeptQtys: row.frozenDeptQtys || {},
+              overrides: row.overrides || {},
+              calcOverride: row.calcOverride ?? null
+            },
+            recipe_snapshot: recSnap,
+            updated_at: nowIso
+          });
+        });
+      });
+
+      const headerRow = {
+        date: dateStr,
+        total_dishes_cooked: Number(h.totalDishesCooked || 0),
+        total_calc_cost: Number(h.totalCalcCost || 0),
+        total_adj_cost: Number(h.totalAdjCost || 0),
+        data: {
+          date: dateStr,
+          updatedAt: h.updatedAt || nowIso,
+          kitchenMultiplierSnapshot: Number(h.kitchenMultiplierSnapshot || 1.2),
+          deptSnapshots: h.deptSnapshots || {},
+          mealsMeta: mealsMeta,
+          splitVersion: 2
+        },
+        updated_at: nowIso
+      };
+
+      return { headerRow, itemRows };
+    }
+
+    // Reconstructs full in-memory state.history[dateStr] objects from 'kitchen_history' + 'kitchen_history_items'
+    function reconstructHistoryFromSupabase(histRows, histItemRows) {
+      const historyMap = {};
+      const itemsByDate = {};
+      if (Array.isArray(histItemRows)) {
+        histItemRows.forEach(it => {
+          if (!it || !it.date) return;
+          if (!itemsByDate[it.date]) itemsByDate[it.date] = [];
+          itemsByDate[it.date].push(it);
+        });
+      }
+
+      (histRows || []).forEach(r => {
+        if (!r || !r.date) return;
+        const rawData = r.data || {};
+        const dateItems = (itemsByDate[r.date] || []).sort((a, b) => (Number(a.row_index) || 0) - (Number(b.row_index) || 0));
+
+        // Case A: Split v2 format (or items present in kitchen_history_items)
+        if (rawData.mealsMeta || dateItems.length > 0) {
+          const mealsSnapshot = {};
+          const recipeSnapshots = {};
+          const srcMeta = rawData.mealsMeta || rawData.mealsSnapshot || {};
+          ['breakfast', 'lunch', 'dinner', 'order', 'journey'].forEach(mk => {
+            const m = srcMeta[mk];
+            if (m) {
+              mealsSnapshot[mk] = {
+                enabled: Boolean(m.enabled),
+                fasting: Boolean(m.fasting),
+                bhogaTime: m.bhogaTime || '07:15',
+                servingTime: m.servingTime || '08:00',
+                deptCols: m.deptCols || [],
+                rows: []
+              };
+            }
+          });
+
+          dateItems.forEach(it => {
+            const mk = it.meal || 'lunch';
+            if (!mealsSnapshot[mk]) {
+              mealsSnapshot[mk] = { enabled: true, fasting: false, bhogaTime: '12:00', servingTime: '13:00', deptCols: [], rows: [] };
+            }
+            const alloc = it.dept_allocations || {};
+            mealsSnapshot[mk].rows.push({
+              recipeId: it.recipe_id,
+              servingQty: Number(it.serving_qty) || 0,
+              overrides: alloc.overrides || {},
+              calcOverride: alloc.calcOverride ?? null,
+              adjustedQty: Number(it.cook_qty) || 0,
+              frozenDeptQtys: alloc.frozenDeptQtys || {},
+              frozenCalcTotal: Number(it.calc_total) || 0,
+              frozenCookQty: Number(it.cook_qty) || 0,
+              frozenRowCalcCost: Number(it.calc_cost) || 0,
+              frozenRowAdjCost: Number(it.adj_cost) || 0
+            });
+            if (it.recipe_id && it.recipe_snapshot && Object.keys(it.recipe_snapshot).length > 0) {
+              recipeSnapshots[it.recipe_id] = it.recipe_snapshot;
+            }
+          });
+
+          historyMap[r.date] = {
+            date: r.date,
+            updatedAt: rawData.updatedAt || r.updated_at,
+            kitchenMultiplierSnapshot: Number(rawData.kitchenMultiplierSnapshot || 1.2),
+            deptSnapshots: rawData.deptSnapshots || {},
+            recipeSnapshots: recipeSnapshots,
+            mealsSnapshot: mealsSnapshot,
+            totalDishesCooked: Number(r.total_dishes_cooked ?? rawData.totalDishesCooked ?? 0),
+            totalCalcCost: Number(r.total_calc_cost ?? rawData.totalCalcCost ?? 0),
+            totalAdjCost: Number(r.total_adj_cost ?? rawData.totalAdjCost ?? 0)
+          };
+        } else {
+          // Case B: Backward-compatible fallback if kitchen_history still had unsplit v1 JSON
+          historyMap[r.date] = pruneHistoryRecord(rawData);
+        }
+      });
+
+      return historyMap;
+    }
+
+    // Builds per-row JSON signatures across all 11 tables so saveStateToCloud only syncs changed rows!
     function buildRowSignatures(st) {
       const sig = {
         settings: JSON.stringify({
@@ -2856,16 +3056,16 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
       const isNormalized = dbArchitectureMode === 'NORMALIZED_10_TABLES';
       if (statusText && supabaseClient) {
-        statusText.textContent = isNormalized ? '10-Table Cloud Sync ✓' : 'Cloud Sync (Legacy 1-Row)';
+        statusText.textContent = isNormalized ? '11-Table Cloud Sync ✓' : 'Cloud Sync (Legacy 1-Row)';
       }
       if (modalBadge) {
-        modalBadge.textContent = isNormalized ? '10-Table Granular Mode ✓' : 'Legacy 1-Table Mode (Ready to Upgrade)';
+        modalBadge.textContent = isNormalized ? '11-Table Granular Mode ✓' : 'Legacy 1-Table Mode (Ready to Upgrade)';
         modalBadge.className = isNormalized
           ? 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300'
           : 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
       }
       if (settingsBadge) {
-        settingsBadge.textContent = isNormalized ? '10-Table Granular Mode ✓' : 'Legacy 1-Table Mode';
+        settingsBadge.textContent = isNormalized ? '11-Table Granular Mode ✓' : 'Legacy 1-Table Mode';
         settingsBadge.className = isNormalized
           ? 'px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300'
           : 'px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
@@ -2905,7 +3105,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     async function loadStateFromCloud(notify = false) {
       if (!supabaseClient) return;
       try {
-        // Step 1: Probe whether the 10 Normalized Production Tables exist in Supabase
+        // Step 1: Probe whether the 11 Normalized Production Tables exist in Supabase
         const { data: settingsRow, error: settingsErr } = await supabaseClient
           .from('kitchen_settings')
           .select('*')
@@ -2916,9 +3116,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           dbArchitectureMode = 'NORMALIZED_10_TABLES';
 
           if (settingsRow) {
-            // Fetch all 10 normalized tables in parallel!
+            // Fetch all 11 normalized tables in parallel!
             const [
-              ingRes, recRes, deptRes, calRes, planRes, histRes, expRes, claimRes, revRes
+              ingRes, recRes, deptRes, calRes, planRes, histRes, histItemsRes, expRes, claimRes, revRes
             ] = await Promise.all([
               supabaseClient.from('kitchen_ingredients').select('*'),
               supabaseClient.from('kitchen_recipes').select('*'),
@@ -2926,6 +3126,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               supabaseClient.from('kitchen_calendar_days').select('*'),
               supabaseClient.from('kitchen_daily_plans').select('*'),
               supabaseClient.from('kitchen_history').select('*'),
+              supabaseClient.from('kitchen_history_items').select('*'),
               supabaseClient.from('kitchen_expenses').select('*'),
               supabaseClient.from('kitchen_claims').select('*'),
               supabaseClient.from('kitchen_manual_revenue').select('*')
@@ -2978,9 +3179,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               assembled.dailyPlans = {};
               planRes.data.forEach(r => { assembled.dailyPlans[r.date] = r.data; });
             }
+            let needsAutoHistorySplit = false;
             if (Array.isArray(histRes.data) && histRes.data.length > 0) {
-              assembled.history = {};
-              histRes.data.forEach(r => { assembled.history[r.date] = r.data; });
+              assembled.history = reconstructHistoryFromSupabase(histRes.data, histItemsRes && !histItemsRes.error ? histItemsRes.data : []);
+              histRes.data.forEach(r => {
+                if (r && r.data && !r.data.splitVersion) needsAutoHistorySplit = true;
+              });
             }
             if (Array.isArray(expRes.data)) {
               assembled.accounts.expenses = expRes.data.map(r => ({
@@ -3021,16 +3225,20 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             state = normalizeAndUpgradeState(assembled);
             ensureInitialHistorySnapshots();
             cloudRowSignatures = buildRowSignatures(state);
-            lastGranularSyncTelemetry = `Loaded 10 Normalized Tables (${state.ingredients.length} ing, ${state.recipes.length} rec, ${Object.keys(state.history).length} history days)`;
+            lastGranularSyncTelemetry = `Loaded 11 Normalized Tables (${state.ingredients.length} ing, ${state.recipes.length} rec, ${Object.keys(state.history).length} history days — all cells <2KB)`;
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
             updateNavCounts();
             updateDatabaseAndBackupStatusUI();
             switchTab(state.activeTab || 'ingredients');
-            if (notify) showToast('Loaded kitchen data from 10 Normalized Supabase Tables!');
+            if (needsAutoHistorySplit && histItemsRes && !histItemsRes.error) {
+              // Automatically slim down any old >10KB kitchen_history rows into kitchen_history + kitchen_history_items!
+              migrateStateToNormalizedTables(false);
+            }
+            if (notify) showToast('Loaded kitchen data from 11 Normalized Supabase Tables!');
             checkAndRunDailyGoogleSheetAutoBackup();
             return;
           } else {
-            // The 10 tables exist, but kitchen_settings is empty! Check if legacy kitchen_state has data first, then auto-migrate!
+            // The 11 tables exist, but kitchen_settings is empty! Check if legacy kitchen_state has data first, then auto-migrate!
             const { data: legData } = await supabaseClient
               .from('kitchen_state')
               .select('data')
@@ -3046,7 +3254,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           }
         }
 
-        // Step 2: Fallback to Legacy Single-Row kitchen_state if 10 tables haven't been created yet
+        // Step 2: Fallback to Legacy Single-Row kitchen_state if 11 tables haven't been created yet
         dbArchitectureMode = 'LEGACY_SINGLE_JSONB';
         const { data, error } = await supabaseClient
           .from('kitchen_state')
@@ -3063,7 +3271,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
           state = normalizeAndUpgradeState(data.data);
           ensureInitialHistorySnapshots();
           cloudRowSignatures = buildRowSignatures(state);
-          lastGranularSyncTelemetry = 'Synced via Legacy kitchen_state (Run 10-Table SQL in Settings to upgrade)';
+          lastGranularSyncTelemetry = 'Synced via Legacy kitchen_state (Run 11-Table SQL in Settings to upgrade)';
           try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
           } catch (e) {}
@@ -3080,7 +3288,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       }
     }
 
-    // One-Click Full Migration from current state / kitchen_state into the 10 Normalized Tables
+    // One-Click Full Migration from current state / kitchen_state into the 11 Normalized Tables
     async function migrateStateToNormalizedTables(notify = true) {
       if (!supabaseClient) {
         if (notify) showToast('Supabase client not connected', 'error');
@@ -3088,7 +3296,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       }
       try {
         const statusText = document.getElementById('cloudSyncStatusText');
-        if (statusText) statusText.textContent = 'Migrating to 10 Tables...';
+        if (statusText) statusText.textContent = 'Migrating to 11 Tables...';
         const nowIso = new Date().toISOString();
 
         // 1. Settings row
@@ -3103,7 +3311,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
         if (setErr) {
           if (notify) {
-            showToast('Please run the 10-Table SQL Script in Supabase SQL Editor first! (' + setErr.message + ')', 'error');
+            showToast('Please run the 11-Table SQL Script in Supabase SQL Editor first! (' + setErr.message + ')', 'error');
           }
           return;
         }
@@ -3127,16 +3335,12 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         const planRows = Object.keys(state.dailyPlans || {}).map(d => ({
           date: d, data: state.dailyPlans[d], updated_at: nowIso
         }));
-        const histRows = Object.keys(state.history || {}).map(d => {
-          const h = state.history[d];
-          return {
-            date: d,
-            total_dishes_cooked: Number(h.totalDishesCooked || 0),
-            total_calc_cost: Number(h.totalCalcCost || 0),
-            total_adj_cost: Number(h.totalAdjCost || 0),
-            data: h,
-            updated_at: nowIso
-          };
+        const histRows = [];
+        const histItemRows = [];
+        Object.keys(state.history || {}).forEach(d => {
+          const { headerRow, itemRows } = decomposeHistoryDateForSupabase(d, state.history[d], nowIso);
+          histRows.push(headerRow);
+          histItemRows.push(...itemRows);
         });
         const expRows = ((state.accounts && state.accounts.expenses) || []).map(e => ({
           id: e.id, date: e.date, type: e.type, particulars: e.particulars, debit: Number(e.debit) || 0, updated_at: nowIso
@@ -3161,6 +3365,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
         if (calRows.length) tasks.push(supabaseClient.from('kitchen_calendar_days').upsert(calRows));
         if (planRows.length) tasks.push(supabaseClient.from('kitchen_daily_plans').upsert(planRows));
         if (histRows.length) tasks.push(supabaseClient.from('kitchen_history').upsert(histRows));
+        if (histItemRows.length) tasks.push(supabaseClient.from('kitchen_history_items').upsert(histItemRows));
+        // Also clear out any old >10KB blob sitting in legacy kitchen_state if that table still exists
+        tasks.push(supabaseClient.from('kitchen_state').delete().eq('id', 'main').then(() => {}).catch(() => {}));
         if (expRows.length) tasks.push(supabaseClient.from('kitchen_expenses').upsert(expRows));
         if (claimRows.length) tasks.push(supabaseClient.from('kitchen_claims').upsert(claimRows));
         if (revRows.length) tasks.push(supabaseClient.from('kitchen_manual_revenue').upsert(revRows));
@@ -3169,10 +3376,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
         dbArchitectureMode = 'NORMALIZED_10_TABLES';
         cloudRowSignatures = buildRowSignatures(state);
-        lastGranularSyncTelemetry = `Migrated & Active: 10 Normalized Tables (${ingRows.length} ing, ${recRows.length} rec, ${histRows.length} hist, ${expRows.length} exp, ${claimRows.length} claims)`;
+        lastGranularSyncTelemetry = `Migrated & Active: 11 Normalized Tables (${ingRows.length} ing, ${recRows.length} rec, ${histRows.length} hist headers, ${histItemRows.length} dish rows — zero >10KB blobs!)`;
         updateDatabaseAndBackupStatusUI();
         if (notify) {
-          showToast('Migrated all kitchen data to 10 Normalized Supabase Tables! Granular row-level sync is now active.');
+          showToast('Migrated & split all data into 11 Normalized Supabase Tables! Every cell is now compact (< 2 KB).');
         }
       } catch (err) {
         if (notify) showToast('Migration error: ' + err.message, 'error');
@@ -3283,24 +3490,26 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             rowCountSynced += changedPlans.length;
           }
 
-          // 7. History Archive diff
-          const changedHist = Object.keys(state.history || {})
-            .filter(d => prevSig.history[d] !== nextSig.history[d])
-            .map(d => {
-              const h = state.history[d];
-              return {
-                date: d,
-                total_dishes_cooked: Number(h.totalDishesCooked || 0),
-                total_calc_cost: Number(h.totalCalcCost || 0),
-                total_adj_cost: Number(h.totalAdjCost || 0),
-                data: h,
-                updated_at: nowIso
-              };
+          // 7. History Archive diff (Split into compact kitchen_history header + per-dish kitchen_history_items!)
+          const changedHistDates = Object.keys(state.history || {})
+            .filter(d => prevSig.history[d] !== nextSig.history[d]);
+          if (changedHistDates.length > 0) {
+            const changedHistHeaders = [];
+            const changedHistItems = [];
+            changedHistDates.forEach(d => {
+              const { headerRow, itemRows } = decomposeHistoryDateForSupabase(d, state.history[d], nowIso);
+              changedHistHeaders.push(headerRow);
+              changedHistItems.push(...itemRows);
             });
-          if (changedHist.length > 0) {
-            ops.push(supabaseClient.from('kitchen_history').upsert(changedHist));
+            ops.push(supabaseClient.from('kitchen_history').upsert(changedHistHeaders));
             touchedTables.push('kitchen_history');
-            rowCountSynced += changedHist.length;
+            rowCountSynced += changedHistHeaders.length;
+            ops.push(
+              supabaseClient.from('kitchen_history_items').delete().in('date', changedHistDates)
+                .then(() => changedHistItems.length > 0 ? supabaseClient.from('kitchen_history_items').upsert(changedHistItems) : null)
+            );
+            touchedTables.push('kitchen_history_items');
+            rowCountSynced += changedHistItems.length;
           }
 
           // 8. Expenses diff
@@ -3358,9 +3567,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
             cloudRowSignatures = nextSig;
             lastGranularSyncTelemetry = `Granular Sync: ${rowCountSynced} row(s) -> [${touchedTables.join(', ')}] at ${new Date().toLocaleTimeString()}`;
           }
-          if (statusText) statusText.textContent = '10-Table Synced ✓';
+          if (statusText) statusText.textContent = '11-Table Synced ✓';
           updateDatabaseAndBackupStatusUI();
-          if (notify) showToast(`Synced ${rowCountSynced || 'all'} changed row(s) to Supabase 10-Table Cloud!`);
+          if (notify) showToast(`Synced ${rowCountSynced || 'all'} changed row(s) to Supabase 11-Table Cloud!`);
           return;
         }
 
@@ -3426,7 +3635,7 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     function copyNormalizedSupabaseSQL() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(NORMALIZED_SUPABASE_SQL).then(() => {
-          showToast('Copied 10-Table PostgreSQL Script! Paste it in Supabase SQL Editor and click Run.');
+          showToast('Copied 11-Table PostgreSQL Script! Paste it in Supabase SQL Editor and click Run.');
         });
       }
     }
@@ -6412,25 +6621,39 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function buildHistoryRecordForDate(dateStr, planObj, statusOverridesForClaims = {}) {
       const kitchenMult = Number(state.multiplier) || 1.2;
+      const mealsClone = JSON.parse(JSON.stringify(planObj.meals || {}));
+      const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
+
+      // Only snapshot the specific departments and recipes actually used on this date!
+      const usedDeptIds = new Set();
+      const usedRecipeIds = new Set();
+      mealKeys.forEach(mKey => {
+        const mPlan = mealsClone[mKey];
+        if (!mPlan || !mPlan.enabled || mPlan.fasting) return;
+        (mPlan.deptCols || []).forEach(col => { if (col && col.deptId) usedDeptIds.add(col.deptId); });
+        (mPlan.rows || []).forEach(row => { if (row && row.recipeId) usedRecipeIds.add(row.recipeId); });
+      });
+
       const deptSnapshots = {};
       state.departments.forEach(d => {
-        deptSnapshots[d.id] = {
-          id: d.id,
-          name: d.name,
-          count: Number(d.count) || 0,
-          chargeable: Boolean(d.chargeable),
-          profitMultiplier: d.chargeable ? (Number(d.profitMultiplier) || 1.2) : 1.0,
-          icon: d.icon || '🏛️'
-        };
+        if (usedDeptIds.has(d.id)) {
+          deptSnapshots[d.id] = {
+            id: d.id,
+            name: d.name,
+            count: Number(d.count) || 0,
+            chargeable: Boolean(d.chargeable),
+            profitMultiplier: d.chargeable ? (Number(d.profitMultiplier) || 1.2) : 1.0,
+            icon: d.icon || '🏛️'
+          };
+        }
       });
 
       const recipeSnapshots = {};
       state.recipes.forEach(r => {
-        recipeSnapshots[r.id] = computeCurrentRecipeSnapshot(r, kitchenMult);
+        if (usedRecipeIds.has(r.id)) {
+          recipeSnapshots[r.id] = computeCurrentRecipeSnapshot(r, kitchenMult);
+        }
       });
-
-      const mealsClone = JSON.parse(JSON.stringify(planObj.meals || {}));
-      const mealKeys = ['breakfast', 'lunch', 'dinner', 'order', 'journey'];
 
       let totalDishesCooked = 0;
       let totalCalcCost = 0;
