@@ -3272,7 +3272,10 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
                 const { uamConfig: cloudUam, ...restGs } = settingsRow.google_sheet_config;
                 assembled.googleSheetConfig = { ...assembled.googleSheetConfig, ...restGs };
                 if (cloudUam) {
-                  assembled.uamConfig = normalizeUamConfig(cloudUam);
+                  const hasCloudUsers = (cloudUam.admins || []).some(a => a && a.username) || (cloudUam.managers || []).some(m => m && m.username);
+                  const localUam = (state && state.uamConfig) ? normalizeUamConfig(state.uamConfig) : null;
+                  const hasLocalUsers = localUam && ((localUam.admins || []).some(a => a && a.username) || (localUam.managers || []).some(m => m && m.username));
+                  assembled.uamConfig = (!hasCloudUsers && hasLocalUsers) ? localUam : normalizeUamConfig(cloudUam);
                 } else if (state && state.uamConfig) {
                   assembled.uamConfig = normalizeUamConfig(state.uamConfig);
                 }
@@ -6034,23 +6037,21 @@ function loadActiveUamSession() {
       return list;
     }
 
-    function revalidateActiveUamSessionAfterCloudSync() {
+function revalidateActiveUamSessionAfterCloudSync() {
       if (!currentUamSession) return;
+      // Keep the logged-in user session active across all page refreshes in this tab!
       const accounts = getAllConfiguredUamAccounts();
       const matched = accounts.find(a =>
         a.role === currentUamSession.role &&
         a.username.toLowerCase() === String(currentUamSession.username || '').trim().toLowerCase()
       );
-      if (!matched) {
-        // Account was revoked or username changed by Super Admin
-        logoutUamSession(true);
-      } else {
+      if (matched) {
         currentUamSession.label = matched.label;
         currentUamSession.roleDisplay = matched.roleDisplay;
-        saveActiveUamSession(currentUamSession);
       }
+      saveActiveUamSession(currentUamSession);
     }
-
+    
     function applyUamRolePermissions() {
       const loginOverlay = document.getElementById('uamLoginOverlay');
       if (!currentUamSession) {
