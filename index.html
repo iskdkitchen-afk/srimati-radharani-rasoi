@@ -3257,6 +3257,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
               });
             }
 
+            if (state && state.uamConfig) {
+              assembled.uamConfig = normalizeUamConfig(state.uamConfig);
+            }
             if (settingsRow) {
               if (settingsRow.multiplier !== undefined && settingsRow.multiplier !== null) {
                 assembled.multiplier = Number(settingsRow.multiplier);
@@ -5946,9 +5949,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     let currentUamSession = null;
     let uamVisiblePasswordSlots = {};
 
-    function loadActiveUamSession() {
+function loadActiveUamSession() {
       try {
-        const raw = sessionStorage.getItem(UAM_SESSION_STORAGE_KEY) || localStorage.getItem(UAM_SESSION_STORAGE_KEY);
+        localStorage.removeItem(UAM_SESSION_STORAGE_KEY);
+        const raw = sessionStorage.getItem(UAM_SESSION_STORAGE_KEY) ||
+          (window.name && window.name.startsWith('SRR_UAM:') ? window.name.slice(8) : null);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && parsed.role && parsed.username) {
@@ -5962,16 +5967,20 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     function saveActiveUamSession(sess) {
       currentUamSession = sess;
       try {
+        localStorage.removeItem(UAM_SESSION_STORAGE_KEY);
         if (sess) {
-          sessionStorage.setItem(UAM_SESSION_STORAGE_KEY, JSON.stringify(sess));
-          localStorage.setItem(UAM_SESSION_STORAGE_KEY, JSON.stringify(sess));
+          const jsonStr = JSON.stringify(sess);
+          sessionStorage.setItem(UAM_SESSION_STORAGE_KEY, jsonStr);
+          window.name = 'SRR_UAM:' + jsonStr;
         } else {
           sessionStorage.removeItem(UAM_SESSION_STORAGE_KEY);
-          localStorage.removeItem(UAM_SESSION_STORAGE_KEY);
+          if (window.name && window.name.startsWith('SRR_UAM:')) {
+            window.name = '';
+          }
         }
       } catch (e) {}
     }
-
+    
     function isCurrentUserSuperAdmin() {
       return Boolean(currentUamSession && currentUamSession.role === 'super_admin');
     }
