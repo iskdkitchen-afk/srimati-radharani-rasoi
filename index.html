@@ -1706,6 +1706,35 @@
     </div>
   </div>
 
+  <!-- 3C. Universal Delete Confirmation Modal (Ingredients, Accounts, Departments, Calendar, Daily Kitchen, UAM) -->
+  <div id="universalDeleteConfirmModal" class="fixed inset-0 z-[160] bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-4 no-print" onclick="if(event.target===this) closeUniversalDeleteConfirmModal()">
+    <div class="bg-white rounded-3xl border border-red-200 shadow-2xl max-w-md w-full overflow-hidden animate-modal-in">
+      <div class="px-6 py-4 bg-red-50/80 border-b border-red-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-sm font-bold">🗑️</span>
+          <h3 id="universalDeleteModalTitle" class="text-base font-extrabold text-slate-900">Confirm Deletion</h3>
+        </div>
+        <button type="button" onclick="closeUniversalDeleteConfirmModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold cursor-pointer">✕</button>
+      </div>
+      <div class="p-6 space-y-3">
+        <p class="text-sm text-slate-700 leading-relaxed">
+          Are you sure you want to delete <strong id="universalDeleteModalItemName" class="text-slate-900 font-extrabold">this item</strong>?
+        </p>
+        <p id="universalDeleteModalDesc" class="text-xs text-slate-500">
+          This action will remove the selected item. Past archived records in the History tab will remain unaffected.
+        </p>
+      </div>
+      <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button type="button" onclick="closeUniversalDeleteConfirmModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+          Cancel
+        </button>
+        <button id="universalDeleteModalConfirmBtn" type="button" onclick="confirmUniversalDeleteNow()" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white shadow-xs transition cursor-pointer">
+          Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 4. Expense Edit Modal -->
   <div id="expenseModal" class="fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-xs hidden items-center justify-center p-4 no-print">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden animate-modal-in">
@@ -2345,7 +2374,13 @@
 
     function normalizeUamConfig(rawUam) {
       const def = getDefaultUamConfig();
-      if (!rawUam || typeof rawUam !== 'object') return def;
+      let savedLocalUam = null;
+      try {
+        savedLocalUam = JSON.parse(localStorage.getItem("srr_rasoi_uam_config_v1") || "null");
+      } catch (e) {}
+      const srcUam = (rawUam && typeof rawUam === "object") ? rawUam : savedLocalUam;
+      if (!srcUam || typeof srcUam !== "object") return def;
+      rawUam = srcUam;
 
       if (rawUam.superAdmin && typeof rawUam.superAdmin === 'object') {
         const u = String(rawUam.superAdmin.username || '').trim();
@@ -3726,6 +3761,9 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function saveState() {
       try {
+        if (state && state.uamConfig) {
+          localStorage.setItem("srr_rasoi_uam_config_v1", JSON.stringify(state.uamConfig));
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         if (state.googleSheetConfig) {
           localStorage.setItem(GSHEET_CONFIG_KEY, JSON.stringify(state.googleSheetConfig));
@@ -4646,14 +4684,72 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
       renderIngredientsTab();
     }
 
+    // =========================================================================
+    // UNIVERSAL DELETE CONFIRMATION MODAL ENGINE
+    // =========================================================================
+    let pendingUniversalDeleteCallback = null;
+
+    function openUniversalDeleteConfirmModal({ title, itemName, description, confirmBtnText, onConfirm }) {
+      const modal = document.getElementById('universalDeleteConfirmModal');
+      const titleEl = document.getElementById('universalDeleteModalTitle');
+      const nameEl = document.getElementById('universalDeleteModalItemName');
+      const descEl = document.getElementById('universalDeleteModalDesc');
+      const btnEl = document.getElementById('universalDeleteModalConfirmBtn');
+
+      pendingUniversalDeleteCallback = typeof onConfirm === 'function' ? onConfirm : null;
+      if (titleEl) titleEl.textContent = title || 'Confirm Deletion';
+      if (nameEl) nameEl.textContent = itemName || 'this item';
+      if (descEl) {
+        if (description) {
+          descEl.textContent = description;
+          descEl.classList.remove('hidden');
+        } else {
+          descEl.classList.add('hidden');
+        }
+      }
+      if (btnEl) btnEl.textContent = confirmBtnText || 'Yes, Delete';
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeUniversalDeleteConfirmModal() {
+      const modal = document.getElementById('universalDeleteConfirmModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+      pendingUniversalDeleteCallback = null;
+    }
+
+    function confirmUniversalDeleteNow() {
+      const cb = pendingUniversalDeleteCallback;
+      closeUniversalDeleteConfirmModal();
+      if (typeof cb === 'function') {
+        cb();
+      }
+    }
+
     function deleteIngredient(ingId) {
       const idx = state.ingredients.findIndex(i => i.id === ingId);
       if (idx === -1) return;
-      const removed = state.ingredients[idx];
-      state.ingredients.splice(idx, 1);
-      saveState();
-      renderIngredientsTab();
-      showToast(`Deleted "${removed.name}"`);
+      const ing = state.ingredients[idx];
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Ingredient Deletion',
+        itemName: `"${ing.name}" (₹${formatNum(ing.price, 2)}/${ing.unit})`,
+        description: 'This will remove the ingredient from the Ingredients Master List. Past archived cooking records in the History tab will remain unaffected.',
+        confirmBtnText: 'Yes, Delete Ingredient',
+        onConfirm: () => {
+          const curIdx = state.ingredients.findIndex(i => i.id === ingId);
+          if (curIdx === -1) return;
+          const removed = state.ingredients[curIdx];
+          state.ingredients.splice(curIdx, 1);
+          saveState();
+          renderIngredientsTab();
+          showToast(`Deleted "${removed.name}"`);
+        }
+      });
     }
 
     // =========================================================================
@@ -5134,8 +5230,17 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeRecipeModalStep(sIdx) {
       if (!modalRecipeDraft || modalRecipeDraft.length <= 1) return;
-      modalRecipeDraft.splice(sIdx, 1);
-      renderRecipeModalSteps();
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Cooking Step Removal',
+        itemName: `Cooking Process Step ${sIdx + 1}`,
+        description: 'Are you sure you want to remove this cooking step and its linked ingredients from this recipe?',
+        confirmBtnText: 'Yes, Remove Step',
+        onConfirm: () => {
+          if (!modalRecipeDraft || modalRecipeDraft.length <= 1) return;
+          modalRecipeDraft.splice(sIdx, 1);
+          renderRecipeModalSteps();
+        }
+      });
     }
 
     function addIngredientToModalStep(sIdx) {
@@ -5150,8 +5255,20 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeIngredientFromModalStep(sIdx, iIdx) {
       if (!modalRecipeDraft || !modalRecipeDraft[sIdx] || modalRecipeDraft[sIdx].items.length <= 1) return;
-      modalRecipeDraft[sIdx].items.splice(iIdx, 1);
-      renderRecipeModalSteps();
+      const item = modalRecipeDraft[sIdx].items[iIdx];
+      const ingObj = item ? getIngredientById(item.ingId) : null;
+      const ingLabel = ingObj ? `"${ingObj.name}"` : 'this ingredient row';
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Step Ingredient Removal',
+        itemName: `${ingLabel} from Step ${sIdx + 1}`,
+        description: 'Are you sure you want to remove this ingredient from the cooking step?',
+        confirmBtnText: 'Yes, Remove Ingredient',
+        onConfirm: () => {
+          if (!modalRecipeDraft || !modalRecipeDraft[sIdx] || modalRecipeDraft[sIdx].items.length <= 1) return;
+          modalRecipeDraft[sIdx].items.splice(iIdx, 1);
+          renderRecipeModalSteps();
+        }
+      });
     }
 
     function saveRecipeFromModal() {
@@ -5905,9 +6022,22 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
 
     function removeCalDayDish(dateStr, mealKey, dishIdx) {
       const draft = ensureCalEditorDraft(dateStr);
-      draft[mealKey].dishes.splice(dishIdx, 1);
-      calEditorDirty = true;
-      renderCalendarDayEditor();
+      const recId = draft[mealKey]?.dishes?.[dishIdx];
+      const recObj = recId ? getRecipeById(recId) : null;
+      const dishLabel = recObj ? `"${recObj.name}"` : 'this dish slot';
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Dish Removal from Menu',
+        itemName: `${dishLabel} (${mealKey.toUpperCase()} on ${dateStr})`,
+        description: 'Are you sure you want to remove this dish from the meal menu? Remember to click "Update" afterwards to save changes to the calendar block.',
+        confirmBtnText: 'Yes, Remove Dish',
+        onConfirm: () => {
+          const curDraft = ensureCalEditorDraft(dateStr);
+          if (!curDraft[mealKey] || !Array.isArray(curDraft[mealKey].dishes)) return;
+          curDraft[mealKey].dishes.splice(dishIdx, 1);
+          calEditorDirty = true;
+          renderCalendarDayEditor();
+        }
+      });
     }
 
     function updateCalMealTime(dateStr, mealKey, field, val) {
@@ -5952,11 +6082,11 @@ function upsertSheetRows(ss, sheetName, headers, incomingRows) {
     let currentUamSession = null;
     let uamVisiblePasswordSlots = {};
 
-function loadActiveUamSession() {
+    function loadActiveUamSession() {
       try {
         localStorage.removeItem(UAM_SESSION_STORAGE_KEY);
         const raw = sessionStorage.getItem(UAM_SESSION_STORAGE_KEY) ||
-          (window.name && window.name.startsWith('SRR_UAM:') ? window.name.slice(8) : null);
+          (window.name && window.name.startsWith("SRR_UAM:") ? window.name.slice(8) : null);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && parsed.role && parsed.username) {
@@ -5974,16 +6104,16 @@ function loadActiveUamSession() {
         if (sess) {
           const jsonStr = JSON.stringify(sess);
           sessionStorage.setItem(UAM_SESSION_STORAGE_KEY, jsonStr);
-          window.name = 'SRR_UAM:' + jsonStr;
+          window.name = "SRR_UAM:" + jsonStr;
         } else {
           sessionStorage.removeItem(UAM_SESSION_STORAGE_KEY);
-          if (window.name && window.name.startsWith('SRR_UAM:')) {
-            window.name = '';
+          if (window.name && window.name.startsWith("SRR_UAM:")) {
+            window.name = "";
           }
         }
       } catch (e) {}
     }
-    
+
     function isCurrentUserSuperAdmin() {
       return Boolean(currentUamSession && currentUamSession.role === 'super_admin');
     }
@@ -6037,7 +6167,7 @@ function loadActiveUamSession() {
       return list;
     }
 
-function revalidateActiveUamSessionAfterCloudSync() {
+    function revalidateActiveUamSessionAfterCloudSync() {
       if (!currentUamSession) return;
       // Keep the logged-in user session active across all page refreshes in this tab!
       const accounts = getAllConfiguredUamAccounts();
@@ -6051,7 +6181,7 @@ function revalidateActiveUamSessionAfterCloudSync() {
       }
       saveActiveUamSession(currentUamSession);
     }
-    
+
     function applyUamRolePermissions() {
       const loginOverlay = document.getElementById('uamLoginOverlay');
       if (!currentUamSession) {
@@ -6476,15 +6606,25 @@ function revalidateActiveUamSessionAfterCloudSync() {
     function clearUamSlot(slotKey) {
       if (!isCurrentUserSuperAdmin()) return;
       const uEl = document.getElementById(`uamUser_${slotKey}`);
-      const pEl = document.getElementById(`uamPass_${slotKey}`);
-      if (uEl) uEl.value = '';
-      if (pEl) pEl.value = '';
-      const validated = collectAndValidateUamFromDOM();
-      if (!validated) return;
-      state.uamConfig = validated;
-      saveState();
-      renderUamSettingsSection();
-      showToast('Revoked & cleared user slot!');
+      const curUser = (uEl?.value || '').trim();
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm User Access Revocation',
+        itemName: curUser ? `"${curUser}" (${slotKey.replace('_', ' ').toUpperCase()})` : slotKey.replace('_', ' ').toUpperCase(),
+        description: 'This will revoke login credentials for this slot and clear the username and password.',
+        confirmBtnText: 'Yes, Revoke Access',
+        onConfirm: () => {
+          const userInp = document.getElementById(`uamUser_${slotKey}`);
+          const passInp = document.getElementById(`uamPass_${slotKey}`);
+          if (userInp) userInp.value = '';
+          if (passInp) passInp.value = '';
+          const validated = collectAndValidateUamFromDOM();
+          if (!validated) return;
+          state.uamConfig = validated;
+          saveState();
+          renderUamSettingsSection();
+          showToast('Revoked & cleared user slot!');
+        }
+      });
     }
 
     function renderDepartmentsSection() {
@@ -6758,12 +6898,23 @@ function revalidateActiveUamSessionAfterCloudSync() {
     function deleteDepartment(deptId) {
       const idx = state.departments.findIndex(d => d.id === deptId);
       if (idx === -1) return;
-      const name = state.departments[idx].name;
-      state.departments.splice(idx, 1);
-      syncDailyPlansWithCurrentDepartments(deptId);
-      saveState();
-      renderDepartmentsSection();
-      showToast(`Deleted department "${name}"`);
+      const dept = state.departments[idx];
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Department Deletion',
+        itemName: `Department "${dept.name}" (${dept.count} devotees)`,
+        description: 'This will remove the department from active planning. Past archived records in the History and Accounts tabs will remain unaffected.',
+        confirmBtnText: 'Yes, Delete Department',
+        onConfirm: () => {
+          const curIdx = state.departments.findIndex(d => d.id === deptId);
+          if (curIdx === -1) return;
+          const name = state.departments[curIdx].name;
+          state.departments.splice(curIdx, 1);
+          syncDailyPlansWithCurrentDepartments(deptId);
+          saveState();
+          renderDepartmentsSection();
+          showToast(`Deleted department "${name}"`);
+        }
+      });
     }
 
     function syncDailyPlansWithCurrentDepartments(deletedDeptId = null) {
@@ -7453,19 +7604,31 @@ function revalidateActiveUamSessionAfterCloudSync() {
 
     function removeDailyDeptCol(dateStr, mealKey, colIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
-      markDailyKitchenDirty(dateStr);
-      const cols = plan.meals[mealKey].deptCols;
-      if (!cols || cols.length === 0) return;
-      const removed = cols.splice(colIdx, 1)[0];
-      if (removed) {
-        plan.meals[mealKey].rows.forEach(r => {
-          if (r.overrides) delete r.overrides[removed.colId];
-          r.calcOverride = null;
-          r.adjustedQty = Math.ceil(computeRowCalculatedTotal(plan.meals[mealKey], r));
-        });
-      }
-      saveState();
-      renderDailyKitchenTab();
+      const cols = plan.meals[mealKey]?.deptCols;
+      if (!cols || !cols[colIdx]) return;
+      const colObj = cols[colIdx];
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Department Column Removal',
+        itemName: `"${colObj.customLabel || 'Department'}" from ${mealKey.toUpperCase()}`,
+        description: 'Are you sure you want to remove this department column from this meal in Daily Kitchen?',
+        confirmBtnText: 'Yes, Remove Column',
+        onConfirm: () => {
+          const curPlan = ensureDailyPlanForDate(dateStr);
+          markDailyKitchenDirty(dateStr);
+          const curCols = curPlan.meals[mealKey].deptCols;
+          if (!curCols || curCols.length === 0) return;
+          const removed = curCols.splice(colIdx, 1)[0];
+          if (removed) {
+            curPlan.meals[mealKey].rows.forEach(r => {
+              if (r.overrides) delete r.overrides[removed.colId];
+              r.calcOverride = null;
+              r.adjustedQty = Math.ceil(computeRowCalculatedTotal(curPlan.meals[mealKey], r));
+            });
+          }
+          saveState();
+          renderDailyKitchenTab();
+        }
+      });
     }
 
     function addDailyDishRow(dateStr, mealKey) {
@@ -7488,10 +7651,22 @@ function revalidateActiveUamSessionAfterCloudSync() {
 
     function removeDailyDishRow(dateStr, mealKey, rowIdx) {
       const plan = ensureDailyPlanForDate(dateStr);
-      markDailyKitchenDirty(dateStr);
-      plan.meals[mealKey].rows.splice(rowIdx, 1);
-      saveState();
-      renderDailyKitchenTab();
+      const rowObj = plan.meals[mealKey]?.rows?.[rowIdx];
+      const recObj = rowObj ? getRecipeById(rowObj.recipeId) : null;
+      const dishName = recObj ? `"${recObj.name}"` : 'this dish row';
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Dish Removal from Daily Kitchen',
+        itemName: `${dishName} (${mealKey.toUpperCase()})`,
+        description: 'Are you sure you want to remove this dish row from this meal in Daily Kitchen?',
+        confirmBtnText: 'Yes, Remove Dish',
+        onConfirm: () => {
+          const curPlan = ensureDailyPlanForDate(dateStr);
+          markDailyKitchenDirty(dateStr);
+          curPlan.meals[mealKey].rows.splice(rowIdx, 1);
+          saveState();
+          renderDailyKitchenTab();
+        }
+      });
     }
 
     function onDailyRowRecipeChange(dateStr, mealKey, rowIdx, newRecId) {
@@ -8712,10 +8887,21 @@ function revalidateActiveUamSessionAfterCloudSync() {
     function deleteExpenseEntry(expId) {
       const idx = (state.accounts.expenses || []).findIndex(e => e.id === expId);
       if (idx === -1) return;
-      state.accounts.expenses.splice(idx, 1);
-      saveState();
-      renderAccountsTab();
-      showToast('Deleted expense entry');
+      const exp = state.accounts.expenses[idx];
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Expense Entry Deletion',
+        itemName: `"${exp.particulars}" (${exp.type} — ${formatCurrency(exp.debit)} on ${exp.date})`,
+        description: 'Are you sure you want to permanently delete this expense entry from Accounts?',
+        confirmBtnText: 'Yes, Delete Expense',
+        onConfirm: () => {
+          const curIdx = (state.accounts.expenses || []).findIndex(e => e.id === expId);
+          if (curIdx === -1) return;
+          state.accounts.expenses.splice(curIdx, 1);
+          saveState();
+          renderAccountsTab();
+          showToast('Deleted expense entry');
+        }
+      });
     }
 
     function resetExpenseFilters() {
@@ -9080,10 +9266,21 @@ function revalidateActiveUamSessionAfterCloudSync() {
     function deleteManualRevenueEntry(revId) {
       const idx = (state.accounts.manualRevenue || []).findIndex(r => r.id === revId);
       if (idx === -1) return;
-      state.accounts.manualRevenue.splice(idx, 1);
-      saveState();
-      renderAccountsTab();
-      showToast('Deleted manual revenue entry');
+      const rev = state.accounts.manualRevenue[idx];
+      openUniversalDeleteConfirmModal({
+        title: 'Confirm Revenue Entry Deletion',
+        itemName: `"${rev.menu}" (${rev.deptName} — ${formatCurrency(rev.amount)} on ${rev.date})`,
+        description: 'Are you sure you want to permanently delete this manual revenue entry from Accounts?',
+        confirmBtnText: 'Yes, Delete Revenue Entry',
+        onConfirm: () => {
+          const curIdx = (state.accounts.manualRevenue || []).findIndex(r => r.id === revId);
+          if (curIdx === -1) return;
+          state.accounts.manualRevenue.splice(curIdx, 1);
+          saveState();
+          renderAccountsTab();
+          showToast('Deleted manual revenue entry');
+        }
+      });
     }
 
     function resetRevenueFilters() {
